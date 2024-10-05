@@ -1,11 +1,10 @@
 {
   "compilerOptions": {
+    "moduleResolution": "node",
+    "typeRoots": ["./node_modules/@types", "./node_modules"],
+    "types": ["node", "react", "react-dom"],
     "target": "es5",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "esModuleInterop": true,
@@ -20,7 +19,5 @@
     "noEmit": true,
     "jsx": "react-jsx"
   },
-  "include": [
-    "src"
-  ]
+  "include": ["src/**/*"]
 }
