@@ -1,5 +1,4 @@
-import React, { useState } from 'react';
-import './styles/App.css';
+import { useState } from 'react';
 import HomePage from './pages/homePage';
 import SignIn from './pages/signIn';
 import Box from '@mui/material/Box';
