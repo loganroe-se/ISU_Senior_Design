@@ -1,16 +1,21 @@
+import React, { useState } from 'react';
 import './styles/App.css';
-import Navbar from './components/navbar';
+import HomePage from './pages/homePage';
+import SignIn from './pages/signIn';
+import Box from '@mui/material/Box';
 
 function App() {
+  const [isSignedIn, setIsSignedIn] = useState(false);
+
+  const handleSignIn = () => {
+    // This is where you would handle authentication logic
+    setIsSignedIn(true); // Set to true to show the HomePage
+  };
+
   return (
-    <div className="App">
-        <Navbar></Navbar>
-      <body>
-        <div>
-          <h1>Welcome to dripdrop</h1>
-        </div>
-      </body>
-    </div>
+    <Box>
+      {isSignedIn ? <HomePage /> : <SignIn onSignIn={handleSignIn} />}
+    </Box>
   );
 }
 
