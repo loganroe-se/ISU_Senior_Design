@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import HomePage from './pages/Home';
+import HomePage from './pages/Layout';
 import SignIn from './pages/signIn';
 import Box from '@mui/material/Box';
 
