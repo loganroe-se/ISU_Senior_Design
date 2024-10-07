@@ -12,13 +12,16 @@ import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import HomeIcon from '@mui/icons-material/Home';
 import { Settings, AccountBox, Search } from '@mui/icons-material';
-import Container from '@mui/material/Container'; // Import Container
+import Container from '@mui/material/Container'; 
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import Profile from './Profile';
+import SettingsPage from './Settings';
+import SearchResults from './SearchResults';
 
 const drawerWidth = 240;
 
-export default function HomePage() {
+export default function Home() {
     return (
-        <>
             <Box sx={{ display: 'flex' }}>
                 <CssBaseline />
                 <AppBar
@@ -54,7 +57,7 @@ export default function HomePage() {
                     <List>
                         {['Home', 'Search', 'Profile', 'Settings'].map((text, index) => (
                             <ListItem key={text} disablePadding>
-                                <ListItemButton>
+                                <ListItemButton component={Link} to={`/${text.toLowerCase()}`}>
                                     <ListItemIcon>
                                         {index === 0 && <HomeIcon />}
                                         {index === 1 && <Search />}
@@ -69,19 +72,27 @@ export default function HomePage() {
                 </Drawer>
 
                 {/* Main content area */}
+            <Box>
+                <Typography variant="h4" component="h1" gutterBottom>
+                    Home Page
+                </Typography>
+                <Typography variant="body1">
+                    This is the home page
+                </Typography>
+            </Box>
                 <Container
                     component="main"
-                    sx={{ flexGrow: 1, p: 3, mt: 8 }} // Use padding and margin to adjust position
+                    sx={{ flexGrow: 1, p: 3, mt: 8 }} // Adjust padding and margin to position content properly
                 >
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Welcome to DripDrop
-                    </Typography>
-                    <Typography variant="body1">
-                        Lorem ipsum dolor, sit amet consectetur adipisicing elit. Laborum id aspernatur possimus ipsam quis cupiditate minima sit. Fugit eum incidunt, totam, dolorum porro voluptates quis, fugiat quidem nostrum nam doloribus!
-                    </Typography>
-                    {/* Add more components or content here */}
+                    <Routes>
+                        <Route path="/home" element={<Home />} />
+                    <Route path="/search" element={<SearchResults />} />
+                        <Route path="/profile" element={<Profile />} />
+                        <Route path="/settings" element={<SettingsPage />} />
+                    </Routes>
                 </Container>
             </Box>
-        </>
+
     );
 }
+

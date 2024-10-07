@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import HomePage from './pages/homePage';
-import SignIn from './pages/signIn';
+import SignIn from './components/signIn';
 import Box from '@mui/material/Box';
 
 function App() {
   const [isSignedIn, setIsSignedIn] = useState(false);
 
   const handleSignIn = () => {
-    // This is where you would handle authentication logic
-    setIsSignedIn(true); // Set to true to show the HomePage
+    // This is where we can handle authentication logic
+    setIsSignedIn(true);
   };
 
   return (
