@@ -6,7 +6,7 @@ import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import SignUp from './signUp';
+import SignUp from '../pages/signUp';
 
 // Define the type for the component's props
 interface SignInProps {

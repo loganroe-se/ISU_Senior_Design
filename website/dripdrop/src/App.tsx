@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import HomePage from './pages/homePage';
-import SignIn from './components/signIn';
+import HomePage from './pages/Home';
+import SignIn from './pages/signIn';
 import Box from '@mui/material/Box';
 
 function App() {

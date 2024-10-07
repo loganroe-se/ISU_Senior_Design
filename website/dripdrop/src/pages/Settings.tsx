@@ -9,7 +9,7 @@ const SettingsPage = () => {
                 Settings Page
             </Typography>
             <Typography variant="body1">
-                This is the settings page where users can adjust their preferences
+                This is the settings page.
             </Typography>
         </Box>
     );
