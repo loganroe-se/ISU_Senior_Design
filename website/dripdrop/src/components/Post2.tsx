@@ -31,7 +31,7 @@ const Post = () => {
             {/* Image section (example clothing image) */}
             <CardMedia
                 component="img"
-                image="/logo192.png" // Replace with dynamic clothing item image
+                image="/outfit_2.jpeg" // Replace with dynamic clothing item image
                 alt="Clothing post"
             />
 

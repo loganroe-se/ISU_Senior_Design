@@ -6,7 +6,8 @@ import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import Sidebar  from '../components/Sidebar';
-import Post from '../components/Post';
+import Post1 from '../components/Post1';
+import Post2 from '../components/Post2';
 
 const drawerWidth = 240;
 
@@ -37,8 +38,8 @@ export default function Home() {
                     
                 }}
             >
-                <Post/>
-                <Post/>
+                <Post1/>
+                <Post2/>
             </Container>
         </Box>
     );

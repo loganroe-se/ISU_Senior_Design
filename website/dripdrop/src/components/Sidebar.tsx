@@ -30,7 +30,7 @@ const Sidebar = () => {
             <Divider />
             <Box
                 component="img"
-                src='/logo512.png'
+                src='/DripDrop.png'
                 alt='logo placeholder'
                 loading='lazy'
                 sx={{ width: 40, height: 40, margin: '16px auto', display: 'block' }}
