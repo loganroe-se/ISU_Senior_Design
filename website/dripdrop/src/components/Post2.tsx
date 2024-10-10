@@ -13,10 +13,13 @@ import List from '@mui/material/List';
 import ListItem from '@mui/material/ListItem';
 import Avatar from '@mui/material/Avatar';
 import ListItemText from '@mui/material/ListItemText';
+import Header from '@mui/material/TableHead'
 
 const Post = () => {
     const [liked, setLiked] = useState(false);
     const [saved, setSaved] = useState(false);
+    const [showLinks, setShowLinks] = useState(false);
+
 
     const handleLike = () => {
         setLiked(!liked);
@@ -27,34 +30,27 @@ const Post = () => {
     };
 
     return (
-        <Card sx={{ maxWidth: '100%', marginBottom: '16px' }}>
-            {/* Image section (example clothing image) */}
-            <CardMedia
-                component="img"
-                image="/outfit_2.jpeg" // Replace with dynamic clothing item image
-                alt="Clothing post"
-            />
+        <Card sx={{ maxWidth: '40rem', marginBottom: '16px' }}>
+        {/* Image section (example clothing image) */}
+        <CardMedia
+            component="img"
+            id="post2_pic"
+            image= {showLinks ? "/outfit2_dots.png": "/outfit_2.jpeg"} // Replace with dynamic clothing item image
+            alt="Clothing post"
+
+            onClick={() =>
+                setShowLinks(!showLinks)
+            } 
+        />
 
             {/* Content of the post */}
             <CardContent>
                 <Typography variant="h5" component="div">
-                    User's Fashion Post
+                    KatieDowers32
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    This is an example of a post showcasing some clothing items. You can click on the clothing items to view more details.
+                    Im in love with this new coat. It pairs so well with the rest of the fit!
                 </Typography>
-
-                {/* List of clickable clothing items */}
-                <List>
-                    <ListItem component ="button">
-                        <Avatar src="/images/clothing1.jpg" />
-                        <ListItemText primary="Clothing Item 1" secondary="View more info" />
-                    </ListItem>
-                    <ListItem component ="button">
-                        <Avatar src="/images/clothing2.jpg" />
-                        <ListItemText primary="Clothing Item 2" secondary="View more info" />
-                    </ListItem>
-                </List>
             </CardContent>
 
             {/* Action buttons for the post */}

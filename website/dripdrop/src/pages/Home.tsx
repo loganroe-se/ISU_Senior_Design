@@ -16,16 +16,6 @@ export default function Home() {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar
-                position="fixed"
-                sx={{ width: `calc(100% - ${drawerWidth}px)`, ml: `${drawerWidth}px` }}
-            >
-                <Toolbar>
-                    <Typography variant="h6" noWrap component="div">
-                        DripDrop
-                    </Typography>
-                </Toolbar>
-            </AppBar>
             
             <Container
                 component="main"
@@ -34,7 +24,7 @@ export default function Home() {
                     justifyContent: 'center',
                     flexGrow: 1,
                     p: 3,
-                    mt: 8,
+                    mt: 8
                     
                 }}
             >

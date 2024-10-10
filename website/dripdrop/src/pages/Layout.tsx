@@ -18,15 +18,6 @@ export default function Home() {
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
-            <AppBar
-                position="fixed"
-            >
-                <Toolbar>
-                    <Typography variant="h6" noWrap component="div">
-                        DripDrop
-                    </Typography>
-                </Toolbar>
-            </AppBar>
 
             <Sidebar /> 
             <Container

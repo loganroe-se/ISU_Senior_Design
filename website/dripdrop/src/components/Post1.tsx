@@ -28,12 +28,12 @@ const Post = () => {
     };
 
     return (
-        <Card sx={{ maxWidth: '100%', marginBottom: '16px' }}>
+        <Card sx={{maxWidth: '40rem', marginBottom: '16px' }}>
             {/* Image section (example clothing image) */}
             <CardMedia
                 component="img"
                 id="post1_pic"
-                image= {showLinks ? "/outfit_2.jpeg": "/outfit_1.jpg"} // Replace with dynamic clothing item image
+                image= {showLinks ? "/outfit1_dots.png": "/outfit_1.jpg"} // Replace with dynamic clothing item image
                 alt="Clothing post"
                 onClick={() =>
                     setShowLinks(!showLinks)
@@ -43,23 +43,11 @@ const Post = () => {
             {/* Content of the post */}
             <CardContent>
                 <Typography variant="h5" component="div">
-                    User's Fashion Post
+                    EliseTravers
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                    This is an example of a post showcasing some clothing items. You can click on the clothing items to view more details.
+                    New fall outfit!
                 </Typography>
-
-                {/* List of clickable clothing items */}
-                <List>
-                    <ListItem component ="button">
-                        <Avatar src="/images/clothing1.jpg" />
-                        <ListItemText primary="Clothing Item 1" secondary="View more info" />
-                    </ListItem>
-                    <ListItem component ="button">
-                        <Avatar src="/images/clothing2.jpg" />
-                        <ListItemText primary="Clothing Item 2" secondary="View more info" />
-                    </ListItem>
-                </List>
             </CardContent>
 
             {/* Action buttons for the post */}
