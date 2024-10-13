@@ -1,11 +1,8 @@
 // src/Home.tsx
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
-import AppBar from '@mui/material/AppBar';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './Profile';
 import SettingsPage from './Settings';
 import SearchResults from './SearchResults';
@@ -25,7 +22,7 @@ export default function Home() {
                 sx={{ flexGrow: 1, p: 3, mt: 8 }} 
             >
                 <Routes>
-                    <Route path="/" element={<Navigate to="/home" />} /> {/* Redirect to /home */}
+                    <Route path="/" element={<Navigate to="/home" />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/profile" element={<Profile />} />

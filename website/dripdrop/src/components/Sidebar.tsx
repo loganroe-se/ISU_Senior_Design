@@ -12,7 +12,7 @@ import { Settings, AccountBox, Search, AlignVerticalCenter } from '@mui/icons-ma
 import { Link } from 'react-router-dom';
 import ListHeader from '@mui/material/ListSubheader'
 import { Typography } from '@mui/material';
-import { createTheme, responsiveFontSizes } from '@mui/material/styles';
+import Filter from '../components/Filters'
 
 const drawerWidth = 240;
 
@@ -51,6 +51,7 @@ const Sidebar = () => {
                     </ListItem>
                 ))}
             </List>
+            <Filter />
         </Drawer>
     );
 };
