@@ -1,0 +1,14 @@
+{
+  "hosted-zone:account=626635444817:domainName=dripdropco.com:region=us-east-1": {
+    "Id": "/hostedzone/Z057128319KUKUY1B2G0G",
+    "Name": "dripdropco.com."
+  },
+  "availability-zones:account=626635444817:region=us-east-1": [
+    "us-east-1a",
+    "us-east-1b",
+    "us-east-1c",
+    "us-east-1d",
+    "us-east-1e",
+    "us-east-1f"
+  ]
+}

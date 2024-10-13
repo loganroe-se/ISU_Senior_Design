@@ -19,7 +19,7 @@ export class WebsiteHostingStack extends cdk.Stack {
 
       new StaticSite(this, 'StaticSite', {
           domainName: this.node.tryGetContext('domain'),
-          siteSubDomain: this.node.tryGetContext('subdomain'),
+          siteSubDomain: this.node.tryGetContext('websitesubdomain'),
       });
   }
 }
