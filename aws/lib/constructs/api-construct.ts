@@ -43,7 +43,7 @@ export class ApiConstruct extends Construct {
 
     // VPC for Aurora
     const vpc = new ec2.Vpc(this, "AuroraVpc", {
-      maxAzs: 2,
+      maxAzs: 2
     });
 
     // Create username and password secret for DB Cluster
@@ -52,12 +52,22 @@ export class ApiConstruct extends Construct {
     });
 
     // Aurora MySQL Cluster
-    const cluster = new rds.ServerlessCluster(this, "AuroraCluster", {
+    const cluster = new rds.DatabaseCluster(this, "AuroraCluster", {
       engine: rds.DatabaseClusterEngine.auroraMysql({
         version: rds.AuroraMysqlEngineVersion.VER_2_11_4,
       }),
+      writer: rds.ClusterInstance.provisioned('writer', {
+        publiclyAccessible: false,
+      }),
+      readers: [
+        rds.ClusterInstance.provisioned('reader1', { promotionTier: 1 }),
+        rds.ClusterInstance.serverlessV2('reader2'),
+      ],
+      vpcSubnets: {
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      },
       vpc: vpc,
-      credentials: { username: "clusteradmin" },
+      credentials: { username: "clusteradmin", secret: secret },
       defaultDatabaseName: "dripdropdb",
       removalPolicy: cdk.RemovalPolicy.DESTROY, // For development purposes
     });
