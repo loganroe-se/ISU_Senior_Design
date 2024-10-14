@@ -8,6 +8,7 @@ import SettingsPage from './Settings';
 import SearchResults from './SearchResults';
 import HomePage from './Home';
 import Sidebar from '../components/Sidebar'; 
+import CreatePost from './CreatePost';
 
 const drawerWidth = 240;
 
@@ -25,6 +26,7 @@ export default function Home() {
                     <Route path="/" element={<Navigate to="/home" />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/search" element={<SearchResults />} />
+                    <Route path="/post" element={<CreatePost />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/settings" element={<SettingsPage />} />
                 </Routes>
