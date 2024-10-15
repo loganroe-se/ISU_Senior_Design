@@ -40,13 +40,14 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100vh',
-                bgcolor: 'background.default',
+                bgcolor: '#185197'
             }}
         >
             {isSigningUp ? (
                 <SignUp onSignUp={handleSignUp} />
             ) : (
                 <>
+                    <img src={require('../images/logo.png')} style={{'width':'100px'}} />
                     <Typography variant="h4" gutterBottom>
                         Welcome to DripDrop
                     </Typography>
