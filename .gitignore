@@ -2,6 +2,9 @@
 build
 typings
 
+#layer
+python/
+
 # OSX
 #
 .DS_Store

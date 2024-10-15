@@ -10,6 +10,7 @@ import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Stack } from "aws-cdk-lib";
+import { Secret } from "aws-cdk-lib/aws-secretsmanager";
 
 export interface StaticSiteProps {
   domainName: string;
@@ -43,33 +44,20 @@ export class ApiConstruct extends Construct {
 
     // VPC for Aurora
     const vpc = new ec2.Vpc(this, "AuroraVpc", {
-      maxAzs: 2
-    });
-
-    // Create username and password secret for DB Cluster
-    const secret = new rds.DatabaseSecret(this, "AuroraSecret", {
-      username: "clusteradmin",
-    });
-
-    // Aurora MySQL Cluster
-    const cluster = new rds.DatabaseCluster(this, "AuroraCluster", {
-      engine: rds.DatabaseClusterEngine.auroraMysql({
-        version: rds.AuroraMysqlEngineVersion.VER_2_11_4,
-      }),
-      writer: rds.ClusterInstance.provisioned('writer', {
-        publiclyAccessible: false,
-      }),
-      readers: [
-        rds.ClusterInstance.provisioned('reader1', { promotionTier: 1 }),
-        rds.ClusterInstance.serverlessV2('reader2'),
+      maxAzs: 2,
+      natGateways: 1,
+      subnetConfiguration: [
+        {
+          cidrMask: 24,
+          name: "privatelambda",
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+        {
+          cidrMask: 24,
+          name: "public",
+          subnetType: ec2.SubnetType.PUBLIC,
+        },
       ],
-      vpcSubnets: {
-        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
-      },
-      vpc: vpc,
-      credentials: { username: "clusteradmin", secret: secret },
-      defaultDatabaseName: "dripdropdb",
-      removalPolicy: cdk.RemovalPolicy.DESTROY, // For development purposes
     });
 
     // Security Group for Lambda to access Aurora
@@ -79,10 +67,45 @@ export class ApiConstruct extends Construct {
       allowAllOutbound: true,
     });
 
-    cluster.connections.allowDefaultPortFrom(
+    const dbSecurityGroup = new ec2.SecurityGroup(this, "DbSecurityGroup", {
+      vpc,
+    });
+
+    dbSecurityGroup.addIngressRule(
       lambdaSecurityGroup,
-      "Allow Lambda access"
+      ec2.Port.tcp(3306),
+      "Lambda to database"
     );
+
+    const databaseName = "dripdropdb";
+    // Aurora MySQL Cluster
+    const cluster = new rds.DatabaseCluster(this, "AuroraCluster", {
+      engine: rds.DatabaseClusterEngine.auroraMysql({
+        version: rds.AuroraMysqlEngineVersion.VER_3_07_1,
+      }),
+      writer: rds.ClusterInstance.serverlessV2("writer", {
+        publiclyAccessible: false,
+      }),
+      readers: [rds.ClusterInstance.serverlessV2("reader1")],
+      vpc,
+      vpcSubnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      }),
+      securityGroups: [dbSecurityGroup],
+      credentials: rds.Credentials.fromGeneratedSecret("clusteradmin"),
+      defaultDatabaseName: databaseName,
+      removalPolicy: cdk.RemovalPolicy.DESTROY, // For development purposes
+    });
+
+    const dbProxy = cluster.addProxy("DripDropProx", {
+      secrets: [cluster.secret!],
+      securityGroups: [dbSecurityGroup],
+      vpc,
+      requireTLS: true,
+      vpcSubnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      }),
+    });
 
     // IAM Role for Lambda functions
     const lambdaRole = new iam.Role(this, "LambdaRole", {
@@ -98,33 +121,47 @@ export class ApiConstruct extends Construct {
       ],
     });
 
+    // Lambda Layer
+    const sharedLayer = new lambda.LayerVersion(this, "shared-layer", {
+      code: lambda.Code.fromAsset("./lib/layer"),
+      compatibleRuntimes: [lambda.Runtime.PYTHON_3_12],
+      layerVersionName: "shared-layer",
+    });
+
     // Helper function to create Lambda functions
     const createLambda = (
       id: string,
       handlerPath: string,
       functionName: string
     ) => {
-      return new lambda.Function(this, id, {
+      const l = new lambda.Function(this, id, {
         runtime: lambda.Runtime.PYTHON_3_12,
         handler: "handler." + functionName,
         code: lambda.Code.fromAsset(handlerPath),
         role: lambdaRole,
         vpc,
+        vpcSubnets: vpc.selectSubnets({
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        }),
         securityGroups: [lambdaSecurityGroup],
         environment: {
-          DB_HOST: cluster.clusterEndpoint.hostname,
-          DB_NAME: "usersdb", // Need to be changed
-          DB_USER: "admin", // Need to be changed
-          DB_PASSWORD: "password", // Need to be changed
+          DB_ENDPOINT_ADDRESS: dbProxy.endpoint,
+          DB_SECRET_ARN: cluster.secret?.secretFullArn || "",
+          DB_PORT: cluster.clusterEndpoint.port.toString(),
+          DB_NAME: databaseName,
         },
+        layers: [sharedLayer],
       });
+
+      cluster.secret?.grantRead(l);
+      return l;
     };
 
     // Create separate Lambda functions for each CRUD operation
     const createUserLambda = createLambda(
       "CreateUserLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/sample",
+      "lambda_handler"
     );
     const getUsersLambda = createLambda(
       "GetUsersLambda",
@@ -150,6 +187,10 @@ export class ApiConstruct extends Construct {
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
       restApiName: "User Service",
+      defaultCorsPreflightOptions: {
+        allowOrigins: apigateway.Cors.ALL_ORIGINS,
+        allowMethods: apigateway.Cors.ALL_METHODS,
+      },
       domainName: {
         domainName: `${props.siteSubDomain}.${props.domainName}`,
         certificate,
