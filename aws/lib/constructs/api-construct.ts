@@ -45,7 +45,7 @@ export class ApiConstruct extends Construct {
     // VPC for Aurora
     const vpc = new ec2.Vpc(this, "AuroraVpc", {
       maxAzs: 2,
-      natGateways: 1,
+      natGateways: 0,
       subnetConfiguration: [
         {
           cidrMask: 24,
@@ -67,6 +67,18 @@ export class ApiConstruct extends Construct {
       allowAllOutbound: true,
     });
 
+    lambdaSecurityGroup.addEgressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.allTraffic(),
+      "Allow lambda access to SM"
+    );
+
+    lambdaSecurityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.allTraffic(),
+      "Allow lambda access to SM"
+    );
+
     const dbSecurityGroup = new ec2.SecurityGroup(this, "DbSecurityGroup", {
       vpc,
     });
@@ -76,6 +88,16 @@ export class ApiConstruct extends Construct {
       ec2.Port.tcp(3306),
       "Lambda to database"
     );
+
+    new ec2.InterfaceVpcEndpoint(this, "Secrets ManagerEndpoint", {
+      vpc: vpc,
+      service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
+      securityGroups: [lambdaSecurityGroup],
+      subnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        availabilityZones: ["us-east-1a", "us-east-1b"],
+      }),
+    });
 
     const databaseName = "dripdropdb";
     // Aurora MySQL Cluster
