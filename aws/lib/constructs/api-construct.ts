@@ -101,7 +101,7 @@ export class ApiConstruct extends Construct {
       secrets: [cluster.secret!],
       securityGroups: [dbSecurityGroup],
       vpc,
-      requireTLS: true,
+      requireTLS: false,
       vpcSubnets: vpc.selectSubnets({
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       }),
