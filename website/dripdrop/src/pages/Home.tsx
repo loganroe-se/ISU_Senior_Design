@@ -4,8 +4,9 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import Post1 from '../components/Post1';
 import Post2 from '../components/Post2';
-import Filter from '../components/Filters';
-import { RiceBowl } from '@mui/icons-material';
+
+
+
 
 const drawerWidth = 240;
 

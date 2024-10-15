@@ -7,6 +7,13 @@ import { useDropzone } from 'react-dropzone';
 import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Card from '@mui/material/Card';
+import CardActions from '@mui/material/CardActions';
+import CardContent from '@mui/material/CardContent';
+import CardMedia from '@mui/material/CardMedia';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import BookmarkIcon from '@mui/icons-material/Bookmark';
+import CommentIcon from '@mui/icons-material/Comment';
 
 const dropzoneStyle: React.CSSProperties = {
     border: '2px dashed #cccccc',
@@ -46,12 +53,14 @@ const removeButtonStyle: React.CSSProperties = {
     boxShadow: '0px 0px 5px rgba(0, 0, 0, 0.1)',
 };
 
+
 const CreatePost = () => {
     const [postDetails, setPostDetails] = useState({
         caption: '',
         clothesUrl: '',
     });
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
+    const [posts, setPosts] = useState<any[]>([]); // Holds the created posts
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -65,10 +74,8 @@ const CreatePost = () => {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: {
-            'image/*': []
-        },
-        maxFiles: 5,  // Set the maximum number of files allowed
+        accept: { 'image/*': [] },
+        maxFiles: 5,
     });
 
     // Remove image
@@ -80,9 +87,20 @@ const CreatePost = () => {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        console.log('Post Details:', postDetails);
-        console.log('Uploaded Images:', selectedImages);
-        // Post submission logic here
+
+        // Create new post object
+        const newPost = {
+            caption: postDetails.caption,
+            clothesUrl: postDetails.clothesUrl,
+            images: selectedImages.map((image) => URL.createObjectURL(image)), // URLs of images
+        };
+
+        // Add new post to the list of posts
+        setPosts([newPost, ...posts]);
+
+        // Reset form
+        setPostDetails({ caption: '', clothesUrl: '' });
+        setSelectedImages([]);
     };
 
     return (
@@ -159,6 +177,38 @@ const CreatePost = () => {
                     Create Post
                 </Button>
             </form>
+
+            {/* Display created posts */}
+            <Box mt={4}>
+                {posts.map((post, index) => (
+                    <Card key={index} sx={{ maxWidth: '40rem', marginBottom: '16px' }}>
+                        <CardMedia
+                            component="img"
+                            image={post.images[0]} // Display first image for the post
+                            alt="Post image"
+                        />
+                        <CardContent>
+                            <Typography variant="h5" component="div">
+                                User
+                            </Typography>
+                            <Typography variant="body2" color="text.secondary">
+                                {post.caption}
+                            </Typography>
+                        </CardContent>
+                        <CardActions>
+                            <IconButton>
+                                <FavoriteIcon />
+                            </IconButton>
+                            <IconButton>
+                                <BookmarkIcon />
+                            </IconButton>
+                            <IconButton>
+                                <CommentIcon />
+                            </IconButton>
+                        </CardActions>
+                    </Card>
+                ))}
+            </Box>
         </Box>
     );
 };

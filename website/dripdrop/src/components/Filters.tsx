@@ -9,12 +9,14 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import Slider from '@mui/material/Slider';
+import TextField from '@mui/material/TextField';
 
 // Define the types for your filter categories and filters
 type Filters = {
     color: { black: boolean; white: boolean; red: boolean };
     brand: { nike: boolean; adidas: boolean; gucci: boolean };
-    season: { summer: boolean; winter: boolean; spring: boolean; fall: boolean };
+    price: { min: number; max: number };
     occasion: { casual: boolean; formal: boolean; sport: boolean };
 };
 
@@ -22,11 +24,11 @@ const Filter = () => {
     const [filters, setFilters] = useState<Filters>({
         color: { black: false, white: false, red: false },
         brand: { nike: false, adidas: false, gucci: false },
-        season: { summer: false, winter: false, spring: false, fall: false },
+        price: { min: 0, max: 100 },  // Set initial values for the price filter
         occasion: { casual: false, formal: false, sport: false },
     });
 
-    // Provide explicit types for category and filter
+    // Function to handle checkbox changes
     const handleFilterChange = <T extends keyof Filters>(category: T, filter: keyof Filters[T]) => {
         setFilters(prevFilters => ({
             ...prevFilters,
@@ -37,13 +39,47 @@ const Filter = () => {
         }));
     };
 
+
+    // Function to handle price change from slider
+    const handlePriceSliderChange = (event: Event, newValue: number | number[]) => {
+        if (Array.isArray(newValue)) {
+            setFilters(prevFilters => ({
+                ...prevFilters,
+                price: { min: newValue[0], max: newValue[1] },
+            }));
+        }
+    };
+
+    const [priceError, setPriceError] = useState<string | null>(null);
+
+    const handlePriceInputChange = (event: React.ChangeEvent<HTMLInputElement>, type: 'min' | 'max') => {
+        const value = Number(event.target.value);
+
+        setFilters((prevFilters) => {
+            const updatedPrice = { ...prevFilters.price, [type]: value };
+
+            // Validation check: min should not be greater than max
+            if (updatedPrice.min > updatedPrice.max) {
+                setPriceError('Min price cannot be greater than max price.');
+            } else {
+                setPriceError(null); // Clear error if valid
+            }
+
+            return {
+                ...prevFilters,
+                price: updatedPrice,
+            };
+        });
+    };
+
+
+
     const applyFilters = () => {
         console.log('Filters applied:', filters);
     };
 
     return (
-        <Box sx={{mx:2}}
-        >
+        <Box sx={{ mx: 2 }}>
 
             {/* Accordion for Color */}
             <Accordion sx={{ border: 'none', boxShadow: 'none' }}>
@@ -91,32 +127,55 @@ const Filter = () => {
 
             <Divider />
 
-            {/* Accordion for Season */}
+            {/* Accordion for Price Filter */}
             <Accordion sx={{ border: 'none', boxShadow: 'none' }}>
                 <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography>Season</Typography>
+                    <Typography>Price</Typography>
                 </AccordionSummary>
                 <AccordionDetails>
-                    <FormControlLabel
-                        control={<Checkbox checked={filters.season.summer} onChange={() => handleFilterChange('season', 'summer')} />}
-                        label="Summer"
+                    <Typography gutterBottom>Price Range</Typography>
+                    <Slider
+                        value={[filters.price.min, filters.price.max]}
+                        onChange={handlePriceSliderChange}
+                        min={0}
+                        max={300}
+                        step={10}
+                        valueLabelDisplay="auto"
+                        sx={{ mb: 2 }}
                     />
-                    <FormControlLabel
-                        control={<Checkbox checked={filters.season.winter} onChange={() => handleFilterChange('season', 'winter')} />}
-                        label="Winter"
-                    />
-                    <FormControlLabel
-                        control={<Checkbox checked={filters.season.spring} onChange={() => handleFilterChange('season', 'spring')} />}
-                        label="Spring"
-                    />
-                    <FormControlLabel
-                        control={<Checkbox checked={filters.season.fall} onChange={() => handleFilterChange('season', 'fall')} />}
-                        label="Fall"
-                    />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <TextField
+                            label="Min Price"
+                            type="number"
+                            value={filters.price.min}
+                            onChange={(e) => handlePriceInputChange(e as React.ChangeEvent<HTMLInputElement>, 'min')}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            error={!!priceError}
+                            helperText={priceError && 'Min price cannot be greater than max price.'}
+                            fullWidth
+                        />
+
+                        <TextField
+                            label="Max Price"
+                            type="number"
+                            value={filters.price.max}
+                            onChange={(e) => handlePriceInputChange(e as React.ChangeEvent<HTMLInputElement>, 'max')}
+                            InputLabelProps={{
+                                shrink: true,
+                            }}
+                            error={!!priceError}
+                            helperText={priceError && 'Min price cannot be greater than max price.'}
+                            fullWidth
+                        />
+
+
+                    </Box>
                 </AccordionDetails>
             </Accordion>
 
-            <Divider/>
+            <Divider />
 
             {/* Accordion for Occasion */}
             <Accordion sx={{ border: 'none', boxShadow: 'none' }}>
@@ -138,7 +197,8 @@ const Filter = () => {
                     />
                 </AccordionDetails>
             </Accordion>
-            <Divider/>
+
+            <Divider />
 
             <Button
                 variant="contained"
