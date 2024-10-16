@@ -1,47 +1,44 @@
 import os
 import json
-import pymysql
-import boto3
-from botocore.exceptions import ClientError
+from sqlalchemy import inspect
+
+from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
+from dripdrop_orm_objects import Base
+
+# Fetch environment variables
+DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
 def manage_db(event, context):
+    # Get database credentials
+    creds = get_db_credentials(DB_SECRET_ARN)
+    
+    if not creds:
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Error retrieving database credentials')
+        }
+    
     try:
-        # Get the DB credentials from AWS Secrets Manager
-        secret_arn = os.getenv('DB_SECRET_ARN')
-        proxy_endpoint = os.getenv('DB_ENDPOINT_ADDRESS')
-
-        secrets_manager = boto3.client('secretsmanager')
-        secret_value_response = secrets_manager.get_secret_value(SecretId=secret_arn)
-        secret_string = secret_value_response['SecretString']
-        secret_dict = json.loads(secret_string)
-
-        db_username = secret_dict['username']
-        db_password = secret_dict['password']
-        db_name = secret_dict['dbname']
+        # Initialize SQLAlchemy session
+        conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+        engine = create_db_engine(conn_string);
         
-        # Connect to the RDS Proxy
-        connection = pymysql.connect(
-            host=proxy_endpoint,
-            user=db_username,
-            password=db_password,
-            db=db_name,
-            connect_timeout=10
-        )
+        result = Base.metadata.create_all(engine)
 
-        # Sample query
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT NOW()")
-            result = cursor.fetchone()
-            print(f"The current time is: {result}")
-
-        connection.close()
+        #Use SQLAlchemy Inspector to get table names
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
 
         return {
-        "statusCode": 200,
+            'statusCode': 200,
+            'body': json.dumps(f'Tables in the Database: {tables}')
         }
-
-    except ClientError as e:
-        print(f"Error: {str(e)}")
-
     except Exception as e:
-        print(f"Exception occurred: {str(e)}")
+        print(f"Database error: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f"Database error: {str(e)}")
+        }

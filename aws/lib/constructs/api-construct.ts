@@ -161,7 +161,7 @@ export class ApiConstruct extends Construct {
         handler: "handler." + functionName,
         code: lambda.Code.fromAsset(handlerPath),
         role: lambdaRole,
-        timeout: cdk.Duration.seconds(15),
+        timeout: cdk.Duration.seconds(60),
         vpc,
         vpcSubnets: vpc.selectSubnets({
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
