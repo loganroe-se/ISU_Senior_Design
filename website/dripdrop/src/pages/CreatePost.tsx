@@ -75,8 +75,12 @@ const CreatePost = () => {
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
-        accept: { 'image/*': [] },
-        maxFiles: 5,
+        accept: {
+            'image/jpeg': ['.jpg', '.jpeg'],
+            'image/png': ['.png'],
+            // Add more image types as needed
+        },
+        maxFiles: 1,
     });
 
     // Remove image
