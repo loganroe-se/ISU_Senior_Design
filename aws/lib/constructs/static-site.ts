@@ -32,18 +32,9 @@ export class StaticSite extends Construct {
 
     const siteDomain = props.siteSubDomain + "." + props.domainName;
 
-    const cloudfrontOAC = new cloudfront.CfnOriginAccessControl(
-      this,
-      "cloudfront-OAC",
-      {
-        originAccessControlConfig: {
-          name: "cloudfront-OAC",
-          originAccessControlOriginType: "s3",
-          signingBehavior: "always",
-          signingProtocol: "sigv4",
-        },
-      }
-    );
+    const cloudfrontOAC = new cloudfront.S3OriginAccessControl(this, "MyOAC", {
+      signing: cloudfront.Signing.SIGV4_NO_OVERRIDE,
+    });
 
     // TLS certificate
     const certificate = new acm.Certificate(this, "SiteCertificate", {
@@ -56,6 +47,7 @@ export class StaticSite extends Construct {
       bucketName: siteDomain,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      autoDeleteObjects: true,
 
       /**
        * The default removal policy is RETAIN, which means that cdk destroy will not attempt to delete
@@ -80,16 +72,20 @@ export class StaticSite extends Construct {
         },
       ],
       defaultBehavior: {
-        origin:
-          cloudfront_origins.S3BucketOrigin.withOriginAccessIdentity(
-            siteBucket
-          ),
+        origin: cloudfront_origins.S3BucketOrigin.withOriginAccessControl(
+          siteBucket,
+          {
+            originAccessControl: cloudfrontOAC,
+            originAccessLevels: [cloudfront.AccessLevel.WRITE, cloudfront.AccessLevel.READ],
+            connectionTimeout: Duration.seconds(10),
+            connectionAttempts: 2,
+          }
+        ),
         compress: true,
         allowedMethods: cloudfront.AllowedMethods.ALLOW_GET_HEAD_OPTIONS,
         viewerProtocolPolicy: cloudfront.ViewerProtocolPolicy.REDIRECT_TO_HTTPS,
       },
     });
-
 
     // Route53 alias record for the CloudFront distribution
     new route53.ARecord(this, "SiteAliasRecord", {
@@ -100,7 +96,7 @@ export class StaticSite extends Construct {
       zone,
     });
 
-    // Grant access to origin policy
+    // Grant access to cloudfront
     siteBucket.addToResourcePolicy(
       new iam.PolicyStatement({
         actions: ["s3:GetObject"],
@@ -108,35 +104,26 @@ export class StaticSite extends Construct {
         effect: iam.Effect.ALLOW,
         principals: [new iam.ServicePrincipal("cloudfront.amazonaws.com")],
         conditions: {
-          StringEquels: {
+          StringEquals: {
             "AWS:SourceArn": distribution.distributionId,
           },
         },
       })
     );
 
-    // Grant access to cloudfront
-    siteBucket.addToResourcePolicy(
-      new iam.PolicyStatement({
-        actions: ["s3:GetObject"],
-        resources: [cloudfrontOAC.attrId],
-        effect: iam.Effect.ALLOW,
-        principals: [new iam.ServicePrincipal(distribution.distributionId)],
-      })
-    );
-
     // Deploy site contents to S3 bucket
     new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
-      sources: [s3deploy.Source.asset(path.join(__dirname, "./site-contents"))],
+      sources: [s3deploy.Source.asset("./build")],
       destinationBucket: siteBucket,
       distribution,
       distributionPaths: ["/*"],
     });
 
     new CfnOutput(this, "Bucket", { value: siteBucket.bucketName });
-    new CfnOutput(this, "DistributionId", {value: distribution.distributionId,});
+    new CfnOutput(this, "DistributionId", {
+      value: distribution.distributionId,
+    });
     new CfnOutput(this, "Certificate", { value: certificate.certificateArn });
     new CfnOutput(this, "Site", { value: "https://" + siteDomain });
-  
   }
 }
