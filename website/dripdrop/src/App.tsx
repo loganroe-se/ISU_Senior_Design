@@ -12,7 +12,9 @@ function App() {
   };
 
   return (
-    <Box>
+    <Box sx={{
+      margin: '0px !important'
+    }}>
       {isSignedIn ? <HomePage /> : <SignIn onSignIn={handleSignIn} />}
     </Box>
   );
