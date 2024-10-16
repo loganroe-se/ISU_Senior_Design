@@ -40,52 +40,90 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 height: '100vh',
-                bgcolor: 'background.default',
+                bgcolor: '#185197'
             }}
         >
-            {isSigningUp ? (
-                <SignUp onSignUp={handleSignUp} />
-            ) : (
-                <>
-                    <Typography variant="h4" gutterBottom>
-                        Welcome to DripDrop
-                    </Typography>
-                    <TextField
-                        label="Email"
-                        variant="outlined"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        sx={{ mb: 2, width: '300px' }} // Set uniform width
-                    />
-                    <TextField
-                        label="Password"
-                        type={showPassword ? 'text' : 'password'} // Toggle password visibility
-                        variant="outlined"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        sx={{ mb: 2, width: '300px' }} // Set uniform width
-                        InputProps={{
-                            endAdornment: (
-                                <InputAdornment position="end">
-                                    <IconButton
-                                        aria-label="toggle password visibility"
-                                        onClick={handleClickShowPassword}
-                                        edge="end"
-                                    >
-                                        {showPassword ? <VisibilityOff /> : <Visibility />}
-                                    </IconButton>
-                                </InputAdornment>
-                            ),
+            <Box
+                sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    height: '70vh',
+                    width: '350px',
+                    bgcolor: '#FAFAFA',
+                    borderRadius: '20px'
+                }}
+            >
+                <img src={require('../images/logo.png')} style={{'width': '50px'}} />
+                {isSigningUp ? (
+                    <SignUp onSignUp={handleSignUp} setIsSigningUp={setIsSigningUp} />
+                ) : (
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center',
                         }}
-                    />
-                    <Button variant="contained" onClick={handleSignIn} sx={{ mb: 2 }}>
-                        Sign In
-                    </Button>
-                    <Button variant="outlined" onClick={() => setIsSigningUp(true)}>
-                        Sign Up
-                    </Button>
-                </>
-            )}
+                    >
+                        <Typography variant="h4" gutterBottom sx={{
+                            color: '#0073FF',
+                            fontSize: '64px'
+                        }}>
+                            dripdrop
+                        </Typography>
+                        <TextField
+                            label="Email"
+                            variant="outlined"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            sx={{ mb: 2, width: '80%' }} // Set uniform width
+                        />
+                        <TextField
+                            label="Password"
+                            type={showPassword ? 'text' : 'password'} // Toggle password visibility
+                            variant="outlined"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            sx={{ mb: 2, width: '80%' }} // Set uniform width
+                            InputProps={{
+                                endAdornment: (
+                                    <InputAdornment position="end">
+                                        <IconButton
+                                            aria-label="toggle password visibility"
+                                            onClick={handleClickShowPassword}
+                                            edge="end"
+                                        >
+                                            {showPassword ? <VisibilityOff /> : <Visibility />}
+                                        </IconButton>
+                                    </InputAdornment>
+                                ),
+                            }}
+                        />
+                        <Button onClick={handleSignIn} sx={{
+                            mb: 2,
+                            bgcolor: '#0073FF',
+                            color: 'white',
+                            borderRadius: '40px',
+                            width: '50%',
+                            fontSize: '24px'
+                        }}>
+                            Login
+                        </Button>
+                        <Button onClick={() => setIsSigningUp(true)} sx={{
+                            background: "none",
+                            color: "#AFAFAF"
+                        }}>
+                            Or sign up <Typography sx={{
+                                textDecoration: "underline",
+                                color: "#9D9D9D",
+                                marginLeft: ".2rem"
+                            }}>here</Typography>
+                        </Button>
+                    </Box>
+                )}
+            </Box>
         </Box>
     );
 };

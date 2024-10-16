@@ -11,9 +11,10 @@ import { Visibility, VisibilityOff } from '@mui/icons-material'; // Import the i
 // Define the type for the component's props
 interface SignUpProps {
     onSignUp: (email: string, password: string) => void; // Callback for signing up
+    setIsSigningUp: (isSigningUp: boolean) => void;
 }
 
-const SignUp: React.FC<SignUpProps> = ({ onSignUp }) => {
+const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -43,20 +44,21 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp }) => {
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
-                justifyContent: 'center',
-                height: '100vh',
-                bgcolor: 'background.default',
+                justifyContent: 'center'
             }}
         >
-            <Typography variant="h4" gutterBottom>
-                Create an Account
+            <Typography variant="h4" gutterBottom sx={{
+                color: '#0073FF',
+                fontSize: '64px'
+            }}>
+                dripdrop
             </Typography>
             <TextField
                 label="Email"
                 variant="outlined"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                sx={{ mb: 2, width: '300px' }} // Set width for uniformity
+                sx={{ mb: 2, width: '80%' }} // Set width for uniformity
             />
             <TextField
                 label="Password"
@@ -64,7 +66,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp }) => {
                 variant="outlined"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                sx={{ mb: 2, width: '300px' }} // Set width for uniformity
+                sx={{ mb: 2, width: '80%' }} // Set width for uniformity
                 InputProps={{
                     endAdornment: (
                         <InputAdornment position="end">
@@ -85,7 +87,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp }) => {
                 variant="outlined"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                sx={{ mb: 2, width: '300px' }} // Set width for uniformity
+                sx={{ mb: 2, width: '80%' }} // Set width for uniformity
                 InputProps={{
                     endAdornment: (
                         <InputAdornment position="end">
@@ -100,8 +102,25 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp }) => {
                     ),
                 }}
             />
-            <Button variant="contained" onClick={handleSignUp} sx={{ mb: 2 }}>
+            <Button onClick={handleSignUp} sx={{
+                mb: 2,
+                bgcolor: '#0073FF',
+                color: 'white',
+                borderRadius: '40px',
+                width: '50%',
+                fontSize: '24px'
+            }}>
                 Sign Up
+            </Button>
+            <Button onClick={() => setIsSigningUp(false)} sx={{
+                background: "none",
+                color: "#AFAFAF"
+            }}>
+                Have an account? <Typography sx={{
+                    textDecoration: "underline",
+                    color: "#9D9D9D",
+                    marginLeft: ".2rem"
+                }}>Sign in here</Typography>
             </Button>
         </Box>
     );
