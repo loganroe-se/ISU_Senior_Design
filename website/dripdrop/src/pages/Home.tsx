@@ -22,11 +22,7 @@ export default function Home() {
       username: "JohnDoe",
       caption: "Ready for winter!",
     },
-    {
-      image: "/outfit_1.jpg",
-      username: "JaneSmith",
-      caption: "Summer vibes!",
-    },
+  
   ];
 
   return (

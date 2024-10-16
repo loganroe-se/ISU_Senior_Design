@@ -24,7 +24,7 @@ const PostCard = ({image, username, caption } : { image: string; username: strin
       <CardMedia
         component="img"
         id="post1_pic"
-        image={showLinks ? "/outfit1_dots.png" : image} // Use dynamic clothing item image
+        image={image} // Use dynamic clothing item image
         alt="Clothing post"
         onClick={() => setShowLinks(!showLinks)}
       />
