@@ -14,6 +14,7 @@ import CardMedia from '@mui/material/CardMedia';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
+import PostCard from '../components/PostCard';
 
 const dropzoneStyle: React.CSSProperties = {
     border: '2px dashed #cccccc',
@@ -92,7 +93,7 @@ const CreatePost = () => {
         const newPost = {
             caption: postDetails.caption,
             clothesUrl: postDetails.clothesUrl,
-            images: selectedImages.map((image) => URL.createObjectURL(image)), // URLs of images
+            image: selectedImages.map((image) => URL.createObjectURL(image)), // URLs of images
         };
 
         // Add new post to the list of posts
@@ -181,32 +182,12 @@ const CreatePost = () => {
             {/* Display created posts */}
             <Box mt={4}>
                 {posts.map((post, index) => (
-                    <Card key={index} sx={{ maxWidth: '40rem', marginBottom: '16px' }}>
-                        <CardMedia
-                            component="img"
-                            image={post.images[0]} // Display first image for the post
-                            alt="Post image"
-                        />
-                        <CardContent>
-                            <Typography variant="h5" component="div">
-                                User
-                            </Typography>
-                            <Typography variant="body2" color="text.secondary">
-                                {post.caption}
-                            </Typography>
-                        </CardContent>
-                        <CardActions>
-                            <IconButton>
-                                <FavoriteIcon />
-                            </IconButton>
-                            <IconButton>
-                                <BookmarkIcon />
-                            </IconButton>
-                            <IconButton>
-                                <CommentIcon />
-                            </IconButton>
-                        </CardActions>
-                    </Card>
+                    <PostCard
+                    key={index}
+                    image={post.image}
+                    username={post.username}
+                    caption={post.caption}
+                  />
                 ))}
             </Box>
         </Box>
