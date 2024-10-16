@@ -1,47 +1,54 @@
 import os
 import json
-import pymysql
 import boto3
-from botocore.exceptions import ClientError
+from sqlalchemy import text
+
+from dripdrop_utils import create_sqlalchemy_engine
+
+# Fetch environment variables
+DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
+
+# Function to retrieve database credentials from AWS Secrets Manager
+def get_db_credentials():
+    secrets_client = boto3.client('secretsmanager')
+    try:
+        response = secrets_client.get_secret_value(SecretId=DB_SECRET_ARN)
+        secret_data = json.loads(response['SecretString'])
+        return secret_data
+    except Exception as e:
+        print(f"Error retrieving secret: {str(e)}")
+        return None
+
 
 def lambda_handler(event, context):
+    # Get database credentials
+    creds = get_db_credentials()
+    
+    if not creds:
+        return {
+            'statusCode': 500,
+            'body': json.dumps('Error retrieving database credentials')
+        }
+    
     try:
-        # Get the DB credentials from AWS Secrets Manager
-        secret_arn = os.getenv('DB_SECRET_ARN')
-        proxy_endpoint = os.getenv('DB_ENDPOINT_ADDRESS')
-
-        secrets_manager = boto3.client('secretsmanager')
-        secret_value_response = secrets_manager.get_secret_value(SecretId=secret_arn)
-        secret_string = secret_value_response['SecretString']
-        secret_dict = json.loads(secret_string)
-
-        db_username = secret_dict['username']
-        db_password = secret_dict['password']
-        db_name = secret_dict['dbname']
+        # Initialize SQLAlchemy session
+        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME);
         
-        # Connect to the RDS Proxy
-        connection = pymysql.connect(
-            host=proxy_endpoint,
-            user=db_username,
-            password=db_password,
-            db=db_name,
-            connect_timeout=10
-        )
-
-        # Sample query
-        with connection.cursor() as cursor:
-            cursor.execute("SELECT NOW()")
-            result = cursor.fetchone()
-            print(f"The current time is: {result}")
-
-        connection.close()
+        # Example query
+        result = session.execute(text("SELECT 'Connected to Aurora MySQL via SQLAlchemy';")).fetchone()
+        
+        session.close()
 
         return {
-        "statusCode": 200,
+            'statusCode': 200,
+            'body': json.dumps(f'Database Response: {result}')
         }
-
-    except ClientError as e:
-        print(f"Error: {str(e)}")
-
     except Exception as e:
-        print(f"Exception occurred: {str(e)}")
+        print(f"Database connection error: {e}")
+        return {
+            'statusCode': 500,
+            'body': json.dumps(f"Database connection error: {str(e)}")
+        }
