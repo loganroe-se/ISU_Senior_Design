@@ -206,6 +206,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user",
       "test"
     );
+    const manageDBLambda = createLambda(
+      "ManageDBLambda",
+      "lib/lambdas/db",
+      "manage_db"
+    )
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
