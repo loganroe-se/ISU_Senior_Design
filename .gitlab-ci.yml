@@ -27,10 +27,12 @@ unit test:
   artifacts:
     paths:
       - coverage/
+      - junit.xml
     when: always
     reports:
       junit:
         - junit.xml
+
 
 build artifact:
   stage: build
