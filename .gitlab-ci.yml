@@ -45,7 +45,7 @@ deploy s3:
   script:
     # Assume role and check for errors
     - *assume_role
-    - aws s3 sync build/ s3://$S3_BUCKET  # Correct the path to the build folder
+    - aws s3 sync build/ s3://$S3_BUCKET  --exact-timestamps --delete # Correct the path to the build folder
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
