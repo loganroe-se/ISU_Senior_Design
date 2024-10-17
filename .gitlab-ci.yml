@@ -21,7 +21,7 @@ build artifact:
   before_script:
     - ls
     - pwd
-    - cd website/dripdrop/build  # Navigate to the directory where package.json is
+    - cd website/dripdrop  # Navigate to the directory where package.json is
     - ls
     - npm install
   script:
@@ -43,7 +43,7 @@ deploy s3:
   before_script:
     - ls 
     - pwd
-    - cd website/dripdrop/build
+    - cd website/dripdrop
     - ls 
     - pwd
   id_tokens:
@@ -51,7 +51,7 @@ deploy s3:
         aud: sdmay25-25-s3-deploy
   script:
     - *assume_role
-    - aws s3 sync s3://$S3_BUCKET  # Correct the path to the build folder
+    - aws s3 build/ sync s3://$S3_BUCKET  # Correct the path to the build folder
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
