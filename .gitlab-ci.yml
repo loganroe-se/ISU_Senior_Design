@@ -33,7 +33,6 @@ build website:
     - changes:
       - website/dripdrop/**/*  # Only run if changes occur in the website folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
-      when: always
 
 # build mobile:
 #   stage: build-mobile
@@ -51,7 +50,6 @@ build website:
 #     - changes:
 #       - mobile/dripdrop/**/*  # Only run if changes occur in the website folder
 #     - if: '$CI_COMMIT_REF_NAME == "master"'
-#       when: always
 
 deploy s3:
   stage: deploy-to-s3
@@ -74,7 +72,7 @@ deploy s3:
     - changes:
       - website/dripdrop/**/*  # Only run if changes occur in the website folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
-      when: always
+
 
 update cdk:
   stage: update-cdk
@@ -89,7 +87,7 @@ update cdk:
     - changes:
       - aws/**/*  # Only run if changes occur in the AWS CDK folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
-      when: always
+
 
 
 
