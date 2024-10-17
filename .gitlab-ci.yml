@@ -26,9 +26,11 @@ build artifact:
     - npm install
   script:
     - npm run build
+    - ls
+    - ls website/dripdrop/build/
   artifacts:
     paths:
-      - build/ # Adjust path for the build artifacts
+      - website/dripdrop/build/ # Adjust path for the build artifacts
     when: always
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
