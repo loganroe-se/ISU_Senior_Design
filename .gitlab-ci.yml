@@ -73,12 +73,20 @@ deploy s3:
       changes:
         - website/dripdrop/**/*
 
+services:
+  - docker:dind
+
+variables:
+  DOCKER_DRIVER: overlay2
+  DOCKER_TLS_CERTDIR: ""
+
+
+
 update cdk:
   stage: update-cdk
   image:
     name: 626635444817.dkr.ecr.us-east-1.amazonaws.com/aws-cli-with-node:latest
-    entrypoint:
-      - '/usr/bin/env'
+    entrypoint: ["/bin/sh", "-c"]
   before_script:
     - *assume_role  # Ensure you are properly assuming the role
     - echo "Assumed role successfully."
@@ -91,8 +99,6 @@ update cdk:
     - npx cdk deploy --all
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
-      # changes:
-      #   - aws/**/*
 
 
 
