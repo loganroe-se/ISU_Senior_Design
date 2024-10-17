@@ -20,12 +20,9 @@ build artifact:
   image: node:latest
   before_script:
     - cd website/dripdrop  # Navigate to the directory where package.json is
-    - '[ -d "node_modules" ] && rm -rf node_modules'  # Check and remove node_modules if it exists
-    - '[ -f "package-lock.json" ] && rm package-lock.json' # Check and remove package-lock.json if it exists
-    - npm install
+    - npm install  # No need to remove node_modules or package-lock.json unless there's a specific reason
   script:
     - npm run build
-    - ls -lR build
   artifacts:
     paths:
       - website/dripdrop/build/  # Ensure this path matches your build output
@@ -48,14 +45,8 @@ deploy s3:
   script:
     # Assume role and check for errors
     - *assume_role
-    - echo "Assumed role successfully. Listing the files in the build directory before upload..."
-    - ls -lR build # List files before uploading to S3
     - echo "Syncing files to S3..."
-    - aws s3 sync build/ s3://$S3_BUCKET  --exact-timestamps --delete # Correct the path to the build folder
-    - echo "Listing files in S3 after upload:"
-    - aws s3 ls s3://$S3_BUCKET --recursive # List files in the S3 bucket for verification
- 
+    - aws s3 sync build/ s3://$S3_BUCKET --delete  # Sync and remove obsolete files
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
-
