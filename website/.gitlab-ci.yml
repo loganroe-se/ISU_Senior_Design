@@ -1,26 +1,65 @@
 stages:
+  - build
+  - test
   - deploy
 
-deploy_to_s3:
-  stage: deploy
-  only:
-    - main
-  image: amazon/aws-cli:latest
+.assume_role: &assume_role
+    - >
+      STS=($(aws sts assume-role-with-web-identity
+      --role-arn ${ROLE_ARN}
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token $ID_TOKEN
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
+    - export AWS_ACCESS_KEY_ID="${STS[0]}"
+    - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
+    - export AWS_SESSION_TOKEN="${STS[2]}"
+  
+unit test:
+  image: node:latest
+  stage: test
+  before_script:
+    - npm install
   script:
-    # Assume the role
-    - echo "Assuming role for deployment"
-    - |
-      TEMP_ROLE=$(aws sts assume-role \
-        --role-arn arn:aws:iam::$AWS_ACCOUNT_ID:role/<GitLab-Deployment-Role> \
-        --role-session-name gitlab-deployment)
-      
-      export AWS_ACCESS_KEY_ID=$(echo $TEMP_ROLE | jq -r '.Credentials.AccessKeyId')
-      export AWS_SECRET_ACCESS_KEY=$(echo $TEMP_ROLE | jq -r '.Credentials.SecretAccessKey')
-      export AWS_SESSION_TOKEN=$(echo $TEMP_ROLE | jq -r '.Credentials.SessionToken')
-      
-    # Sync files to S3
-    - echo "Deploying to S3 bucket - $S3_BUCKET"
-    - aws s3 sync ./path/to/your/code s3://$S3_BUCKET/ --delete --region $AWS_REGION
-  environment:
-    name: production
-    url: http://$S3_BUCKET.s3.amazonaws.com
+    - npm run test:ci
+  coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
+  artifacts:
+    paths:
+      - coverage/
+    when: always
+    reports:
+      junit:
+        - junit.xml
+
+build artifact:
+  stage: build
+  image: node:latest
+  before_script:
+    - npm install
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - build/
+    when: always
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
+
+
+deploy s3:
+  stage: deploy
+  image:
+    name: amazon/aws-cli:latest
+    entrypoint: 
+      - '/usr/bin/env'
+  id_tokens:
+      ID_TOKEN:
+        aud: react_s3_gl
+  script:
+    - *assume_role
+    - aws s3 sync build/ s3://$S3_BUCKET
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "main"'
+      when: always
