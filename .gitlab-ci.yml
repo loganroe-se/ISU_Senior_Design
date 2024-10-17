@@ -76,7 +76,13 @@ deploy s3:
 
 update cdk:
   stage: update-cdk
-  image: node:latest
+  image:
+    name: amazon/aws-cli:latest
+    entrypoint:
+      - '/usr/bin/env'
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
   before_script:
     - cd aws  # Navigate to the AWS CDK directory
     - npm install  # Install CDK dependencies
