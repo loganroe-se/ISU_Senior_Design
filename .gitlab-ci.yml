@@ -45,6 +45,7 @@ deploy s3:
   script:
     # Assume role and check for errors
     - *assume_role
+    - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
     - echo "Syncing files to S3..."
     - aws s3 sync build/ s3://$S3_BUCKET --delete  # Sync and remove obsolete files
   rules:
