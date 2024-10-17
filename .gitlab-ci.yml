@@ -30,9 +30,9 @@ build website:
       - website/dripdrop/build/ 
     when: always
   rules:
-    - changes:
-      - website/dripdrop/**/*  # Only run if changes occur in the website folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - website/dripdrop/**/*
 
 # build mobile:
 #   stage: build-mobile
@@ -69,30 +69,31 @@ deploy s3:
     - echo "Syncing files to S3..."
     - aws s3 sync build/ s3://$S3_BUCKET --delete  # Sync and remove obsolete files
   rules:
-    - changes:
-      - website/dripdrop/**/*  # Only run if changes occur in the website folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
-
+      changes:
+        - website/dripdrop/**/*
 
 update cdk:
   stage: update-cdk
   image:
-    name: amazon/aws-cli:latest
+    name: 626635444817.dkr.ecr.us-east-1.amazonaws.com/aws-cli-with-node:latest  # Use the ECR image
     entrypoint:
       - '/usr/bin/env'
   id_tokens:
     ID_TOKEN:
       aud: sdmay25-25-s3-deploy
   before_script:
+    # Log in to ECR before pulling the image
+    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 626635444817.dkr.ecr.us-east-1.amazonaws.com
     - cd aws  # Navigate to the AWS CDK directory
     - npm install  # Install CDK dependencies
   script:
     - *assume_role  # Assume the necessary role for AWS deployment
     - npx cdk deploy --all
   rules:
-    - changes:
-      - aws/**/*  # Only run if changes occur in the AWS CDK folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - aws/**/*
 
 
 
