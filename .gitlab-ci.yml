@@ -46,7 +46,7 @@ deploy s3:
     # Assume role and check for errors
     - *assume_role
     - echo "Syncing files to S3..."
-    - aws s3 sync build/ s3://$S3_BUCKET --delete  # Sync and remove obsolete files
+    - aws s3 sync build/ s3://$S3_BUCKET  --metadata-directive REPLACE --cache-control "no-cache" --delete  # Sync and remove obsolete files
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
