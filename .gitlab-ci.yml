@@ -1,6 +1,8 @@
 stages:
-  - build
-  - deploy
+  - build-website
+  - build-mobile
+  - deploy-to-s3
+  - update-cdk
 
 .assume_role: &assume_role
     - >
@@ -15,24 +17,44 @@ stages:
     - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
     - export AWS_SESSION_TOKEN="${STS[2]}"
 
-build artifact:
-  stage: build
+build website:
+  stage: build-website
   image: node:latest
   before_script:
     - cd website/dripdrop  # Navigate to the directory where package.json is
-    - npm install  # No need to remove node_modules or package-lock.json unless there's a specific reason
+    - npm install
   script:
     - npm run build
   artifacts:
     paths:
-      - website/dripdrop/build/  # Ensure this path matches your build output
+      - website/dripdrop/build/ 
     when: always
   rules:
+    - changes:
+      - website/dripdrop/**/*  # Only run if changes occur in the website folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
 
+# build mobile:
+#   stage: build-mobile
+#   image: node:latest
+#   before_script:
+#     - cd mobile/dripdrop  # Navigate to the directory where package.json is
+#     - npm install  
+#   script:
+#     - npm run build
+#   artifacts:
+#     paths:
+#       - mobile/dripdrop/build/  
+#     when: always
+#   rules:
+#     - changes:
+#       - mobile/dripdrop/**/*  # Only run if changes occur in the website folder
+#     - if: '$CI_COMMIT_REF_NAME == "master"'
+#       when: always
+
 deploy s3:
-  stage: deploy
+  stage: deploy-to-s3
   image:
     name: amazon/aws-cli:latest
     entrypoint:
@@ -49,5 +71,24 @@ deploy s3:
     - echo "Syncing files to S3..."
     - aws s3 sync build/ s3://$S3_BUCKET --delete  # Sync and remove obsolete files
   rules:
+    - changes:
+      - website/dripdrop/**/*  # Only run if changes occur in the website folder
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
+
+update cdk:
+  stage: update-cdk
+  image: node:latest
+  before_script:
+    - cd aws  # Navigate to the AWS CDK directory
+    - npm install  # Install CDK dependencies
+  script:
+    - *assume_role  # Assume the necessary role for AWS deployment
+    - npx cdk deploy --all
+  rules:
+    - changes:
+      - aws/**/*  # Only run if changes occur in the AWS CDK folder
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      when: always
+
+
