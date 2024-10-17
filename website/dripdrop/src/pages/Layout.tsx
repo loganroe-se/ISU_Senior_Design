@@ -1,4 +1,4 @@
-// src/Home.tsx
+
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
@@ -9,8 +9,6 @@ import SearchResults from './SearchResults';
 import HomePage from './Home';
 import Sidebar from '../components/Sidebar'; 
 import CreatePost from './CreatePost';
-
-const drawerWidth = 240;
 
 export default function Home() {
     return (

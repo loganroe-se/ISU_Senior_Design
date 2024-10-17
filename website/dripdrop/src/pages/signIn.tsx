@@ -55,7 +55,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     borderRadius: '20px'
                 }}
             >
-                <img src={require('../images/logo.png')} style={{'width': '50px'}} />
+                <img src={require('../images/logo.png')} alt="logo" style={{'width': '50px'}} />
                 {isSigningUp ? (
                     <SignUp onSignUp={handleSignUp} setIsSigningUp={setIsSigningUp} />
                 ) : (
