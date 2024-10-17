@@ -3,30 +3,26 @@ stages:
   - deploy
 
 .assume_role: &assume_role
-  - >
-    STS=($(aws sts assume-role-with-web-identity
-    --role-arn ${ROLE_ARN}
-    --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
-    --web-identity-token $ID_TOKEN
-    --duration-seconds 3600
-    --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
-    --output text))
-  - export AWS_ACCESS_KEY_ID="${STS[0]}"
-  - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
-  - export AWS_SESSION_TOKEN="${STS[2]}"
+    - >
+      STS=($(aws sts assume-role-with-web-identity
+      --role-arn ${ROLE_ARN}
+      --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
+      --web-identity-token $ID_TOKEN
+      --duration-seconds 3600
+      --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
+      --output text))
+    - export AWS_ACCESS_KEY_ID="${STS[0]}"
+    - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
+    - export AWS_SESSION_TOKEN="${STS[2]}"
 
 build artifact:
   stage: build
   image: node:latest
   before_script:
-    - ls
-    - pwd
     - cd website/dripdrop  # Navigate to the directory where package.json is
-    - ls
     - npm install
   script:
     - npm run build
-    - ls
   artifacts:
     paths:
       - website/dripdrop/build/  # Ensure this path matches your build output
@@ -45,15 +41,10 @@ deploy s3:
       ID_TOKEN:
         aud: sdmay25-25-s3-deploy
   before_script:
-    - ls 
-    - pwd
     - cd website/dripdrop
-    - ls 
-    - pwd
   script:
     # Assume role and check for errors
     - *assume_role
-    - if [ $? -ne 0 ]; then echo "Failed to assume role"; exit 1; fi
     - aws s3 sync build/ s3://$S3_BUCKET  # Correct the path to the build folder
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
