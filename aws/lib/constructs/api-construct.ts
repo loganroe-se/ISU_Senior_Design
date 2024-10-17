@@ -101,21 +101,21 @@ export class ApiConstruct extends Construct {
 
     const databaseName = "dripdropdb";
     // Aurora MySQL Cluster
-    const cluster = new rds.DatabaseCluster(this, "AuroraCluster", {
-      engine: rds.DatabaseClusterEngine.auroraMysql({
-        version: rds.AuroraMysqlEngineVersion.VER_3_07_1,
-      }),
-      writer: rds.ClusterInstance.serverlessV2("writer", {
-        publiclyAccessible: false,
-      }),
-      readers: [rds.ClusterInstance.serverlessV2("reader1")],
-      vpc,
+    const cluster = new rds.DatabaseInstance(this, "AuroraCluster", {
+      engine: rds.DatabaseInstanceEngine.MYSQL,
+      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      vpc: vpc,
       vpcSubnets: vpc.selectSubnets({
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       }),
       securityGroups: [dbSecurityGroup],
+      multiAz: false,
+      allocatedStorage: 20,
+      maxAllocatedStorage: 20,
+      backupRetention: cdk.Duration.days(0),
+      deletionProtection: false,
       credentials: rds.Credentials.fromGeneratedSecret("clusteradmin"),
-      defaultDatabaseName: databaseName,
+      databaseName: databaseName,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // For development purposes
     });
 
@@ -161,6 +161,7 @@ export class ApiConstruct extends Construct {
         handler: "handler." + functionName,
         code: lambda.Code.fromAsset(handlerPath),
         role: lambdaRole,
+        timeout: cdk.Duration.seconds(60),
         vpc,
         vpcSubnets: vpc.selectSubnets({
           subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
@@ -169,7 +170,7 @@ export class ApiConstruct extends Construct {
         environment: {
           DB_ENDPOINT_ADDRESS: dbProxy.endpoint,
           DB_SECRET_ARN: cluster.secret?.secretFullArn || "",
-          DB_PORT: cluster.clusterEndpoint.port.toString(),
+          DB_PORT: cluster.dbInstanceEndpointPort,
           DB_NAME: databaseName,
         },
         layers: [sharedLayer],
@@ -205,6 +206,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user",
       "test"
     );
+    const manageDBLambda = createLambda(
+      "ManageDBLambda",
+      "lib/lambdas/db",
+      "manage_db"
+    )
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {

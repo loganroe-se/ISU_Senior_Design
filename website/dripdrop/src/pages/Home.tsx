@@ -1,14 +1,8 @@
-import React, { useState } from "react";
+
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import Sidebar from "../components/Sidebar";
 import PostCard from "../components/PostCard";
-
-const drawerWidth = 240;
 
 export default function Home() {
   const posts = [
@@ -22,11 +16,7 @@ export default function Home() {
       username: "JohnDoe",
       caption: "Ready for winter!",
     },
-    {
-      image: "/outfit_1.jpg",
-      username: "JaneSmith",
-      caption: "Summer vibes!",
-    },
+  
   ];
 
   return (
