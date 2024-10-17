@@ -1,6 +1,6 @@
 import os
 import json
-from sqlalchemy import sessionmaker, select
+from sqlalchemy.orm import sessionmaker, select
 
 from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import User
@@ -31,6 +31,7 @@ def get_users(event, context):
         
         # Fetch all users
         users = session.execute(select(User))
+        session.close()
 
         # Return message
         return {
@@ -42,8 +43,5 @@ def get_users(event, context):
         print(f"Database error: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps(f"Error retrieving userss: {str(e)}")
+            'body': json.dumps(f"Error retrieving users: {str(e)}")
         }
-    
-    finally:
-        session.close()

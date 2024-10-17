@@ -1,7 +1,6 @@
 import os
 import json
-from sqlalchemy import sessionmaker
-
+from sqlalchemy.orm import sessionmaker
 from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import User
 
@@ -47,6 +46,7 @@ def create_user(event, context):
         # Add the user to the db
         session.add(new_user)
         session.commit()
+        session.close()
 
         # Return message
         return {
@@ -60,6 +60,3 @@ def create_user(event, context):
             'statusCode': 500,
             'body': json.dumps(f"Database error: {str(e)}")
         }
-    
-    finally:
-        session.close()
