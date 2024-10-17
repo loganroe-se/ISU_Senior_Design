@@ -84,11 +84,11 @@ update cdk:
       aud: sdmay25-25-s3-deploy
   before_script:
     - *assume_role # Assume the necessary role for AWS deployment
+  script:
     - echo "Assumed Role Successfully"
     - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 626635444817.dkr.ecr.us-east-1.amazonaws.com
     - cd aws  # Navigate to the AWS CDK directory
     - npm install  # Install CDK dependencies
-  script:
     - npx cdk deploy --all
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
