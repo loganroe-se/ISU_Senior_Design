@@ -33,7 +33,7 @@ const Sidebar = () => {
             <List>
                 <ListHeader>
                     <Typography variant="h1" fontSize={"2rem"}>
-                        Test
+                        dripdrop
                     </Typography>
                 </ListHeader>
                 {['Home', 'Search', 'Post', 'Profile', 'Settings'].map((text, index) => (
