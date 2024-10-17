@@ -19,13 +19,15 @@ build artifact:
   stage: build
   image: node:latest
   before_script:
+    - ls
+    - pwd
     - cd website/dripdrop  # Navigate to the directory where package.json is
     - npm install
   script:
     - npm run build
   artifacts:
     paths:
-      - website/dripdrop/build/ # Adjust path for the build artifacts
+      - build/ # Adjust path for the build artifacts
     when: always
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
@@ -37,6 +39,9 @@ deploy s3:
     name: amazon/aws-cli:latest
     entrypoint:
       - '/usr/bin/env'
+  before_script:
+    - ls 
+    - pwd
   id_tokens:
       ID_TOKEN:
         aud: sdmay25-25-s3-deploy
