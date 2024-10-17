@@ -27,7 +27,6 @@ build artifact:
   script:
     - npm run build
     - ls
-    - ls website/dripdrop/build/
   artifacts:
     paths:
       - website/dripdrop/build/ # Adjust path for the build artifacts
