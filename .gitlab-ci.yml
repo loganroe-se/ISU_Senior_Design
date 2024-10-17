@@ -41,10 +41,10 @@ build artifact:
     - npm run build
   artifacts:
     paths:
-      - build/
+      - website/dripdrop/build/
     when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
 
 
@@ -61,5 +61,5 @@ deploy s3:
     - *assume_role
     - aws s3 sync build/ s3://$S3_BUCKET
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
