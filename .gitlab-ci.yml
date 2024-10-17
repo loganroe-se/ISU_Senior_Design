@@ -20,8 +20,8 @@ build artifact:
   image: node:latest
   before_script:
     - cd website/dripdrop  # Navigate to the directory where package.json is
-    - rm -rf node_modules
-    - rm package-lock.json
+    - '[ -d "node_modules" ] && rm -rf node_modules'  # Check and remove node_modules if it exists
+    - '[ -f "package-lock.json" ] && rm package-lock.json' # Check and remove package-lock.json if it exists
     - npm install
   script:
     - npm run build
