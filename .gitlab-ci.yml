@@ -92,8 +92,8 @@ update cdk:
     - npx cdk deploy --all
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
-      changes:
-        - aws/**/*
+      # changes:
+      #   - aws/**/*
 
 
 
