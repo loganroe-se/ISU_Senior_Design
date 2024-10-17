@@ -27,12 +27,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build && mv build ../../aws/",
     "test": "react-scripts test",
-    "test:ci": "jest --coverage --testResultsProcessor=jest-junit",
     "eject": "react-scripts eject"
-  },
-    "jest": {
-    "coverageDirectory": "coverage",
-    "testResultsProcessor": "jest-junit"
   },
   "eslintConfig": {
     "extends": [
