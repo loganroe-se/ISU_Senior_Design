@@ -1,6 +1,5 @@
 stages:
   - build
-  # - test
   - deploy
 
 .assume_role: &assume_role
@@ -15,51 +14,35 @@ stages:
     - export AWS_ACCESS_KEY_ID="${STS[0]}"
     - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
     - export AWS_SESSION_TOKEN="${STS[2]}"
-  
-# unit test:
-#   image: node:latest
-#   stage: test
-#   before_script:
-#     - npm install
-#   script:
-#     - npm run test:ci
-#   coverage: /All files[^|]*\|[^|]*\s+([\d\.]+)/
-#   artifacts:
-#     paths:
-#       - coverage/
-#     when: always
-#     reports:
-#       junit:
-#         - junit.xml
 
 build artifact:
   stage: build
   image: node:latest
   before_script:
+    - cd website/dripdrop  # Navigate to the directory where package.json is
     - npm install
   script:
     - npm run build
   artifacts:
     paths:
-      - website/dripdrop/build/
+      - website/dripdrop/build/ # Adjust path for the build artifacts
     when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "main"'
       when: always
-
 
 deploy s3:
   stage: deploy
   image:
     name: amazon/aws-cli:latest
-    entrypoint: 
+    entrypoint:
       - '/usr/bin/env'
   id_tokens:
       ID_TOKEN:
         aud: sdmay25-25-s3-deploy
   script:
     - *assume_role
-    - aws s3 sync build/ s3://$S3_BUCKET
+    - aws s3 sync website/dripdrop/build/ s3://$S3_BUCKET  # Correct the path to the build folder
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: '$CI_COMMIT_REF_NAME == "main"'
       when: always
