@@ -20,6 +20,8 @@ build artifact:
   image: node:latest
   before_script:
     - cd website/dripdrop  # Navigate to the directory where package.json is
+    - rm -rf node_modules
+    - rm package-lock.json
     - npm install
   script:
     - npm run build
@@ -56,3 +58,4 @@ deploy s3:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
+
