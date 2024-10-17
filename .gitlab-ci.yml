@@ -28,7 +28,7 @@ build artifact:
       - website/dripdrop/build/ # Adjust path for the build artifacts
     when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
 
 deploy s3:
@@ -44,5 +44,5 @@ deploy s3:
     - *assume_role
     - aws s3 sync website/dripdrop/build/ s3://$S3_BUCKET  # Correct the path to the build folder
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "main"'
+    - if: '$CI_COMMIT_REF_NAME == "master"'
       when: always
