@@ -2,6 +2,7 @@ stages:
   - build-website
   - build-mobile
   - deploy-to-s3
+  - test
   - update-cdk
 
 .assume_role: &assume_role
@@ -72,6 +73,16 @@ deploy s3:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - website/dripdrop/**/*
+
+
+check ecr access:
+  stage: test
+  image: amazon/aws-cli:latest
+  before_script:
+    - *assume_role  # Ensure your role is assumed
+  script:
+    - aws ecr describe-repositories --region us-east-1
+
 
 update cdk:
   stage: update-cdk
