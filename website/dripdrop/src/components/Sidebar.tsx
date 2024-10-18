@@ -2,8 +2,6 @@
 import { Box, Typography, Avatar, MenuItem, ListItemIcon } from '@mui/material';
 import { Link } from 'react-router-dom';
 
-const drawerWidth = 240;
-
 interface SidebarItemProps {
     iconClass: string;
     label: string;
