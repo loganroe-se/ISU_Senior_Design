@@ -15,6 +15,7 @@
     "@types/node": "^16.18.112",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
+    "bootstrap-icons": "^1.11.3",
     "dropzone": "^6.0.0-beta.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
