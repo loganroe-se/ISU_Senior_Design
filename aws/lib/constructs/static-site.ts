@@ -76,7 +76,10 @@ export class StaticSite extends Construct {
           siteBucket,
           {
             originAccessControl: cloudfrontOAC,
-            originAccessLevels: [cloudfront.AccessLevel.WRITE, cloudfront.AccessLevel.READ],
+            originAccessLevels: [
+              cloudfront.AccessLevel.WRITE,
+              cloudfront.AccessLevel.READ,
+            ],
             connectionTimeout: Duration.seconds(10),
             connectionAttempts: 2,
           }
