@@ -188,7 +188,7 @@ export class ApiConstruct extends Construct {
     );
     const getUsersLambda = createLambda(
       "GetUsersLambda",
-      "lib/lambdas/get_users",
+      "lib/lambdas/user/get_users",
       "get_users"
     );
     const getUserByIdLambda = createLambda(

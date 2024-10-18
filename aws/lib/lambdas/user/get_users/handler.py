@@ -1,8 +1,8 @@
 import os
 import json
-from sqlalchemy.orm import sessionmaker, select
+from sqlalchemy import select
 
-from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
+from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import User
 
 # Fetch environment variables
@@ -24,19 +24,20 @@ def get_users(event, context):
     
     try:
         # Initialize SQLAlchemy engine and session
-        conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-        engine = create_db_engine(conn_string)
-        Session = sessionmaker(bind=engine)
-        session = Session()
+        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+
         
         # Fetch all users
-        users = session.execute(select(User))
+        users_result = session.execute(select(User)).scalars().all()  # Get a list of user objects
         session.close()
 
+        # Create a list of user dictionaries directly
+        users_list = [{'username': user.username, 'email': user.email} for user in users_result]
+        
         # Return message
         return {
-            'statusCode': 201,
-            'body': json.dumps({users})
+            'statusCode': 200,  # Changed to 200 for a successful retrieval
+            'body': json.dumps(users_list)  # Serialize the list of users
         }
     
     except Exception as e:

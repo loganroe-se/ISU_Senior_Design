@@ -1,7 +1,6 @@
 import os
 import json
-from sqlalchemy.orm import sessionmaker
-from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
+from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import User
 
 # Fetch environment variables
@@ -35,8 +34,7 @@ def create_user(event, context):
             }
 
         # Initialize SQLAlchemy engine and session
-        conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-        session = create_sql_ac
+        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
         
         # Create a new user
         new_user = User(username=username, email=email, password=password)
