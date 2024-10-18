@@ -50,12 +50,12 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '70vh',
-                    width: '350px',
+                    padding: '0 3rem',
                     bgcolor: '#FAFAFA',
                     borderRadius: '20px'
                 }}
             >
-                <img src={require('../images/logo.png')} style={{'width': '50px'}} />
+                <img src={'/images/logo.svg'} alt="logo" style={{'width': '50px'}} />
                 {isSigningUp ? (
                     <SignUp onSignUp={handleSignUp} setIsSigningUp={setIsSigningUp} />
                 ) : (

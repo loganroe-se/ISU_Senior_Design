@@ -7,13 +7,6 @@ import { useDropzone } from 'react-dropzone';
 import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import Card from '@mui/material/Card';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import CardMedia from '@mui/material/CardMedia';
-import FavoriteIcon from '@mui/icons-material/Favorite';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
-import CommentIcon from '@mui/icons-material/Comment';
 import PostCard from '../components/PostCard';
 
 const dropzoneStyle: React.CSSProperties = {

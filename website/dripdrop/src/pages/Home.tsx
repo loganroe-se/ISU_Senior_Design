@@ -1,14 +1,8 @@
-import React, { useState } from "react";
+
 import Box from "@mui/material/Box";
 import CssBaseline from "@mui/material/CssBaseline";
-import AppBar from "@mui/material/AppBar";
-import Toolbar from "@mui/material/Toolbar";
-import Typography from "@mui/material/Typography";
 import Container from "@mui/material/Container";
-import Sidebar from "../components/Sidebar";
 import PostCard from "../components/PostCard";
-
-const drawerWidth = 240;
 
 export default function Home() {
   const posts = [
@@ -26,7 +20,11 @@ export default function Home() {
   ];
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box id="feed" sx={{
+      display: "flex",
+      maxHeight: "95vh",
+      overflow: "scroll"
+    }}>
       <CssBaseline />
 
       <Container
@@ -34,8 +32,7 @@ export default function Home() {
         sx={{
           justifyContent: "center",
           flexGrow: 1,
-          p: 3,
-          mt: 8,
+          display: "flex"
         }}
       >
         <div className="post">

@@ -76,7 +76,10 @@ export class StaticSite extends Construct {
           siteBucket,
           {
             originAccessControl: cloudfrontOAC,
-            originAccessLevels: [cloudfront.AccessLevel.WRITE, cloudfront.AccessLevel.READ],
+            originAccessLevels: [
+              cloudfront.AccessLevel.WRITE,
+              cloudfront.AccessLevel.READ,
+            ],
             connectionTimeout: Duration.seconds(10),
             connectionAttempts: 2,
           }
@@ -113,7 +116,7 @@ export class StaticSite extends Construct {
 
     // Deploy site contents to S3 bucket
     new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
-      sources: [s3deploy.Source.asset("./build")],
+      sources: [s3deploy.Source.asset("../website/dripdrop/build")],
       destinationBucket: siteBucket,
       distribution,
       distributionPaths: ["/*"],

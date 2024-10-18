@@ -19,7 +19,7 @@ const PostCard = ({image, username, caption } : { image: string; username: strin
   };
 
   return (
-    <Card sx={{ maxWidth: '40rem', marginBottom: '16px' }}>
+    <Card sx={{ maxWidth: '25rem', marginBottom: '16px' }}>
       {/* Image section */}
       <CardMedia
         component="img"

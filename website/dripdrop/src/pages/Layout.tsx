@@ -1,4 +1,4 @@
-// src/Home.tsx
+
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
@@ -10,8 +10,6 @@ import HomePage from './Home';
 import Sidebar from '../components/Sidebar'; 
 import CreatePost from './CreatePost';
 
-const drawerWidth = 240;
-
 export default function Home() {
     return (
         <Box sx={{ display: 'flex' }}>
@@ -20,7 +18,7 @@ export default function Home() {
             <Sidebar /> 
             <Container
                 component="main"
-                sx={{ flexGrow: 1, p: 3, mt: 8 }} 
+                sx={{ flexGrow: 1, p: 1.5 }} 
             >
                 <Routes>
                     <Route path="/" element={<Navigate to="/home" />} />

@@ -64,7 +64,6 @@ const Filter = () => {
             } else {
                 setPriceError(null); // Clear error if valid
             }
-
             return {
                 ...prevFilters,
                 price: updatedPrice,
