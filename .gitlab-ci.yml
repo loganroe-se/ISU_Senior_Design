@@ -73,34 +73,34 @@ deploy s3:
       changes:
         - website/dripdrop/**/*
 
-update-cdk:
-  stage: update-cdk
-  image:
-    # Update this to reference your GitLab Container Registry image
-    name: git.ece.iastate.edu:5050/sd/sdmay25-25:latest
-    entrypoint:
-      - '/usr/bin/env'
-  id_tokens:
-    ID_TOKEN:
-      aud: sdmay25-25-s3-deploy
-  before_script:
-    - *assume_role  # Ensure you are properly assuming the role
-    - cd website/dripdrop
-    - npm install
-    - npm run build 
-    - ls
-    - pwd
-    - cd ../../aws  # Navigate to the AWS CDK directory
-    - ls
-    - pwd
-    - npm install  # Install CDK dependencies
-  script:
-    - npm run build
-    - npx cdk deploy --all
-  rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
-      # changes:
-      #   - aws/**/*
+# update-cdk:
+#   stage: update-cdk
+#   image:
+#     # Update this to reference your GitLab Container Registry image
+#     name: git.ece.iastate.edu:5050/sd/sdmay25-25:latest
+#     entrypoint:
+#       - '/usr/bin/env'
+#   id_tokens:
+#     ID_TOKEN:
+#       aud: sdmay25-25-s3-deploy
+#   before_script:
+#     - *assume_role  # Ensure you are properly assuming the role
+#     - cd website/dripdrop
+#     - npm install
+#     - npm run build 
+#     - ls
+#     - pwd
+#     - cd ../../aws  # Navigate to the AWS CDK directory
+#     - ls
+#     - pwd
+#     - npm install  # Install CDK dependencies
+#   script:
+#     - npm run build
+#     - npx cdk deploy --all
+#   rules:
+#     - if: '$CI_COMMIT_REF_NAME == "master"'
+#       # changes:
+#       #   - aws/**/*
 
 
 
