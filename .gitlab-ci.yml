@@ -81,6 +81,7 @@ update-cdk:
     entrypoint:
       - '/usr/bin/env'
   before_script:
+    - echo $ID_TOKEN
     - *assume_role  # Ensure you are properly assuming the role
     - cd aws  # Navigate to the AWS CDK directory
     - npm install  # Install CDK dependencies
