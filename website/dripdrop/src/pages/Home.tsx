@@ -20,7 +20,11 @@ export default function Home() {
   ];
 
   return (
-    <Box sx={{ display: "flex" }}>
+    <Box id="feed" sx={{
+      display: "flex",
+      maxHeight: "95vh",
+      overflow: "scroll"
+    }}>
       <CssBaseline />
 
       <Container
@@ -28,8 +32,7 @@ export default function Home() {
         sx={{
           justifyContent: "center",
           flexGrow: 1,
-          p: 3,
-          mt: 8,
+          display: "flex"
         }}
       >
         <div className="post">

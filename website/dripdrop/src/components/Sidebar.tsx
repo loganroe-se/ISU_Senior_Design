@@ -13,7 +13,10 @@ interface SidebarItemProps {
 
 const Sidebar = () => {
     return (
-        <Box>
+        <Box sx={{
+            pt: 1.5,
+            pb: 1.5
+        }}>
             <Box
                 sx={{
                 backgroundColor: '#0073FF',
