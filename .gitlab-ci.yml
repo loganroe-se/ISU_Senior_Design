@@ -73,15 +73,15 @@ deploy s3:
       changes:
         - website/dripdrop/**/*
 
-update cdk:
+update-cdk:
   stage: update-cdk
   image:
-    name: 626635444817.dkr.ecr.us-east-1.amazonaws.com/aws-cli-with-node:latest
+    # Update this to reference your GitLab Container Registry image
+    name: git.ece.iastate.edu:5050/sd/sdmay25-25:latest
     entrypoint:
       - '/usr/bin/env'
   before_script:
     - *assume_role  # Ensure you are properly assuming the role
-    - aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 626635444817.dkr.ecr.us-east-1.amazonaws.com
     - cd aws  # Navigate to the AWS CDK directory
     - npm install  # Install CDK dependencies
   script:
