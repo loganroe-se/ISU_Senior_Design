@@ -36,9 +36,7 @@ def create_user(event, context):
 
         # Initialize SQLAlchemy engine and session
         conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-        engine = create_db_engine(conn_string)
-        Session = sessionmaker(engine)
-        session = Session()
+        session = create_sql_ac
         
         # Create a new user
         new_user = User(username=username, email=email, password=password)
