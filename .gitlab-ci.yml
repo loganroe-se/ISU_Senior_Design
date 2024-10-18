@@ -88,7 +88,11 @@ update-cdk:
     - cd website/dripdrop
     - npm install
     - npm run build 
+    - ls
+    - pwd
     - cd ../../aws  # Navigate to the AWS CDK directory
+    - ls
+    - pwd
     - npm install  # Install CDK dependencies
   script:
     - npm run build
