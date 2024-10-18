@@ -80,6 +80,9 @@ update-cdk:
     name: git.ece.iastate.edu:5050/sd/sdmay25-25:latest
     entrypoint:
       - '/usr/bin/env'
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
   before_script:
     - echo "$ID_TOKEN"
     - *assume_role  # Ensure you are properly assuming the role
