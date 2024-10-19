@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Avatar, MenuItem, ListItemIcon, Drawer, IconButton } from '@mui/material';
+import { Box, Typography, Avatar, MenuItem, ListItemIcon, Drawer } from '@mui/material';
 import { Link } from 'react-router-dom';
 import FilterAltIcon from '@mui/icons-material/FilterAlt'; // For filter icon
 import Filter from './Filters'; // Assuming Filter component is imported
@@ -14,10 +14,6 @@ interface SidebarItemProps {
 
 const Sidebar = () => {
   const [isFilterOpen, setFilterOpen] = useState(false); // State for drawer visibility
-
-  const toggleFilter = (open: boolean) => () => {
-    setFilterOpen(open);
-  };
 
   return (
     <Box sx={{ pt: 1.5, pb: 1.5 }}>
@@ -53,7 +49,7 @@ const Sidebar = () => {
           iconClass="bi bi-funnel"
           label="Filters"
           link="#" // Prevent navigation
-          onClick={toggleFilter(true)} // Open filter drawer
+          onClick={() => setFilterOpen(true)} // Open filter drawer
         />
         <SidebarItem iconClass="bi bi-gear" label="Settings" link="/settings" isLast />
       </Box>
@@ -75,10 +71,7 @@ const Sidebar = () => {
       </Box>
 
       {/* Filter Drawer */}
-      <Drawer anchor="right" open={isFilterOpen} onClose={toggleFilter(false)}>
-        <Filter isFilterOpen={isFilterOpen} toggleDrawer={toggleFilter} />
-
-      </Drawer>
+      <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
     </Box>
   );
 };

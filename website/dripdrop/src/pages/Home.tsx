@@ -5,16 +5,8 @@ import Container from '@mui/material/Container';
 import Sidebar from '../components/Sidebar';
 import PostCard from '../components/PostCard';
 
-import Filter from '../components/Filters'; 
 
 export default function Home() {
-
-  const [isFilterOpen, setFilterOpen] = useState(false);
-
-  // Function to toggle filter visibility
-  const toggleFilter = (open: boolean) => () => {
-    setFilterOpen(open);
-  };
 
   const posts = [
     {
