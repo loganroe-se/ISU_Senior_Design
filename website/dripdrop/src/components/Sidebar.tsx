@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Box, Typography, Avatar, MenuItem, ListItemIcon, Drawer } from '@mui/material';
+import { Box, Typography, Avatar, MenuItem, ListItemIcon } from '@mui/material';
 import { Link } from 'react-router-dom';
-import FilterAltIcon from '@mui/icons-material/FilterAlt'; // For filter icon
 import Filter from './Filters'; // Assuming Filter component is imported
 
 interface SidebarItemProps {

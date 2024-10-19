@@ -58,7 +58,7 @@ const Filter: React.FC<FilterProps> = ({ isFilterOpen, setFilterOpen }) => {
         return () => {
             document.removeEventListener('mousedown', handleClickOutside);
         };
-    }, [isFilterOpen]);
+    }, [isFilterOpen, setFilterOpen]);
 
 
     return (
@@ -222,12 +222,3 @@ const Filter: React.FC<FilterProps> = ({ isFilterOpen, setFilterOpen }) => {
 export default Filter;
 
 
-
-
-
-// const closeFilterDrawer = () => {
-//     console.log("Before close Filter Drawer: " + isFilterOpen);
-//     setFilterOpen(false);
-//     console.log("Filter: " + JSON.stringify(filters));
-//     console.log("After close Filter Drawer: " + isFilterOpen);
-// };
