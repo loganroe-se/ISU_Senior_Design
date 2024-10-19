@@ -70,7 +70,6 @@ const Sidebar = () => {
         </Box>
       </Box>
 
-      {/* Filter Drawer */}
       <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
     </Box>
   );
