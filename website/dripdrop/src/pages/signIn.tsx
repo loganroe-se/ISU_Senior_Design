@@ -50,6 +50,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     alignItems: 'center',
                     justifyContent: 'center',
                     height: '70vh',
+                    width: '25vw',
                     padding: '0 3rem',
                     bgcolor: '#FAFAFA',
                     borderRadius: '20px'
