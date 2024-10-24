@@ -90,7 +90,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ iconClass, label, link, isLas
         sx={{
           minWidth: 'unset',
           marginRight: '1.5rem',
-          fontSize: '2srem',
+          fontSize: '2rem',
           color: 'black'
         }}
       >
