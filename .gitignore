@@ -2,8 +2,10 @@
 build
 typings
 
-#layer
+#python
 python/
+__pycache__/
+runs/
 
 # OSX
 #
