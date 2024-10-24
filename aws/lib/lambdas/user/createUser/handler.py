@@ -9,7 +9,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
-def create_user(event, context):
+def createUser(event, context):
     # Get database credentials
     creds = get_db_credentials(DB_SECRET_ARN)
     
@@ -51,8 +51,8 @@ def create_user(event, context):
         }
     
     except Exception as e:
-        print(f"Database error: {e}")
+        print(f"Error: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps(f"Database error: {str(e)}")
+            'body': json.dumps(f"Error creating user: {str(e)}")
         }
