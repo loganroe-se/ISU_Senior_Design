@@ -35,8 +35,8 @@ def getUserById(event, context):
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
 
-        # Fetch all users
-        user = session.execute(select(User).where(User.userID == user_id)) 
+        # Fetch user
+        user = session.execute(select(User).where(User.userID == user_id)).scalars().first()
 
         if user:
                 # Convert user to dictionary or JSON-friendly format

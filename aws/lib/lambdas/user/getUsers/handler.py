@@ -30,7 +30,7 @@ def getUsers(event, context):
         session.close()
 
         # Create a list of user dictionaries directly
-        users_list = [{'username': user.username, 'email': user.email} for user in users_result]
+        users_list = [{'username': user.username, 'email': user.email, 'id': user.userID} for user in users_result]
         
         # Return message
         return {

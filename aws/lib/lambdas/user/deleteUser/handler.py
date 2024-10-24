@@ -10,7 +10,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
-def getUserById(event, context):
+def deleteUser(event, context):
     # Get database credentials
     creds = get_db_credentials(DB_SECRET_ARN)
     
@@ -36,7 +36,7 @@ def getUserById(event, context):
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
 
         # Fetch all users
-        user = session.execute(select(User).where(User.userID == user_id)) 
+        user = session.execute(select(User).where(User.userID == user_id)).scalars().first()
 
         if user:
             session.delete(user)
@@ -44,7 +44,7 @@ def getUserById(event, context):
 
             return {
                 'statusCode': 200,
-                'body': json.dumps(user_data)
+                'body': json.dumps(f'User with ID {user_id} deleted')
             }
         
         else:
