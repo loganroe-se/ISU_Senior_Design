@@ -206,6 +206,36 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user",
       "test"
     );
+    const createImageLambda = createLambda(
+      "CreateImageLambda",
+      "lib/lambdas/image",
+      "createImage"
+    );
+    const deleteImageLambda = createLambda(
+      "DeleteImageLambda",
+      "lib/lambdas/image",
+      "deleteImage"
+    );
+    const getImageByImageIdLambda = createLambda(
+      "GetImageByImageIdLambda",
+      "lib/lambdas/image",
+      "getImageByImageId"
+    );
+    const getImageByPostIdLambda = createLambda(
+      "GetImageByPostIdLambda",
+      "lib/lambdas/image",
+      "getImageByPostId"
+    );
+    const getImagesLambda = createLambda(
+      "getImagesLambda",
+      "lib/lambdas/image",
+      "GetImages"
+    );
+    const updateImageLambda = createLambda(
+      "UpdateImageLambda",
+      "lib/lambdas/image",
+      "UpdateImage"
+    );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
