@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography, TextField, Button, List, ListItem, ListItemText, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
+import UserProfile from '../components/UserProfile';
 
 type Post = {
     id: number;
@@ -12,6 +13,7 @@ type User = {
     id: number;
     name: string;
     info: string;
+    profilePicUrl?: string; // Add profile picture URL for users
 };
 
 type SearchResult = Post | User;
@@ -29,8 +31,8 @@ const SearchPage: React.FC = () => {
     ], []);
 
     const users: User[] = useMemo(() => [
-        { id: 1, name: 'John Doe', info: 'cool guy' },
-        { id: 2, name: 'Rick Roll', info: 'Never going to give you up' }
+        { id: 1, name: 'John Doe', info: 'cool guy', profilePicUrl: 'https://picsum.photos/200/300' },
+        { id: 2, name: 'Rick Roll', info: 'Never going to give you up', profilePicUrl: 'https://via.placeholder.com/150' }
     ], []);
 
     const performSearch = useCallback(() => {
@@ -67,7 +69,8 @@ const SearchPage: React.FC = () => {
 
     useEffect(() => {
         performSearch();
-    }, [performSearch]); 
+    }, [performSearch]);
+
     return (
         <Box sx={{ padding: '2rem' }}>
             <TextField
@@ -127,10 +130,14 @@ const SearchPage: React.FC = () => {
             <List>
                 {searchResults.map((result) => (
                     <ListItem key={result.id}>
-                        <ListItemText
-                            primary={'name' in result ? result.name : result.title}
-                            secondary={'info' in result ? result.info : result.content}
-                        />
+                        {'name' in result ? (
+                            <UserProfile user={result as User} />
+                        ) : (
+                            <ListItemText
+                                primary={(result as Post).title}
+                                secondary={(result as Post).content}
+                            />
+                        )}
                     </ListItem>
                 ))}
             </List>
