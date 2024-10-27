@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { Box, Typography, TextField, Button, List, ListItem, ListItemText, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 
@@ -20,22 +20,22 @@ const SearchPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [showUsers, setShowUsers] = useState(false);
-    const [showAll, setShowAll] = useState(true); // New state for "All"
+    const [showAll, setShowAll] = useState(true);
 
-    const posts: Post[] = [
+    const posts: Post[] = useMemo(() => [
         { id: 1, title: 'Post about React', content: 'This is a React post' },
         { id: 2, title: 'Post about clothes', content: 'This is a clothes post' },
         { id: 3, title: 'Pants', content: 'Check out my new black pants' }
-    ];
+    ], []);
 
-    const users: User[] = [
+    const users: User[] = useMemo(() => [
         { id: 1, name: 'John Doe', info: 'cool guy' },
         { id: 2, name: 'Rick Roll', info: 'Never going to give you up' }
-    ];
+    ], []);
 
-    const performSearch = () => {
+    const performSearch = useCallback(() => {
         if (!searchTerm) {
-            setSearchResults([]); // Clear results if search term is empty
+            setSearchResults([]);
             return;
         }
 
@@ -52,7 +52,7 @@ const SearchPage: React.FC = () => {
         }
 
         setSearchResults(results);
-    };
+    }, [searchTerm, showAll, showUsers, posts, users]);
 
     const handleSearchToggle = (searchType: 'posts' | 'users' | 'all') => {
         setShowUsers(searchType === 'users');
@@ -67,8 +67,7 @@ const SearchPage: React.FC = () => {
 
     useEffect(() => {
         performSearch();
-    }, [showUsers, showAll, searchTerm]); // Update search when showUsers, showAll, or searchTerm changes
-
+    }, [performSearch]); 
     return (
         <Box sx={{ padding: '2rem' }}>
             <TextField
@@ -81,7 +80,7 @@ const SearchPage: React.FC = () => {
                 InputProps={{
                     startAdornment: (
                         <InputAdornment position="start">
-                                <SearchIcon />
+                            <SearchIcon />
                         </InputAdornment>
                     )
                 }}
