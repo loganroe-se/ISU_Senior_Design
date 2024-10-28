@@ -52,5 +52,6 @@
   },
   "devDependencies": {
     "@types/react-dropzone": "^5.1.0"
-  }
+  },
+    "proxy": "http://localhost:3000"
 }

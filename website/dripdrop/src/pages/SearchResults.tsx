@@ -13,7 +13,7 @@ type User = {
     id: number;
     name: string;
     info: string;
-    profilePicUrl?: string; // Add profile picture URL for users
+    profilePicUrl?: string;
 };
 
 type SearchResult = Post | User;
@@ -23,6 +23,7 @@ const SearchPage: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [showUsers, setShowUsers] = useState(false);
     const [showAll, setShowAll] = useState(true);
+    const [allUsers, setAllUsers] = useState<User[]>([]);
 
     const posts: Post[] = useMemo(() => [
         { id: 1, title: 'Post about React', content: 'This is a React post' },
@@ -30,10 +31,20 @@ const SearchPage: React.FC = () => {
         { id: 3, title: 'Pants', content: 'Check out my new black pants' }
     ], []);
 
-    const users: User[] = useMemo(() => [
-        { id: 1, name: 'John Doe', info: 'cool guy', profilePicUrl: 'https://picsum.photos/200/300' },
-        { id: 2, name: 'Rick Roll', info: 'Never going to give you up', profilePicUrl: 'https://via.placeholder.com/150' }
-    ], []);
+    // Fetch all users initially
+    const fetchAllUsers = async () => {
+        try {
+            const response = await fetch('https://api.dripdropco.com/users'); 
+            const data: User[] = await response.json();
+            setAllUsers(data);
+        } catch (error) {
+            console.error("Error fetching users:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAllUsers();
+    }, []);
 
     const performSearch = useCallback(() => {
         if (!searchTerm) {
@@ -42,19 +53,30 @@ const SearchPage: React.FC = () => {
         }
 
         let results: SearchResult[] = [];
+
         if (showAll) {
+            const filteredUsers = allUsers.filter(user =>
+                user.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
             results = [
-                ...users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase())),
-                ...posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                ...filteredUsers,
+                ...posts.filter(post =>
+                    post.title.toLowerCase().includes(searchTerm.toLowerCase())
+                )
             ];
         } else if (showUsers) {
-            results = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            const filteredUsers = allUsers.filter(user =>
+                user.name.toLowerCase().includes(searchTerm.toLowerCase())
+            );
+            results = filteredUsers;
         } else {
-            results = posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            results = posts.filter(post =>
+                post.title.toLowerCase().includes(searchTerm.toLowerCase())
+            );
         }
 
         setSearchResults(results);
-    }, [searchTerm, showAll, showUsers, posts, users]);
+    }, [searchTerm, showAll, showUsers, posts, allUsers]);
 
     const handleSearchToggle = (searchType: 'posts' | 'users' | 'all') => {
         setShowUsers(searchType === 'users');

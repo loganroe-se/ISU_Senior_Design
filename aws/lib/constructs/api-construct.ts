@@ -217,7 +217,7 @@ export class ApiConstruct extends Construct {
       restApiName: "User Service",
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS,
+        allowMethods: apigateway.Cors.ALL_METHODS
       },
       domainName: {
         domainName: `${props.siteSubDomain}.${props.domainName}`,
