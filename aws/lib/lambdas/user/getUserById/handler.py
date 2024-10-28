@@ -18,6 +18,10 @@ def getUserById(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -29,36 +33,55 @@ def getUserById(event, context):
         if not user_id:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing user ID')
             }
         
-        # Initialize SQLAlchemy engine and session
-        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+        try:
+            # Initialize SQLAlchemy engine and session
+            session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
 
-        # Fetch user
-        user = session.execute(select(User).where(User.userID == user_id)).scalars().first()
+            # Fetch user
+            user = session.execute(select(User).where(User.userID == user_id)).scalars().first()
 
-        if user:
-                # Convert user to dictionary or JSON-friendly format
-                user_data = {
-                    'id': user.userID,
-                    'username': user.username,
-                    'email': user.email
-                }
+            if user:
+                    # Convert user to dictionary or JSON-friendly format
+                    user_data = {
+                        'id': user.userID,
+                        'username': user.username,
+                        'email': user.email
+                    }
 
-                return {
-                    'statusCode': 200,
-                    'body': json.dumps(user_data)
-                }
-        else:
-                return {
-                    'statusCode': 404,
-                    'body': json.dumps(f'User with ID {user_id} not found')
-                }
+                    return {
+                        'statusCode': 200,
+                        'headers': {
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Headers': 'Content-Type'
+                        },
+                        'body': json.dumps(user_data)
+                    }
+            else:
+                    return {
+                        'statusCode': 404,
+                        'headers': {
+                            'Access-Control-Allow-Origin': '*',
+                            'Access-Control-Allow-Headers': 'Content-Type'
+                        },
+                        'body': json.dumps(f'User with ID {user_id} not found')
+                    }
+            
+        finally:
+            session.close()
     
     except Exception as e:
-        print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
             'body': json.dumps(f"Error retrieving user: {str(e)}")
         }

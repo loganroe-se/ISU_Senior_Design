@@ -18,6 +18,10 @@ def updateUser(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -29,6 +33,10 @@ def updateUser(event, context):
         if not user_id:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing user ID')
             }
 
@@ -41,40 +49,59 @@ def updateUser(event, context):
         if not username and not email and not password:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing fields to update')
             }
 
-        # Initialize SQLAlchemy engine and session
-        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+        try:
+            # Initialize SQLAlchemy engine and session
+            session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+            
+            user = session.execute(select(User).where(User.userID == user_id)) 
+
+            if user:
+                # Update user information
+                if username:
+                    user.username = username
+                if email:
+                    user.email = email
+                if email:
+                    user.password = password
+                    
+                session.commit()
+
+                return {
+                    'statusCode': 200,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Headers': 'Content-Type'
+                    },
+                    'body': json.dumps(f'User {user_id} updated successfully')
+                }
         
-        user = session.execute(select(User).where(User.userID == user_id)) 
-
-        if user:
-            # Update user information
-            if username:
-               user.username = username
-            if email:
-                user.email = email
-            if email:
-                user.password = password
-                
-            session.commit()
-
-            return {
-                'statusCode': 200,
-                'body': json.dumps(f'User {user_id} updated successfully')
-            }
-    
-        else:
-            return {
-                'statusCode': 404,
-                'body': json.dumps(f'User with ID {user_id} not found')
-            }
+            else:
+                return {
+                    'statusCode': 404,
+                    'headers': {
+                        'Access-Control-Allow-Origin': '*',
+                        'Access-Control-Allow-Headers': 'Content-Type'
+                    },
+                    'body': json.dumps(f'User with ID {user_id} not found')
+                }
+            
+        finally:
+            session.close()
         
     
     except Exception as e:
-        print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error updating user: {str(e)}")
         }
