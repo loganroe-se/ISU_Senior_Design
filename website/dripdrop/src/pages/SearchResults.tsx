@@ -1,19 +1,148 @@
-import React from 'react';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import { Box, Typography, TextField, Button, List, ListItem, ListItemText, InputAdornment } from '@mui/material';
+import SearchIcon from '@mui/icons-material/Search';
+import UserProfile from '../components/UserProfile';
 
+type Post = {
+    id: number;
+    title: string;
+    content: string;
+};
 
-const SettingsPage = () => {
+type User = {
+    id: number;
+    name: string;
+    info: string;
+    profilePicUrl?: string; // Add profile picture URL for users
+};
+
+type SearchResult = Post | User;
+
+const SearchPage: React.FC = () => {
+    const [searchTerm, setSearchTerm] = useState('');
+    const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
+    const [showUsers, setShowUsers] = useState(false);
+    const [showAll, setShowAll] = useState(true);
+
+    const posts: Post[] = useMemo(() => [
+        { id: 1, title: 'Post about React', content: 'This is a React post' },
+        { id: 2, title: 'Post about clothes', content: 'This is a clothes post' },
+        { id: 3, title: 'Pants', content: 'Check out my new black pants' }
+    ], []);
+
+    const users: User[] = useMemo(() => [
+        { id: 1, name: 'John Doe', info: 'cool guy', profilePicUrl: 'https://picsum.photos/200/300' },
+        { id: 2, name: 'Rick Roll', info: 'Never going to give you up', profilePicUrl: 'https://via.placeholder.com/150' }
+    ], []);
+
+    const performSearch = useCallback(() => {
+        if (!searchTerm) {
+            setSearchResults([]);
+            return;
+        }
+
+        let results: SearchResult[] = [];
+        if (showAll) {
+            results = [
+                ...users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase())),
+                ...posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
+            ];
+        } else if (showUsers) {
+            results = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+        } else {
+            results = posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
+        }
+
+        setSearchResults(results);
+    }, [searchTerm, showAll, showUsers, posts, users]);
+
+    const handleSearchToggle = (searchType: 'posts' | 'users' | 'all') => {
+        setShowUsers(searchType === 'users');
+        setShowAll(searchType === 'all');
+    };
+
+    const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+        if (event.key === 'Enter') {
+            performSearch();
+        }
+    };
+
+    useEffect(() => {
+        performSearch();
+    }, [performSearch]);
+
     return (
-        <Box>
-            <Typography variant="h4" component="h1" gutterBottom>
-                Search Results Page
+        <Box sx={{ padding: '2rem' }}>
+            <TextField
+                fullWidth
+                label="Search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyPress={handleKeyPress}
+                sx={{ marginBottom: '1rem' }}
+                InputProps={{
+                    startAdornment: (
+                        <InputAdornment position="start">
+                            <SearchIcon />
+                        </InputAdornment>
+                    )
+                }}
+            />
+            <Box sx={{ display: 'flex', gap: '1rem', marginBottom: '1rem' }}>
+                <Button
+                    variant="text"
+                    onClick={() => handleSearchToggle('all')}
+                    sx={{
+                        textTransform: 'none',
+                        color: showAll ? 'primary.main' : 'inherit',
+                        borderBottom: showAll ? '2px solid #1976d2' : 'none'
+                    }}
+                >
+                    All
+                </Button>
+                <Button
+                    variant="text"
+                    onClick={() => handleSearchToggle('posts')}
+                    sx={{
+                        textTransform: 'none',
+                        color: !showUsers && !showAll ? 'primary.main' : 'inherit',
+                        borderBottom: !showUsers && !showAll ? '2px solid #1976d2' : 'none'
+                    }}
+                >
+                    Search Posts
+                </Button>
+                <Button
+                    variant="text"
+                    onClick={() => handleSearchToggle('users')}
+                    sx={{
+                        textTransform: 'none',
+                        color: showUsers ? 'primary.main' : 'inherit',
+                        borderBottom: showUsers ? '2px solid #1976d2' : 'none'
+                    }}
+                >
+                    Search Users
+                </Button>
+            </Box>
+
+            <Typography variant="h5">
+                {showAll ? 'All Results' : showUsers ? 'User Results' : 'Post Results'}
             </Typography>
-            <Typography variant="body1">
-                This is the Search Results page
-            </Typography>
+            <List>
+                {searchResults.map((result) => (
+                    <ListItem key={result.id}>
+                        {'name' in result ? (
+                            <UserProfile user={result as User} />
+                        ) : (
+                            <ListItemText
+                                primary={(result as Post).title}
+                                secondary={(result as Post).content}
+                            />
+                        )}
+                    </ListItem>
+                ))}
+            </List>
         </Box>
     );
 };
 
-export default SettingsPage;
+export default SearchPage;
