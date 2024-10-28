@@ -267,12 +267,6 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    users.addCorsPreflight({
-      allowOrigins: apigateway.Cors.ALL_ORIGINS,
-      allowMethods: apigateway.Cors.ALL_METHODS,
-    });
-
-
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {
       zone,
