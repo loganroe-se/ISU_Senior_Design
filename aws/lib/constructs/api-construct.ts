@@ -217,7 +217,7 @@ export class ApiConstruct extends Construct {
       restApiName: "User Service",
       defaultCorsPreflightOptions: {
         allowOrigins: apigateway.Cors.ALL_ORIGINS,
-        allowMethods: apigateway.Cors.ALL_METHODS
+        allowMethods: apigateway.Cors.ALL_METHODS,
       },
       domainName: {
         domainName: `${props.siteSubDomain}.${props.domainName}`,
@@ -266,6 +266,12 @@ export class ApiConstruct extends Construct {
         operationName: "DeleteUser",
       }
     );
+
+    users.addCorsPreflight({
+      allowOrigins: apigateway.Cors.ALL_ORIGINS,
+      allowMethods: apigateway.Cors.ALL_METHODS,
+    });
+
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {

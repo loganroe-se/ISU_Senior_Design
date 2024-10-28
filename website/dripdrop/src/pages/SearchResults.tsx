@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { Box, Typography, TextField, Button, List, ListItem, ListItemText, InputAdornment } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import UserProfile from '../components/UserProfile';
@@ -9,11 +9,16 @@ type Post = {
     content: string;
 };
 
+type ApiUser = {
+    id: number;
+    username: string;
+    email: string;
+};
+
 type User = {
     id: number;
-    name: string;
-    info: string;
-    profilePicUrl?: string;
+    name: string; 
+    info: string; 
 };
 
 type SearchResult = Post | User;
@@ -23,7 +28,6 @@ const SearchPage: React.FC = () => {
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [showUsers, setShowUsers] = useState(false);
     const [showAll, setShowAll] = useState(true);
-    const [allUsers, setAllUsers] = useState<User[]>([]);
 
     const posts: Post[] = useMemo(() => [
         { id: 1, title: 'Post about React', content: 'This is a React post' },
@@ -31,22 +35,7 @@ const SearchPage: React.FC = () => {
         { id: 3, title: 'Pants', content: 'Check out my new black pants' }
     ], []);
 
-    // Fetch all users initially
-    const fetchAllUsers = async () => {
-        try {
-            const response = await fetch('https://api.dripdropco.com/users'); 
-            const data: User[] = await response.json();
-            setAllUsers(data);
-        } catch (error) {
-            console.error("Error fetching users:", error);
-        }
-    };
-
-    useEffect(() => {
-        fetchAllUsers();
-    }, []);
-
-    const performSearch = useCallback(() => {
+    const performSearch = useCallback(async () => {
         if (!searchTerm) {
             setSearchResults([]);
             return;
@@ -54,29 +43,36 @@ const SearchPage: React.FC = () => {
 
         let results: SearchResult[] = [];
 
-        if (showAll) {
-            const filteredUsers = allUsers.filter(user =>
-                user.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            results = [
-                ...filteredUsers,
-                ...posts.filter(post =>
-                    post.title.toLowerCase().includes(searchTerm.toLowerCase())
-                )
-            ];
-        } else if (showUsers) {
-            const filteredUsers = allUsers.filter(user =>
-                user.name.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-            results = filteredUsers;
-        } else {
-            results = posts.filter(post =>
-                post.title.toLowerCase().includes(searchTerm.toLowerCase())
-            );
-        }
+        // Fetch users from the API
+        try {
+            // const response = await fetch('https://jsonplaceholder.typicode.com/users'); // Example API
+            const response = await fetch('https://api.dripdropco.com/users');
+            const data: ApiUser[] = await response.json();
 
-        setSearchResults(results);
-    }, [searchTerm, showAll, showUsers, posts, allUsers]);
+            // Transform API data to match User type
+            const users: User[] = data.map(user => ({
+                id: user.id,
+                name: user.username, // Map username to name
+                info: user.email // Map email to info
+            }));
+
+            if (showAll) {
+                results = [
+                    ...users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase())),
+                    ...posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                ];
+            } else if (showUsers) {
+                results = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            } else {
+                results = posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            }
+
+            setSearchResults(results);
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            setSearchResults([]);
+        }
+    }, [searchTerm, showAll, showUsers, posts]);
 
     const handleSearchToggle = (searchType: 'posts' | 'users' | 'all') => {
         setShowUsers(searchType === 'users');
@@ -88,10 +84,6 @@ const SearchPage: React.FC = () => {
             performSearch();
         }
     };
-
-    useEffect(() => {
-        performSearch();
-    }, [performSearch]);
 
     return (
         <Box sx={{ padding: '2rem' }}>
