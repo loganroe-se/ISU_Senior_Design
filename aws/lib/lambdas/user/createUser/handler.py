@@ -17,6 +17,10 @@ def createUser(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+            },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -30,29 +34,43 @@ def createUser(event, context):
         if not username or not email or not password:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing required field')
             }
-
-        # Initialize SQLAlchemy engine and session
-        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
         
-        # Create a new user
-        new_user = User(username=username, email=email, password=password)
+        try:
+            # Initialize SQLAlchemy engine and session
+            session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
 
-        # Add the user to the db
-        session.add(new_user)
-        session.commit()
-        session.close()
+            # Create a new user
+            new_user = User(username=username, email=email, password=password)
 
-        # Return message
-        return {
-            'statusCode': 201,
-            'body': json.dumps(f'User {username} created successfully')
-        }
+            # Add the user to the db
+            session.add(new_user)
+            session.commit()
+
+            # Return message
+            return {
+                'statusCode': 201,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
+                'body': json.dumps(f'User {username} created successfully')
+            }
+        
+        finally:
+            session.close()
     
     except Exception as e:
-        print(f"Error: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps(f"Error creating user: {str(e)}")
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
+            'body': json.dumps(f"Error Creating User: {str(e)}")
         }

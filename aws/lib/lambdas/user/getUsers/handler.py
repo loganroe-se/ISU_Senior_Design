@@ -18,6 +18,10 @@ def getUsers(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -27,7 +31,6 @@ def getUsers(event, context):
 
         # Fetch all users
         users_result = session.execute(select(User)).scalars().all()  # Get a list of user objects
-        session.close()
 
         # Create a list of user dictionaries directly
         users_list = [{'username': user.username, 'email': user.email, 'id': user.userID} for user in users_result]
@@ -35,12 +38,22 @@ def getUsers(event, context):
         # Return message
         return {
             'statusCode': 200,  # Changed to 200 for a successful retrieval
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(users_list)  # Serialize the list of users
         }
     
     except Exception as e:
-        print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error retrieving users: {str(e)}")
         }
+    
+    finally:
+        session.close()
