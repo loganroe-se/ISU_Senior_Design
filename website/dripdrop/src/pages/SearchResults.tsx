@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { Box, Typography, TextField, Button, List, ListItem, ListItemText, InputAdornment } from '@mui/material';
+import React, { useState, useCallback, useMemo } from 'react';
+import { Box, Typography, TextField, Button, List, ListItem, ListItemText, InputAdornment, CircularProgress } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import UserProfile from '../components/UserProfile';
 
@@ -9,11 +9,16 @@ type Post = {
     content: string;
 };
 
+type ApiUser = {
+    id: number;
+    username: string;
+    email: string;
+};
+
 type User = {
     id: number;
     name: string;
     info: string;
-    profilePicUrl?: string; // Add profile picture URL for users
 };
 
 type SearchResult = Post | User;
@@ -21,55 +26,64 @@ type SearchResult = Post | User;
 const SearchPage: React.FC = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
-    const [showUsers, setShowUsers] = useState(false);
-    const [showAll, setShowAll] = useState(true);
+    const [searchType, setSearchType] = useState<'all' | 'users' | 'posts'>('all');
+    const [loading, setLoading] = useState(false);
 
     const posts: Post[] = useMemo(() => [
-        { id: 1, title: 'Post about React', content: 'This is a React post' },
-        { id: 2, title: 'Post about clothes', content: 'This is a clothes post' },
-        { id: 3, title: 'Pants', content: 'Check out my new black pants' }
+        { id: 100, title: 'Post about React', content: 'This is a React post' },
+        { id: 200, title: 'Post about clothes', content: 'This is a clothes post' },
+        { id: 300, title: 'Pants', content: 'Check out my new black pants' }
     ], []);
 
-    const users: User[] = useMemo(() => [
-        { id: 1, name: 'John Doe', info: 'cool guy', profilePicUrl: 'https://picsum.photos/200/300' },
-        { id: 2, name: 'Rick Roll', info: 'Never going to give you up', profilePicUrl: 'https://via.placeholder.com/150' }
-    ], []);
-
-    const performSearch = useCallback(() => {
+    const performSearch = useCallback(async (type: 'all' | 'users' | 'posts') => {
         if (!searchTerm) {
             setSearchResults([]);
             return;
         }
 
+        setLoading(true);
         let results: SearchResult[] = [];
-        if (showAll) {
-            results = [
-                ...users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase())),
-                ...posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
-            ];
-        } else if (showUsers) {
-            results = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
-        } else {
-            results = posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
+
+        try {
+            const response = await fetch('https://api.dripdropco.com/users');
+            const data: ApiUser[] = await response.json();
+
+            const users: User[] = data.map(user => ({
+                id: Math.floor(Date.now() * Math.random()),
+                name: user.username,
+                info: user.email
+            }));
+
+            if (type === 'all') {
+                results = [
+                    ...users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase())),
+                    ...posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()))
+                ];
+            } else if (type === 'users') {
+                results = users.filter(user => user.name.toLowerCase().includes(searchTerm.toLowerCase()));
+            } else {
+                results = posts.filter(post => post.title.toLowerCase().includes(searchTerm.toLowerCase()));
+            }
+
+            setSearchResults(results);
+        } catch (error) {
+            console.error('Error fetching user data:', error);
+            setSearchResults([]);
+        } finally {
+            setLoading(false);
         }
+    }, [searchTerm, posts]);
 
-        setSearchResults(results);
-    }, [searchTerm, showAll, showUsers, posts, users]);
-
-    const handleSearchToggle = (searchType: 'posts' | 'users' | 'all') => {
-        setShowUsers(searchType === 'users');
-        setShowAll(searchType === 'all');
+    const handleSearchToggle = (type: 'all' | 'users' | 'posts') => {
+        setSearchType(type);
+        performSearch(type); // Trigger search when search type is changed
     };
 
-    const handleKeyPress = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
         if (event.key === 'Enter') {
-            performSearch();
+            performSearch(searchType); // Trigger search on Enter key
         }
     };
-
-    useEffect(() => {
-        performSearch();
-    }, [performSearch]);
 
     return (
         <Box sx={{ padding: '2rem' }}>
@@ -78,7 +92,7 @@ const SearchPage: React.FC = () => {
                 label="Search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                onKeyPress={handleKeyPress}
+                onKeyPress={handleKeyPress} // Add key press event
                 sx={{ marginBottom: '1rem' }}
                 InputProps={{
                     startAdornment: (
@@ -94,8 +108,8 @@ const SearchPage: React.FC = () => {
                     onClick={() => handleSearchToggle('all')}
                     sx={{
                         textTransform: 'none',
-                        color: showAll ? 'primary.main' : 'inherit',
-                        borderBottom: showAll ? '2px solid #1976d2' : 'none'
+                        color: searchType === 'all' ? 'primary.main' : 'inherit',
+                        borderBottom: searchType === 'all' ? '2px solid #1976d2' : 'none'
                     }}
                 >
                     All
@@ -105,8 +119,8 @@ const SearchPage: React.FC = () => {
                     onClick={() => handleSearchToggle('posts')}
                     sx={{
                         textTransform: 'none',
-                        color: !showUsers && !showAll ? 'primary.main' : 'inherit',
-                        borderBottom: !showUsers && !showAll ? '2px solid #1976d2' : 'none'
+                        color: searchType === 'posts' ? 'primary.main' : 'inherit',
+                        borderBottom: searchType === 'posts' ? '2px solid #1976d2' : 'none'
                     }}
                 >
                     Search Posts
@@ -116,8 +130,8 @@ const SearchPage: React.FC = () => {
                     onClick={() => handleSearchToggle('users')}
                     sx={{
                         textTransform: 'none',
-                        color: showUsers ? 'primary.main' : 'inherit',
-                        borderBottom: showUsers ? '2px solid #1976d2' : 'none'
+                        color: searchType === 'users' ? 'primary.main' : 'inherit',
+                        borderBottom: searchType === 'users' ? '2px solid #1976d2' : 'none'
                     }}
                 >
                     Search Users
@@ -125,22 +139,29 @@ const SearchPage: React.FC = () => {
             </Box>
 
             <Typography variant="h5">
-                {showAll ? 'All Results' : showUsers ? 'User Results' : 'Post Results'}
+                {searchType === 'all' ? 'All Results' : searchType === 'users' ? 'User Results' : 'Post Results'}
             </Typography>
-            <List>
-                {searchResults.map((result) => (
-                    <ListItem key={result.id}>
-                        {'name' in result ? (
-                            <UserProfile user={result as User} />
-                        ) : (
-                            <ListItemText
-                                primary={(result as Post).title}
-                                secondary={(result as Post).content}
-                            />
-                        )}
-                    </ListItem>
-                ))}
-            </List>
+
+            {loading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', marginTop: '1rem' }}>
+                    <CircularProgress />
+                </Box>
+            ) : (
+                <List>
+                    {searchResults.map((result) => (
+                        <ListItem key={result.id}>
+                            {'name' in result ? (
+                                <UserProfile user={result as User} />
+                            ) : (
+                                <ListItemText
+                                    primary={(result as Post).title}
+                                    secondary={(result as Post).content}
+                                />
+                            )}
+                        </ListItem>
+                    ))}
+                </List>
+            )}
         </Box>
     );
 };

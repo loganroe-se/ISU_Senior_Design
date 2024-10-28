@@ -14,26 +14,26 @@ type UserProfileProps = {
 
 const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     return (
-        <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '1rem',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
+        <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            padding: '1rem', 
+            border: '1px solid #ddd', 
+            borderRadius: '8px', 
             marginBottom: '1rem',
-            backgroundColor: '#fafafa'
+            backgroundColor: '#fafafa' 
         }}>
             {/* Circular Profile Picture */}
-            <Avatar
-                src={user.profilePicUrl}
-                alt={user.name}
+            <Avatar 
+                src={user.profilePicUrl} 
+                alt={user.name} 
                 sx={{
                     width: { xs: 48, sm: 64, md: 80 },  // Responsive sizing
                     height: { xs: 48, sm: 64, md: 80 },
                     marginRight: '1rem'
                 }}
             />
-
+            
             {/* User Name and Info */}
             <Box>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
