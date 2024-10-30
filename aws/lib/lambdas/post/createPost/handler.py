@@ -9,7 +9,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
-def create_post(event, context):
+def createPost(event, context):
     # Get database credentials
     creds = get_db_credentials(DB_SECRET_ARN)
     
@@ -27,8 +27,7 @@ def create_post(event, context):
     try:
         # Parse the user data from event
         body = json.loads(event['body'])
-        postID = body.get('postID')
-        #userID = body.get('userID')
+        userID = body.get('userID')
         caption  = body.get('caption')
         createdDate = body.get('createdDate')
         imageURL = body.get('imageURL')
@@ -45,7 +44,7 @@ def create_post(event, context):
             session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
             
             # Create a new user
-            new_post = Post(postID=postID, caption=caption, createdDate=createdDate, imageURL=imageURL)
+            new_post = Post(userID=userID, caption=caption, createdDate=createdDate, imageURL=imageURL)
 
             # Add the user to the db
             session.add(new_post)
@@ -55,7 +54,7 @@ def create_post(event, context):
             # Return message
             return {
                 'statusCode': 201,
-                'body': json.dumps(f'Post {postID} created successfully')
+                'body': json.dumps(f'Post by user {userID} created successfully')
             }
         finally:
             session.close()

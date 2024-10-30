@@ -209,13 +209,25 @@ export class ApiConstruct extends Construct {
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
-      "manage_db"
-    )
+      "manageDB"
+    );
     const createPostLambda = createLambda(
       "CreatePostLambda",
-      "lib/lambdas/post/create_post",
-      "create_post"
-    )
+      "lib/lambdas/post/createPost",
+      "createPost"
+    );
+    const deletePostLambda = createLambda(
+      "DeletePostLambda",
+      "lib/lambdas/post/deletePost",
+      "deletePost"
+    );
+    const getPostsLambda = createLambda(
+      "GetPostsLambda",
+      "lib/lambdas/post/getPosts",
+      "getPosts"
+    );
+
+  
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
@@ -237,7 +249,8 @@ export class ApiConstruct extends Construct {
     const users = api.root.addResource("users");
     const posts = api.root.addResource("posts");
 
-    //POST
+    //POST LAMBDAS
+    //POST /posts - Create 
     posts.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createPostLambda),
@@ -245,7 +258,28 @@ export class ApiConstruct extends Construct {
         operationName: "CreatePost",
       }
     );
+    posts.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getPostsLambda),
+      {
+        operationName: "GetPosts",
+      }
+    )
 
+
+    // Define the /users/{id} resource
+    const post = posts.addResource("{id}");
+
+    // DELETE /posts/{id} - Delete User
+    post.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deletePostLambda),
+      {
+        operationName: "DeletePost",
+      }
+    );
+
+    //USER LAMBDAS
     // POST /users - Create User
     users.addMethod(
       "POST",

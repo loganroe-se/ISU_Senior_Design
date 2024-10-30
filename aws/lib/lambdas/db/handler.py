@@ -10,7 +10,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
-def manage_db(event, context):
+def manageDB(event, context):
     # Get database credentials
     creds = get_db_credentials(DB_SECRET_ARN)
     
