@@ -183,28 +183,28 @@ export class ApiConstruct extends Construct {
     // Create separate Lambda functions for each CRUD operation
     const createUserLambda = createLambda(
       "CreateUserLambda",
-      "lib/lambdas/sample",
-      "lambda_handler"
+      "lib/lambdas/user/createUser",
+      "createUser"
     );
     const getUsersLambda = createLambda(
       "GetUsersLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/getUsers",
+      "getUsers"
     );
     const getUserByIdLambda = createLambda(
       "GetUserByIdLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/getUserById",
+      "getUserById"
     );
     const updateUserLambda = createLambda(
       "UpdateUserLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/updateUser",
+      "updateUser"
     );
     const deleteUserLambda = createLambda(
       "DeleteUserLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/deleteUser",
+      "deleteUser"
     );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
