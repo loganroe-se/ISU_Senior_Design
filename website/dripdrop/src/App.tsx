@@ -16,7 +16,10 @@ function App() {
     <Box sx={{
       margin: '0px !important'
     }}>
-      {isSignedIn ? <HomePage /> : <SignIn onSignIn={handleSignIn} />}
+      {/* This is commented out for dev purposes.
+       Uncomment this line and comment the line below it to have the sign and signup screens be present
+      {isSignedIn ? <HomePage /> : <SignIn onSignIn={handleSignIn} />}  */}
+      {isSignedIn ? <HomePage /> : <HomePage />}
     </Box>
   );
 }

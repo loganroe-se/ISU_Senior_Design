@@ -5,10 +5,10 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
+import CircularProgress from '@mui/material/CircularProgress';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import SignUp from '../pages/signUp';
 
-// Define the type for the component's props
 interface SignInProps {
     onSignIn: (email: string, password: string) => void;
 }
@@ -18,18 +18,44 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const [password, setPassword] = useState('');
     const [isSigningUp, setIsSigningUp] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [loading, setLoading] = useState(false);
 
-    const handleSignIn = () => {
-        onSignIn(email, password);
+    const handleSignIn = async () => {
+        setLoading(true);  // Start loading
+        setError(null);  // Clear any previous errors
+
+        try {
+            // Fetch all users and check for the existence of the email
+            const response = await fetch(`https://api.dripdropco.com/users`);
+
+            if (response.ok) {
+                const data = await response.json();
+
+                // Check if the email exists in the response
+                const userExists = data.some((user: { email: string }) => user.email === email);
+                if (userExists) {
+                    onSignIn(email, password); // This would normally validate the password as well
+                } else {
+                    setError('User not found. Please sign up first.');
+                }
+            } else {
+                setError('Error verifying user. Please try again.');
+            }
+        } catch (error) {
+            setError('Network error. Please try again later.');
+        } finally {
+            setLoading(false);  // Stop loading
+        }
     };
 
     const handleSignUp = (email: string, password: string) => {
         console.log('User signed up with:', email, password);
-        setIsSigningUp(false); // Go back to sign-in after sign-up
+        setIsSigningUp(false);
     };
 
     const handleClickShowPassword = () => {
-        setShowPassword((prev) => !prev); // Toggle password visibility
+        setShowPassword((prev) => !prev);
     };
 
     return (
@@ -56,7 +82,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     borderRadius: '20px'
                 }}
             >
-                <img src={'/images/logo.svg'} alt="logo" style={{'width': '50px'}} />
+                <img src={'/images/logo.svg'} alt="logo" style={{ width: '50px' }} />
                 {isSigningUp ? (
                     <SignUp onSignUp={handleSignUp} setIsSigningUp={setIsSigningUp} />
                 ) : (
@@ -68,26 +94,28 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                             justifyContent: 'center',
                         }}
                     >
-                        <Typography variant="h4" gutterBottom sx={{
-                            color: '#0073FF',
-                            fontSize: '64px'
-                        }}>
+                        <Typography variant="h4" gutterBottom sx={{ color: '#0073FF', fontSize: '64px' }}>
                             dripdrop
                         </Typography>
+                        {error && (
+                            <Typography color="error" sx={{ mb: 2 }}>
+                                {error}
+                            </Typography>
+                        )}
                         <TextField
                             label="Email"
                             variant="outlined"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            sx={{ mb: 2, width: '80%' }} // Set uniform width
+                            sx={{ mb: 2, width: '80%' }}
                         />
                         <TextField
                             label="Password"
-                            type={showPassword ? 'text' : 'password'} // Toggle password visibility
+                            type={showPassword ? 'text' : 'password'}
                             variant="outlined"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
-                            sx={{ mb: 2, width: '80%' }} // Set uniform width
+                            sx={{ mb: 2, width: '80%' }}
                             InputProps={{
                                 endAdornment: (
                                     <InputAdornment position="end">
@@ -102,25 +130,32 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                                 ),
                             }}
                         />
-                        <Button onClick={handleSignIn} sx={{
-                            mb: 2,
-                            bgcolor: '#0073FF',
-                            color: 'white',
-                            borderRadius: '40px',
-                            width: '50%',
-                            fontSize: '24px'
-                        }}>
-                            Login
-                        </Button>
-                        <Button onClick={() => setIsSigningUp(true)} sx={{
-                            background: "none",
-                            color: "#AFAFAF"
-                        }}>
-                            Or sign up <Typography sx={{
-                                textDecoration: "underline",
-                                color: "#9D9D9D",
-                                marginLeft: ".2rem"
-                            }}>here</Typography>
+                        {loading ? (
+                            <CircularProgress sx={{ mb: 2 }} />  // Show loading spinner
+                        ) : (
+                            <Button
+                                onClick={handleSignIn}
+                                sx={{
+                                    mb: 2,
+                                    bgcolor: '#0073FF',
+                                    color: 'white',
+                                    borderRadius: '40px',
+                                    width: '50%',
+                                    fontSize: '20px',
+                                    fontFamily: 'Roboto, sans-serif',
+                                    fontWeight: 600,
+                                    padding: '0.8rem 1.5rem',
+                                    '&:hover': {
+                                        bgcolor: '#005BB5',
+                                        boxShadow: '0px 4px 12px rgba(0, 115, 255, 0.3)',
+                                    },
+                                }}
+                            >
+                                Login
+                            </Button>
+                        )}
+                        <Button onClick={() => setIsSigningUp(true)} sx={{ background: "none", color: "#AFAFAF" }}>
+                            Or sign up <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem" }}>here</Typography>
                         </Button>
                     </Box>
                 )}
