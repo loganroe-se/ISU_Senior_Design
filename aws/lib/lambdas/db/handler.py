@@ -1,6 +1,5 @@
 import os
 import json
-import pymysql
 from sqlalchemy import inspect
 from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Base
@@ -22,32 +21,15 @@ def manage_db(event, context):
         }
     
     try:
-        # Connect to MySQL database using pymysql
-        connection = pymysql.connect(
-            host=DB_ENDPOINT,
-            user=creds['username'],
-            password=creds['password'],
-            database=DB_NAME,
-            port=int(DB_PORT)
-        )
+        # Initialize SQLAlchemy session
+        conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+        engine = create_db_engine(conn_string);
+        
+        result = Base.metadata.create_all(engine)
 
-        with connection.cursor() as cursor:
-            # Disable foreign key checks
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 0;")
-            
-            # Drop all tables in the current database
-            cursor.execute("SELECT table_name FROM information_schema.tables WHERE table_schema = %s", (DB_NAME,))
-            tables = cursor.fetchall()
-
-            for table in tables:
-                cursor.execute(f"DROP TABLE IF EXISTS `{table[0]}`;")
-            
-            # Re-enable foreign key checks
-            cursor.execute("SET FOREIGN_KEY_CHECKS = 1;")
-
-            connection.commit()
-
-        connection.close()
+        #Use SQLAlchemy Inspector to get table names
+        inspector = inspect(engine)
+        tables = inspector.get_table_names()
 
         return {
             'statusCode': 200,

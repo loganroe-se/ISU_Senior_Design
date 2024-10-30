@@ -17,6 +17,10 @@ def create_post(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+            },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -34,27 +38,34 @@ def create_post(event, context):
                 'statusCode': 400,
                 'body': json.dumps('Missing required field')
             }
-
-        # Initialize SQLAlchemy engine and session
-        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
         
-        # Create a new user
-        new_post = Post(postID=postID, caption=caption, createdDate=createdDate, imageURL=imageURL)
+        try:
 
-        # Add the user to the db
-        session.add(new_post)
-        session.commit()
-        session.close()
+            # Initialize SQLAlchemy engine and session
+            session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+            
+            # Create a new user
+            new_post = Post(postID=postID, caption=caption, createdDate=createdDate, imageURL=imageURL)
 
-        # Return message
-        return {
-            'statusCode': 201,
-            'body': json.dumps(f'Post {postID} created successfully')
-        }
+            # Add the user to the db
+            session.add(new_post)
+            session.commit()
+            session.close()
+
+            # Return message
+            return {
+                'statusCode': 201,
+                'body': json.dumps(f'Post {postID} created successfully')
+            }
+        finally:
+            session.close()
     
     except Exception as e:
-        print(f"Database error: {e}")
         return {
             'statusCode': 500,
-            'body': json.dumps(f"Database error: {str(e)}")
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
+            'body': json.dumps(f"Error Creating Post: {str(e)}")
         }
