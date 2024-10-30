@@ -211,6 +211,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/db",
       "manage_db"
     )
+    const createPostLambda = createLambda(
+      "CreatePostLambda",
+      "lib/lambdas/post/create_post",
+      "create_post"
+    )
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
@@ -230,6 +235,16 @@ export class ApiConstruct extends Construct {
 
     // Define the /users resource
     const users = api.root.addResource("users");
+    const posts = api.root.addResource("posts");
+
+    //POST
+    posts.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createPostLambda),
+      {
+        operationName: "CreatePost",
+      }
+    );
 
     // POST /users - Create User
     users.addMethod(
