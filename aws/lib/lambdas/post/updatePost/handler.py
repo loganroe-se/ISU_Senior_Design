@@ -2,7 +2,7 @@ import os
 import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
-from dripdrop_orm_objects import User
+from dripdrop_orm_objects import Post
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -10,7 +10,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
-def updateUser(event, context):
+def updatePost(event, context):
     # Get database credentials
     creds = get_db_credentials(DB_SECRET_ARN)
     
@@ -27,26 +27,26 @@ def updateUser(event, context):
     
     try:
 
-        # Parse the user ID from event
-        user_id = event['pathParameters'].get('id')
+        # Parse the post ID from event
+        post_id = event['pathParameters'].get('id')
         
-        if not user_id:
+        if not post_id:
             return {
                 'statusCode': 400,
                 'headers': {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-                'body': json.dumps('Missing user ID')
+                'body': json.dumps('Missing post ID')
             }
 
         # Parse the update data from the body
         body = json.loads(event['body'])
-        username = body.get('username')
-        email = body.get('email')
-        password = body.get('password')
+        caption = body.get('caption')
+        createdDate = body.get('createdDate')
+        imageURL = body.get('imageURL')
 
-        if not username and not email and not password:
+        if not caption and not imageURL and not createdDate:
             return {
                 'statusCode': 400,
                 'headers': {
@@ -60,17 +60,16 @@ def updateUser(event, context):
             # Initialize SQLAlchemy engine and session
             session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
             
-            user = session.execute(select(User).where(User.userID == user_id)).scalars().first()
+            post = session.execute(select(Post).where(Post.postID == post_id)).scalars().first()
 
-            if user:
-                # Update user information
-                if username:
-                    user.username = username
-                if email:
-                    user.email = email
-                if email:
-                    user.password = password
-                    
+            if post:
+                # Update post information
+                if caption:
+                    post.caption = caption
+                if createdDate:
+                    post.createdDate = createdDate
+                if imageURL:
+                    post.imageURL = imageURL
                 session.commit()
 
                 return {
@@ -79,7 +78,7 @@ def updateUser(event, context):
                         'Access-Control-Allow-Origin': '*',
                         'Access-Control-Allow-Headers': 'Content-Type'
                     },
-                    'body': json.dumps(f'User {user_id} updated successfully')
+                    'body': json.dumps(f'Post {post_id} updated successfully')
                 }
         
             else:
@@ -89,7 +88,7 @@ def updateUser(event, context):
                         'Access-Control-Allow-Origin': '*',
                         'Access-Control-Allow-Headers': 'Content-Type'
                     },
-                    'body': json.dumps(f'User with ID {user_id} not found')
+                    'body': json.dumps(f'Post with ID {post_id} not found')
                 }
             
         finally:
@@ -103,5 +102,5 @@ def updateUser(event, context):
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-            'body': json.dumps(f"Error updating user: {str(e)}")
+            'body': json.dumps(f"Error updating post: {str(e)}")
         }
