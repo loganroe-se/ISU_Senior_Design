@@ -1,0 +1,9 @@
+{
+  "version": "1",
+  "name": "dripdrop",
+  "type": "collection",
+  "ignore": [
+    "node_modules",
+    ".git"
+  ]
+}
