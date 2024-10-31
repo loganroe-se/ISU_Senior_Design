@@ -34,10 +34,7 @@ build website:
 
 deploy website:
   stage: deploy-website
-  image:
-    name: amazon/aws-cli:latest
-    entrypoint:
-      - '/usr/bin/env'
+  image: node:latest
   id_tokens:
       ID_TOKEN:
         aud: sdmay25-25-s3-deploy
