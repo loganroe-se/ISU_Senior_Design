@@ -147,5 +147,5 @@ aws-cdk-deploy-api:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - aws/*
+        - aws/**/*
 

@@ -125,7 +125,7 @@ export class StaticSite extends Construct {
         distributionPaths: ["/*"],
       });
     } else {
-      console.warn("Website assets not found. Skipping deployment.");
+      console.warn("Website source assets not found. Skipping deployment.");
     }
 
     new CfnOutput(this, "Bucket", { value: siteBucket.bucketName });
