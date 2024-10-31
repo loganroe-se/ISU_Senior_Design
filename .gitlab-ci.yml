@@ -51,7 +51,7 @@ build website:
 deploy website:
   stage: deploy-website
   needs:
-    - ".assume-role"
+    - ".assume_role"
   image: node:latest
   before_script:
     - npm install -g aws-cdk@latest
