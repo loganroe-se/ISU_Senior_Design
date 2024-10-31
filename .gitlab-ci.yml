@@ -53,7 +53,9 @@ deploy website:
   dependencies:
     - assume_role
     - build website
-  image: node:latest
+  image: docker:27.1.0
+  services:
+    - docker:27.1.0-dind
   before_script:
     - npm install -g aws-cdk@latest
     - cdk --version
