@@ -55,6 +55,8 @@ build website:
 aws-cdk-diff:
   image: $BUILD_IMAGE
   stage: aws-cdk-diff
+  dependencies:
+    - build website
   id_tokens:
     ID_TOKEN:
       aud: sdmay25-25-s3-deploy

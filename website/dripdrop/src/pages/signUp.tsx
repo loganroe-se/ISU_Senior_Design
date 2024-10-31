@@ -33,7 +33,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
 
         // Validation checks
         if (!username || !email || !password || !confirmPassword) {
-            setErrorMessage("All fields are required!");
+            setErrorMessage("All fields are required I think!");
             setLoading(false); // Stop loading
             return;
         }
