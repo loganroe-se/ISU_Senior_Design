@@ -63,7 +63,7 @@ aws-cdk-diff:
   script:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
-    - cdk diff WebsiteHostingStack
+    - cdk diff WebsiteHostingStack --exclusively true
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -118,7 +118,7 @@ aws-cdk-diff-api:
   script:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
-    - cdk diff ApiStack
+    - cdk diff ApiStack --exclusively true
 
 aws-cdk-deploy-api:
   image: $BUILD_IMAGE
