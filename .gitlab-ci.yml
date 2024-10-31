@@ -120,7 +120,6 @@ aws-cdk-diff-api:
     ID_TOKEN:
       aud: sdmay25-25-s3-deploy
   before_script:
-    - mkdir website/dripdrop/build/
     - cd ${AWS_ROOT} 
   script:
     - !reference [.setup, script]
@@ -141,7 +140,6 @@ aws-cdk-deploy-api:
     ID_TOKEN:
       aud: sdmay25-25-s3-deploy
   before_script:
-    - mkdir website/dripdrop/build/ 
     - cd ${AWS_ROOT} 
   script:
     - !reference [.setup, script]

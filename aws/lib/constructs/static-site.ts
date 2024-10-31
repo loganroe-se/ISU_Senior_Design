@@ -9,6 +9,7 @@ import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
+import fs = require("fs");
 
 export interface StaticSiteProps {
   domainName: string;
@@ -115,13 +116,17 @@ export class StaticSite extends Construct {
 
     // Deploy site contents to S3 bucket
 
-    // Deploy site contents to S3 bucket
-    new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
-      sources: [s3deploy.Source.asset("../website/dripdrop/build")],
-      destinationBucket: siteBucket,
-      distribution,
-      distributionPaths: ["/*"],
-    });
+    if (fs.existsSync('../website/dripdrop/build')) {
+      // Deploy site contents to S3 bucket
+      new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
+        sources: [s3deploy.Source.asset("../website/dripdrop/build")],
+        destinationBucket: siteBucket,
+        distribution,
+        distributionPaths: ["/*"],
+      });
+    } else {
+      console.warn("Website assets not found. Skipping deployment.");
+    }
 
     new CfnOutput(this, "Bucket", { value: siteBucket.bucketName });
     new CfnOutput(this, "DistributionId", {
