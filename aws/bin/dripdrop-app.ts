@@ -22,7 +22,7 @@ const websiteStack = new WebsiteHostingStack(app, websiteStackName, {
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
   env: { account: app.node.tryGetContext("accountId"), region: 'us-east-1' },
-
+  stackName: websiteStackName,
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
 
@@ -38,6 +38,7 @@ const apiStack = new ApiStack(app, apiStackName, {
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
   env: { account: app.node.tryGetContext("accountId"), region: 'us-east-1' },
+  stackName: apiStackName,
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
