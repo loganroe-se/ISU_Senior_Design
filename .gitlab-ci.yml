@@ -1,16 +1,23 @@
 variables:
   AWS_ROOT: "aws"
+  BUILD_IMAGE: node:lts-alpine
 
 stages:
   - assume-role
   - build-website
-  - deploy-website
+  - aws-cdk-diff
+  - aws-cdk-deploy
 
-assume_role:
-  stage: assume-role
-  image:
-      name: amazon/aws-cli:latest
-      entrypoint: [""]
+.setup:
+  script:
+    - node --version  # Print out nodejs version for debugging
+    - apk add --no-cache aws-cli  # install aws-cli
+    - npm install -g aws-cdk  # install aws-cdk
+    - echo "Compiling the code..."
+    - npm install  # install project dependencies
+    - echo "Compile complete."
+
+.assume_role:
   id_tokens:
     GITLAB_OIDC_TOKEN:
       aud: sdmay25-25-s3-deploy
@@ -41,23 +48,28 @@ build website:
   #     changes:
   #       - website/dripdrop/**/*
 
-deploy website:
-  stage: deploy-website
+
+aws-cdk-diff:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-diff
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - cdk diff
+
+aws-cdk-deploy:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-deploy
   dependencies:
     - build website
-  image: docker:latest
-  services:
-    - docker:dind
-  extends: ["assume_role"]
   before_script:
-    - npm install -g aws-cdk@latest
-    - cdk --version
-  script:
     - cd ${AWS_ROOT} 
-    - echo "Compiling the code..."
-    - npm install
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
     - npm run build
-    - echo "Compile complete."
     - npx cdk synth
     - cdk deploy WebsiteHostingStack --require-approval never --profile gitlab-session
   # rules:
