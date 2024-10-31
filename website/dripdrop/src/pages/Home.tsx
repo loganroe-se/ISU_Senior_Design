@@ -10,7 +10,7 @@ export default function Home() {
   const posts = [
     {
       image: "/outfit_1.jpg",
-      username: "This is a tdesst brancffdddh",
+      username: "This is a tdesst brafffncffdddh",
       caption: "New fall outfit!",
     },
     {

@@ -26,6 +26,7 @@ export class StaticSite extends Construct {
   constructor(parent: Stack, name: string, props: StaticSiteProps) {
     super(parent, name);
 
+    console.log("NAME: ", name)
     const domianName = name == "WebsiteHostingStack" ? props.domainName : props.domainName + "-" + name;
     const zone = route53.HostedZone.fromLookup(this, "Zone", {
       domainName: domianName,
