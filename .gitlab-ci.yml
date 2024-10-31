@@ -40,7 +40,7 @@ deploy website:
   id_tokens:
       ID_TOKEN:
         aud: sdmay25-25-s3-deploy
-  extends: assume_role
+  extends: .assume_role
   before_script:
     - npm install -g aws-cdk@latest
     - cdk --version
