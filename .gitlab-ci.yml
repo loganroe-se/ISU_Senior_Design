@@ -24,12 +24,16 @@ assume_role:
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
-    - echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> ${AWS_ROOT}/aws_credentials.env
-    - echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> ${AWS_ROOT}/aws_credentials.env
-    - echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> ${AWS_ROOT}/aws_credentials.env
+    - mkdir ~/.aws/ 
+    - touch ~/.aws/credentials 
+    - touch ~/.aws/config 
+    - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
+    - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
+    - aws configure list
   artifacts:
     paths:
-      - ${AWS_ROOT}/aws_credentials.env
+      - ~/.aws/credentials 
+      - ~/.aws/config 
 
 
 build website:
@@ -53,13 +57,10 @@ deploy website:
   dependencies:
     - assume_role
     - build website
-  image: docker:27.1.0
-  services:
-    - docker:27.1.0-dind
+  image: node:latest
   before_script:
     - npm install -g aws-cdk@latest
     - cdk --version
-    - source ${AWS_ROOT}/aws_credentials.env
   script:
     - cd ${AWS_ROOT} 
     - echo "Compiling the code..."
