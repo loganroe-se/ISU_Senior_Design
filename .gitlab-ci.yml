@@ -158,7 +158,7 @@ aws_cdk_deploy_branch:
   stage: aws-cdk-deploy
   environment:
     name: branch/${CI_COMMIT_BRANCH}
-    url: https://www.dripdropco-${CI_COMMIT_BRANCH}.com
+    url: https://${CI_COMMIT_BRANCH}.dripdropco.com
     on_stop: stop_branch_deploy
   dependencies:
     - build website
