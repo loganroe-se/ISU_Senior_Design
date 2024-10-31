@@ -4,9 +4,11 @@ variables:
 
 stages:
   - assume-role
-  - build-website
+  - build
   - aws-cdk-diff
   - aws-cdk-deploy
+
+# GENERAL
 
 .setup:
   script:
@@ -31,8 +33,10 @@ stages:
       --output text))
     - aws sts get-caller-identity
 
+# WEBSITE 
+
 build website:
-  stage: build-website
+  stage: build
   image: node:latest
   script:
     - cd website/dripdrop  # Navigate to the directory where package.json is
@@ -42,10 +46,10 @@ build website:
     paths:
       - website/dripdrop/build/ 
     when: always
-  # rules:
-  #   - if: '$CI_COMMIT_REF_NAME == "master"'
-  #     changes:
-  #       - website/dripdrop/**/*
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - website/dripdrop/**/*
 
 
 aws-cdk-diff:
@@ -60,6 +64,11 @@ aws-cdk-diff:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - cdk diff
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - website/dripdrop/**/*
+
 
 aws-cdk-deploy:
   image: $BUILD_IMAGE
@@ -76,10 +85,22 @@ aws-cdk-deploy:
     - !reference [.assume_role, script]
     - npm run build
     - cdk deploy WebsiteHostingStack --require-approval never
-  # rules:
-  #   - if: '$CI_COMMIT_REF_NAME == "master"'
-  #     changes:
-  #       - website/dripdrop/**/*
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - website/dripdrop/**/*
 
 
+# API 
 
+build layer:
+  stage: build
+  image: python:3.11
+  script:
+    - cd ${AWS_ROOT}/lib/layer  # Navigate to the directory where package.json is
+    - pip install -r requirements.txt -t ./python
+    - cp *.py ./python
+  artifacts:
+    paths:
+      - ${AWS_ROOT}/lib/layer/python
+    when: always
