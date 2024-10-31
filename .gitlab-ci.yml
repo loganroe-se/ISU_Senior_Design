@@ -3,6 +3,7 @@ stages:
   - deploy-website
 
 .assume_role: &assume_role
+  script:
     - >
       STS=($(aws sts assume-role-with-web-identity
       --role-arn ${ROLE_ARN}
