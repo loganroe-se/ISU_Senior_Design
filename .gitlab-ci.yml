@@ -33,19 +33,6 @@ stages:
       --output text))
     - aws sts get-caller-identity
 
-aws-cdk-diff:
-  image: $BUILD_IMAGE
-  stage: aws-cdk-diff
-  id_tokens:
-    ID_TOKEN:
-      aud: sdmay25-25-s3-deploy
-  before_script:
-    - cd ${AWS_ROOT} 
-  script:
-    - !reference [.setup, script]
-    - !reference [.assume_role, script]
-    - cdk diff
-
 # WEBSITE 
 
 build website:
@@ -63,6 +50,25 @@ build website:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - website/dripdrop/**/*
+
+
+aws-cdk-diff:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-diff
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - cdk diff WebsiteHostingStack
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - website/dripdrop/**/*
+
 
 aws-cdk-deploy:
   image: $BUILD_IMAGE
@@ -98,6 +104,21 @@ build layer:
     paths:
       - ${AWS_ROOT}/lib/layer/python
     when: always
+
+aws-cdk-diff-api:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-diff
+  dependencies:
+    - build layer
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - cdk diff ApiStack
 
 aws-cdk-deploy-api:
   image: $BUILD_IMAGE
