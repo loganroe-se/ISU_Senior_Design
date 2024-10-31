@@ -7,7 +7,10 @@ import { ApiStack } from '../lib/api-stack';
 
 const app = new cdk.App();
 
-const websiteStack = new WebsiteHostingStack(app, 'WebsiteHostingStack', {
+const websiteStackName: string = app.node.tryGetContext("websiteStackName") || "WebsiteHostingStack";
+const apiStackName:string = app.node.tryGetContext("apiStackName") || "ApiStack";
+
+const websiteStack = new WebsiteHostingStack(app, websiteStackName, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -23,7 +26,7 @@ const websiteStack = new WebsiteHostingStack(app, 'WebsiteHostingStack', {
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
 
-const apiStack = new ApiStack(app, 'ApiStack', {
+const apiStack = new ApiStack(app, apiStackName, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */

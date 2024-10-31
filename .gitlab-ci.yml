@@ -47,7 +47,7 @@ build website:
       - website/dripdrop/build/ 
     when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: $CI_COMMIT_REF_NAME
       changes:
         - website/dripdrop/**/*
 
@@ -151,3 +151,44 @@ aws-cdk-deploy-api:
       changes:
         - aws/**/*
 
+# BRANCH DEPLOY
+
+aws_cdk_deploy_branch:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-deploy
+  environment:
+    name: branch/${CI_COMMIT_BRANCH}
+    on_stop: stop_branch_deploy
+  dependencies:
+    - build website
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - npm run build
+    - cdk deploy WebsiteHostingStack -c stackName=${CI_COMMIT_BRANCH}  --require-approval never
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - website/dripdrop/**/*
+
+stop_branch_deploy:
+  stage: aws-cdk-deploy
+  image: $BUILD_IMAGE
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      when: manual
+  environment:
+    name: branch/${CI_COMMIT_BRANCH}
+    action: stop
+  before_script:
+    - cd ${AWS_ROOT}  
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - npm run build
+    - cdk destroy -c stackName=${CI_COMMIT_BRANCH
