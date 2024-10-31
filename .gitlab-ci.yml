@@ -15,6 +15,7 @@ assume_role:
     GITLAB_OIDC_TOKEN:
       aud: sdmay25-25-s3-deploy
   script:
+    - mkdir -p ~/.aws
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
       $(aws sts assume-role-with-web-identity
@@ -24,16 +25,16 @@ assume_role:
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
-    - mkdir ~/.aws/ 
-    - touch ~/.aws/credentials 
-    - touch ~/.aws/config 
-    - aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID"
-    - aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY"
-    - aws configure list
+    - >
+      cat <<EOL > .aws/credentials
+      [gitlab-session]
+      aws_access_key_id = $AWS_ACCESS_KEY_ID
+      aws_secret_access_key = $AWS_SECRET_ACCESS_KEY
+      aws_session_token = $AWS_SESSION_TOKEN
+      EOL    
   artifacts:
     paths:
-      - ~/.aws/credentials 
-      - ~/.aws/config 
+      - .aws/credentials 
 
 
 build website:
@@ -59,6 +60,8 @@ deploy website:
     - build website
   image: node:latest
   before_script:
+    - mkdir -p ~/.aws
+    - cp .aws/credentials ~/.aws/credentials  # Restore the credentials file
     - npm install -g aws-cdk@latest
     - cdk --version
   script:
