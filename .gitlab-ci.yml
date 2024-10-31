@@ -25,7 +25,7 @@ assume_role:
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
-    - >
+    - |
       cat <<EOL > .aws/credentials
       [gitlab-session]
       aws_access_key_id = $AWS_ACCESS_KEY_ID
