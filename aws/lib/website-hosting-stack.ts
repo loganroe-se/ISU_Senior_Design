@@ -17,7 +17,7 @@ export class WebsiteHostingStack extends cdk.Stack {
   constructor(parent: cdk.App, name: string, props: cdk.StackProps) {
       super(parent, name, props);
 
-      new StaticSite(this, 'StaticSite', {
+      new StaticSite(this, name, {
           domainName: this.node.tryGetContext('domain'),
           siteSubDomain: this.node.tryGetContext('websitesubdomain'),
       });
