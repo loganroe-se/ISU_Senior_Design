@@ -158,6 +158,7 @@ aws_cdk_deploy_branch:
   stage: aws-cdk-deploy
   environment:
     name: branch/${CI_COMMIT_BRANCH}
+    url: https://${CI_COMMIT_BRANCH}.dripdropco.com
     on_stop: stop_branch_deploy
   dependencies:
     - build website
@@ -170,7 +171,7 @@ aws_cdk_deploy_branch:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk deploy WebsiteHostingStack -c stackName=${CI_COMMIT_BRANCH}  --require-approval never
+    - cdk deploy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH}  --require-approval never
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
@@ -191,4 +192,4 @@ stop_branch_deploy:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk destroy -c stackName=${CI_COMMIT_BRANCH
+    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH

@@ -26,12 +26,13 @@ export class StaticSite extends Construct {
   constructor(parent: Stack, name: string, props: StaticSiteProps) {
     super(parent, name);
 
-    const domianName = name == "WebsiteHostingStack" ? props.domainName : props.domainName + "-" + name;
+    console.log("NAME: ",)
+    const subdomain = name == "WebsiteHostingStack" ? props.siteSubDomain : name;
     const zone = route53.HostedZone.fromLookup(this, "Zone", {
-      domainName: domianName,
+      domainName:  props.domainName,
     });
 
-    const siteDomain = props.siteSubDomain + "." + domianName;
+    const siteDomain = subdomain + "." + props.domainName;
 
     const cloudfrontOAC = new cloudfront.S3OriginAccessControl(this, "MyOAC", {
       signing: cloudfront.Signing.SIGV4_NO_OVERRIDE,
