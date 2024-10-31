@@ -23,6 +23,8 @@ stages:
       aud: sdmay25-25-s3-deploy
   script:
     - echo ${AWS_TOKEN}
+    - echo $AWS_TOKEN
+    - ehco AWS_TOKEN
     - >
       export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
       $(aws sts assume-role-with-web-identity
