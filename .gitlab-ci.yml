@@ -1,8 +1,16 @@
+variables:
+  AWS_ROOT: "aws"
+
 stages:
+  - assume-role
   - build-website
   - deploy-website
 
 .assume_role:
+  stage: assume-role
+  image:
+      name: amazon/aws-cli:latest
+      entrypoint: [""]
   id_tokens:
     GITLAB_OIDC_TOKEN:
       aud: sdmay25-25-s3-deploy
@@ -16,9 +24,13 @@ stages:
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
-    - export AWS_ACCESS_KEY_ID="${STS[0]}"
-    - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
-    - export AWS_SESSION_TOKEN="${STS[2]}"
+    - echo "AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}" >> ${AWS_ROOT}/aws_credentials.env
+    - echo "AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}" >> ${AWS_ROOT}/aws_credentials.env
+    - echo "AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}" >> ${AWS_ROOT}/aws_credentials.env
+  artifacts:
+    paths:
+      - ${AWS_ROOT}/aws_credentials.env
+
 
 build website:
   stage: build-website
@@ -38,13 +50,15 @@ build website:
 
 deploy website:
   stage: deploy-website
+  needs:
+    - ".assume-role"
   image: node:latest
-  extends: .assume_role
   before_script:
     - npm install -g aws-cdk@latest
     - cdk --version
+    - source ${AWS_ROOT}/aws_credentials.env
   script:
-    - cd aws/ 
+    - cd ${AWS_ROOT} 
     - echo "Compiling the code..."
     - npm install
     - npm run build
