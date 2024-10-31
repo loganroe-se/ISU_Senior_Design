@@ -3,6 +3,7 @@ import json
 from sqlalchemy import inspect
 from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Base
+from dripdrop_orm_objects import Post
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")

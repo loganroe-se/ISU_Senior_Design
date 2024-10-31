@@ -226,6 +226,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/post/getPosts",
       "getPosts"
     );
+    const getPostByIdLambda = createLambda(
+      "GetPostByIdLambda",
+      "lib/lambdas/post/getPostById",
+      "getPostById"
+    )
 
   
 
@@ -278,6 +283,13 @@ export class ApiConstruct extends Construct {
         operationName: "DeletePost",
       }
     );
+    post.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getPostByIdLambda),
+      {
+        operationName: "GetPostById",
+      }
+    )
 
     //USER LAMBDAS
     // POST /users - Create User

@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Post
+from datetime import datetime, date
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -33,7 +34,9 @@ def getPosts(event, context):
         posts_result = session.execute(select(Post)).scalars().all()  # Get a list of user objects
 
         # Create a list of post dictionaries directly
-        posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate' : post.createdDate, "imageURL" : post.imageURL} for post in posts_result]
+        posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate': (
+            post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
+            else post.createdDate), "imageURL" : post.imageURL} for post in posts_result]
         
         # Return message
         return {
