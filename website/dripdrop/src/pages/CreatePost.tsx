@@ -14,7 +14,7 @@ const dropzoneStyle: React.CSSProperties = {
     border: '2px dashed #cccccc',
     borderRadius: '8px',
     padding: '20px',
-    textAlign: 'center' as 'center',
+    textAlign: 'center' as const,
     cursor: 'pointer',
     marginTop: '20px',
     marginBottom: '20px',

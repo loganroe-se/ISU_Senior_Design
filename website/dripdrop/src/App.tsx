@@ -5,7 +5,7 @@ import Box from '@mui/material/Box';
 import './styles/app.css';
 
 function App() {
-  const [isSignedIn, setIsSignedIn] = useState(false);
+  const [isSignedIn] = useState(false);
 
   // const handleSignIn = () => {
   //   // This is where we can handle authentication logic
