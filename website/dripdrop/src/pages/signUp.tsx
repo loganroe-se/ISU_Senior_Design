@@ -29,6 +29,8 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
         setErrorMessage(null);  // Reset error message
         setLoading(true);       // Start loading
 
+        // making comment to test pipline changes
+
         // Validation checks
         if (!username || !email || !password || !confirmPassword) {
             setErrorMessage("All fields are required!");

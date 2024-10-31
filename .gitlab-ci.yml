@@ -107,7 +107,7 @@ build layer:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - aws/*
+        - aws/**/*
 
 aws-cdk-diff-api:
   image: $BUILD_IMAGE
@@ -126,7 +126,7 @@ aws-cdk-diff-api:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - aws/*
+        - aws/**/*
 
 
 aws-cdk-deploy-api:
