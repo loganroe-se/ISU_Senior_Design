@@ -66,6 +66,9 @@ aws-cdk-deploy:
   stage: aws-cdk-deploy
   dependencies:
     - build website
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
   before_script:
     - cd ${AWS_ROOT} 
   script:
