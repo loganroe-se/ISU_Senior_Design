@@ -38,7 +38,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
             return;
         }
         if (password !== confirmPassword) {
-            setErrorMessage("Passwords do not match!");
+            setErrorMessage("Password do not match!");
             setLoading(false); // Stop loading
             return;
         }
