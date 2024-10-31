@@ -170,7 +170,7 @@ aws_cdk_deploy_branch:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk deploy WebsiteHostingStack -c websiteStackName=${CI_COMMIT_BRANCH}  --require-approval never
+    - cdk deploy -c websiteStackName=${CI_COMMIT_BRANCH}  --require-approval never
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
@@ -191,4 +191,4 @@ stop_branch_deploy:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk destroy WebsiteHostingStack -c websiteStackName=${CI_COMMIT_BRANCH
+    - cdk destroy -c websiteStackName=${CI_COMMIT_BRANCH
