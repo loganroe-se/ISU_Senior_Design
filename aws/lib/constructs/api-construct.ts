@@ -11,6 +11,7 @@ import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Stack } from "aws-cdk-lib";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { create } from "domain";
 
 export interface StaticSiteProps {
   domainName: string;
@@ -231,6 +232,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/post/getPostById",
       "getPostById"
     )
+    const updatePostLambda = createLambda(
+      "UpdatePostLambda",
+      "lib/lambdas/post/updatePost",
+      "updatePost"
+    )
 
   
 
@@ -254,7 +260,7 @@ export class ApiConstruct extends Construct {
     const users = api.root.addResource("users");
     const posts = api.root.addResource("posts");
 
-    //POST LAMBDAS
+    //-----POST LAMBDAS-----
     //POST /posts - Create 
     posts.addMethod(
       "POST",
@@ -263,6 +269,7 @@ export class ApiConstruct extends Construct {
         operationName: "CreatePost",
       }
     );
+    // GET /posts - Get All Posts
     posts.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getPostsLambda),
@@ -271,11 +278,10 @@ export class ApiConstruct extends Construct {
       }
     )
 
-
-    // Define the /users/{id} resource
+    // Define the /posts/{id} resource
     const post = posts.addResource("{id}");
 
-    // DELETE /posts/{id} - Delete User
+    // DELETE /posts/{id} - Delete Post
     post.addMethod(
       "DELETE",
       new apigateway.LambdaIntegration(deletePostLambda),
@@ -283,6 +289,7 @@ export class ApiConstruct extends Construct {
         operationName: "DeletePost",
       }
     );
+    // GET /posts/{id} - Get Post by ID
     post.addMethod(
       "GET",
       new apigateway.LambdaIntegration(getPostByIdLambda),
@@ -290,8 +297,14 @@ export class ApiConstruct extends Construct {
         operationName: "GetPostById",
       }
     )
+    // PUT /posts/{id} - Update Post
+    post.addMethod("PUT", new apigateway.LambdaIntegration(updatePostLambda), {
+      operationName: "UpdatePost",
+    });
 
-    //USER LAMBDAS
+
+
+    // -----USER LAMBDAS-----
     // POST /users - Create User
     users.addMethod(
       "POST",
