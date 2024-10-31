@@ -71,8 +71,8 @@ deploy website:
     - npm run build
     - echo "Compile complete."
     - npx cdk synth
-    - cdk diff
-    - cdk deploy WebsiteHostingStack --require-approval never
+    - cdk diff --profile gitlab-session -v
+    - cdk deploy WebsiteHostingStack --require-approval never --profile gitlab-session -v
   # rules:
   #   - if: '$CI_COMMIT_REF_NAME == "master"'
   #     changes:
