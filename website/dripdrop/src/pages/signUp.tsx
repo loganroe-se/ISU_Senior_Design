@@ -3,6 +3,8 @@ import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -22,24 +24,22 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-    const [loading, setLoading] = useState(false); // Add loading state
+    const [loading, setLoading] = useState(false);
+    const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar state
     const navigate = useNavigate();
 
     const handleSignUp = async () => {
-        setErrorMessage(null);  // Reset error message
-        setLoading(true);       // Start loading
+        setErrorMessage(null);
+        setLoading(true);
 
-        // making comment to test pipline changes
-
-        // Validation checks
         if (!username || !email || !password || !confirmPassword) {
             setErrorMessage("All fields are required!");
-            setLoading(false); // Stop loading
+            setLoading(false);
             return;
         }
         if (password !== confirmPassword) {
-            setErrorMessage("Password do not match!");
-            setLoading(false); // Stop loading
+            setErrorMessage("Passwords do not match!");
+            setLoading(false);
             return;
         }
 
@@ -49,76 +49,42 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    username,
-                    email,
-                    password,
-                }),
+                body: JSON.stringify({ username, email, password }),
             });
 
             if (response.ok) {
-                alert("User created successfully!");
-                onSignUp(email, password);
-                navigate('/home');  // Redirect to home screen
+                setSnackbarOpen(true); // Show success message
             } else {
                 const errorData = await response.json();
-
-                // Check for duplicate entry error based on response
-                if (errorData.error && errorData.error.includes("Duplicate entry")) {
-                    setErrorMessage("An account with this email or username already exists.");
-                } else {
-                    setErrorMessage("Failed to create user. Please try again.");
-                }
+                setErrorMessage(
+                    errorData.error && errorData.error.includes("Duplicate entry")
+                        ? "An account with this email or username already exists."
+                        : "Failed to create user. Please try again."
+                );
             }
         } catch (error) {
             setErrorMessage("An error occurred. Please try again.");
         } finally {
-            setLoading(false); // Stop loading
+            setLoading(false);
         }
     };
 
-    const handleClickShowPassword = () => {
-        setShowPassword((prev) => !prev);
+    const handleSnackbarClose = () => {
+        setSnackbarOpen(false); // Close Snackbar
+        setIsSigningUp(false);
     };
 
-    const handleClickShowConfirmPassword = () => {
-        setShowConfirmPassword((prev) => !prev);
-    };
+
+    const handleClickShowPassword = () => setShowPassword((prev) => !prev);
+    const handleClickShowConfirmPassword = () => setShowConfirmPassword((prev) => !prev);
+
 
     return (
-        <Box
-            sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                justifyContent: 'center'
-            }}
-        >
-            <Typography variant="h4" gutterBottom sx={{
-                color: '#0073FF',
-                fontSize: '64px'
-            }}>
-                dripdrop
-            </Typography>
-            {errorMessage && (
-                <Typography color="error" sx={{ mb: 2 }}>
-                    {errorMessage}
-                </Typography>
-            )}
-            <TextField
-                label="Username"
-                variant="outlined"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                sx={{ mb: 2, width: '80%' }}
-            />
-            <TextField
-                label="Email"
-                variant="outlined"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                sx={{ mb: 2, width: '80%' }}
-            />
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <Typography variant="h4" gutterBottom sx={{ color: '#0073FF', fontSize: '64px' }}>dripdrop</Typography>
+            {errorMessage && <Typography color="error" sx={{ mb: 2 }}>{errorMessage}</Typography>}
+            <TextField label="Username" variant="outlined" value={username} onChange={(e) => setUsername(e.target.value)} sx={{ mb: 2, width: '80%' }} />
+            <TextField label="Email" variant="outlined" value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2, width: '80%' }} />
             <TextField
                 label="Password"
                 type={showPassword ? 'text' : 'password'}
@@ -129,11 +95,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
                 InputProps={{
                     endAdornment: (
                         <InputAdornment position="end">
-                            <IconButton
-                                aria-label="toggle password visibility"
-                                onClick={handleClickShowPassword}
-                                edge="end"
-                            >
+                            <IconButton onClick={handleClickShowPassword} edge="end">
                                 {showPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                         </InputAdornment>
@@ -150,11 +112,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
                 InputProps={{
                     endAdornment: (
                         <InputAdornment position="end">
-                            <IconButton
-                                aria-label="toggle confirm password visibility"
-                                onClick={handleClickShowConfirmPassword}
-                                edge="end"
-                            >
+                            <IconButton onClick={handleClickShowConfirmPassword} edge="end">
                                 {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
                             </IconButton>
                         </InputAdornment>
@@ -162,40 +120,29 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
                 }}
             />
             {loading ? (
-                <CircularProgress sx={{ mb: 2 }} /> // Show loading spinner
+                <CircularProgress sx={{ mb: 2 }} />
             ) : (
                 <Button
                     onClick={handleSignUp}
                     sx={{
-                        mb: 2,
-                        bgcolor: '#0073FF',
-                        color: 'white',
-                        borderRadius: '40px',
-                        width: '50%',
-                        fontSize: '20px',
-                        fontFamily: 'Roboto, sans-serif',
-                        fontWeight: 600,
-                        padding: '0.8rem 1.5rem',
-                        '&:hover': {
-                            bgcolor: '#005BB5',
-                            boxShadow: '0px 4px 12px rgba(0, 115, 255, 0.3)',
-                        }
+                        mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', width: '50%', fontSize: '20px',
+                        fontFamily: 'Roboto, sans-serif', fontWeight: 600, padding: '0.8rem 1.5rem',
+                        '&:hover': { bgcolor: '#005BB5', boxShadow: '0px 4px 12px rgba(0, 115, 255, 0.3)' }
                     }}
                 >
                     Sign Up
                 </Button>
             )}
-
-            <Button onClick={() => setIsSigningUp(false)} sx={{
-                background: "none",
-                color: "#AFAFAF"
-            }}>
-                Have an account? <Typography sx={{
-                    textDecoration: "underline",
-                    color: "#9D9D9D",
-                    marginLeft: ".2rem"
-                }}>Sign in here</Typography>
+            <Button onClick={() => setIsSigningUp(false)} sx={{ background: "none", color: "#AFAFAF" }}>
+                Have an account? <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem" }}>Sign in here</Typography>
             </Button>
+
+            {/* Snackbar for success message */}
+            <Snackbar open={snackbarOpen} autoHideDuration={6000} onClose={handleSnackbarClose}>
+                <Alert onClose={handleSnackbarClose} severity="success" sx={{ width: '100%' }}>
+                    User created successfully!
+                </Alert>
+            </Snackbar>
         </Box>
     );
 };
