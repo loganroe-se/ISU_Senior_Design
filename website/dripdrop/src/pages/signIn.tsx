@@ -26,7 +26,6 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const [showSignUpSuccess, setShowSignUpSuccess] = useState(false); 
 
     const handleSignIn = async () => {
-        // Check for empty fields
         if (!email || !password) {
             setError('Email and password fields cannot be empty.');
             return;
@@ -40,12 +39,17 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
 
             if (response.ok) {
                 const data = await response.json();
+                console.log("Fetched user data:", data);
 
-                const userExists = data.some((user: { email: string }) => user.email === email);
+                const userExists = data.some((user: { email: string, username: string }) => user.email === email);
                 if (userExists) {
-                    onSignIn(email, password);
-                    
+                    const user = data.find((user: { email: string }) => user.email === email);
+                    if (user) {
+                        sessionStorage.setItem("username", user.username);
+                        sessionStorage.setItem("email", user.email);
+                    }
 
+                    onSignIn(email, password);
                 } else {
                     setError('User not found. Please sign up first.');
                 }
@@ -58,6 +62,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
             setLoading(false);
         }
     };
+
 
 
     const handleAutoLogin = async () => {
