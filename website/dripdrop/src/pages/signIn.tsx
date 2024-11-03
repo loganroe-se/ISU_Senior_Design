@@ -68,7 +68,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const handleAutoLogin = async () => {
         setEmail("test");
         setPassword("test");
-        onSignIn(email, password);
+        handleSignIn();
     };
 
 
