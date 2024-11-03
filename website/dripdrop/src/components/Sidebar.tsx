@@ -18,7 +18,6 @@ const Sidebar = () => {
     <Box sx={{
       height: '100vh',
       display: 'flex',
-      alignItems: 'center'
     }}>
       <Box>
         <Box
@@ -27,7 +26,6 @@ const Sidebar = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
-            borderRadius: '10px 10px 0px 0px',
           }}
         >
           <Box
@@ -56,24 +54,28 @@ const Sidebar = () => {
             onClick={() => setFilterOpen(true)} // Open filter drawer
           />
           <SidebarItem iconClass="bi bi-gear" label="Settings" link="/settings" isLast />
-        </Box>
 
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            padding: '1rem 0 1rem 2rem',
-            border: '1px solid #DFDFDF',
-            borderRadius: '0px 0px 10px 10px',
-          }}
-        >
-          <Avatar sx={{ height: '3rem', width: '3rem', border: '3px solid black' }}></Avatar>
-          <Box sx={{ marginLeft: '0.5rem' }}>
-            <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>John Doe</Typography>
-            <Typography sx={{ fontSize: '1rem', margin: 0 }}>@user</Typography>
-          </Box>
-        </Box>
+          {/* User Information as Sidebar Item */}
+          <MenuItem
+            component={Link}
+            to="/profile" // Link to the user's profile
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              paddingLeft: '2rem',
+              marginTop: '1.5rem', // Add space above
+            }}
+          >
+            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1.5rem' }}>
+              <Avatar sx={{ height: '3rem', width: '3rem', border: '3px solid black' }} />
+            </ListItemIcon>
+            <Box>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>John Doe</Typography>
+              <Typography sx={{ fontSize: '1rem', margin: 0 }}>@user</Typography>
+            </Box>
+          </MenuItem>
 
+        </Box>
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
       </Box>
     </Box>
