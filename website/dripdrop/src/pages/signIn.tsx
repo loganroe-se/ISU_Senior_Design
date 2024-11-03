@@ -8,6 +8,9 @@ import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import SignUp from '../pages/signUp';
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
+
 
 interface SignInProps {
     onSignIn: (email: string, password: string) => void;
@@ -20,8 +23,10 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [showSignUpSuccess, setShowSignUpSuccess] = useState(false); 
 
     const handleSignIn = async () => {
+        // Check for empty fields
         if (!email || !password) {
             setError('Email and password fields cannot be empty.');
             return;
@@ -36,12 +41,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
             if (response.ok) {
                 const data = await response.json();
 
-                const user = data.find((user: { email: string }) => user.email === email);
-                if (user) {
-                    // Cache user data in session storage
-                    sessionStorage.setItem('user', JSON.stringify(user));
-
-                    // Continue with sign-in process
+                const userExists = data.some((user: { email: string }) => user.email === email);
+                if (userExists) {
                     onSignIn(email, password);
                 } else {
                     setError('User not found. Please sign up first.');
@@ -55,7 +56,6 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
             setLoading(false);
         }
     };
-
 
 
     const handleAutoLogin = () => {
@@ -73,13 +73,22 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
             height: '100vh', bgcolor: '#185197'
         }}>
+            <Snackbar open={showSignUpSuccess} autoHideDuration={6000} onClose={() => setShowSignUpSuccess(false)}>
+                <Alert onClose={() => setShowSignUpSuccess(false)} severity="success" sx={{ width: '100%' }}>
+                    User created successfully! You can now sign in.
+                </Alert>
+            </Snackbar>
             <Box sx={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                 height: '70vh', width: '25vw', padding: '0 3rem', bgcolor: '#FAFAFA', borderRadius: '20px'
             }}>
                 <img src={'/images/logo.svg'} alt="logo" style={{ width: '50px' }} />
                 {isSigningUp ? (
-                    <SignUp onSignUp={(email, password) => console.log('User signed up with:', email, password)} setIsSigningUp={setIsSigningUp} />
+                    <SignUp
+                        onSignUp={onSignIn}
+                        setIsSigningUp={setIsSigningUp}
+                        onSuccessfulSignUp={() => setShowSignUpSuccess(true)} // Call on successful sign-up
+                    />
                 ) : (
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                         <Typography variant="h4" gutterBottom sx={{ color: '#0073FF', fontSize: '64px' }}>dripdrop</Typography>

@@ -9,14 +9,15 @@ import InputAdornment from '@mui/material/InputAdornment';
 import IconButton from '@mui/material/IconButton';
 import CircularProgress from '@mui/material/CircularProgress';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useNavigate } from 'react-router-dom';
 
 interface SignUpProps {
     onSignUp: (email: string, password: string) => void;
     setIsSigningUp: (isSigningUp: boolean) => void;
+    onSuccessfulSignUp: () => void; // New prop to indicate successful sign-up
 }
 
-const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
+
+const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp, onSuccessfulSignUp }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -26,7 +27,6 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [snackbarOpen, setSnackbarOpen] = useState(false); // Snackbar state
-    const navigate = useNavigate();
 
     const handleSignUp = async () => {
         setErrorMessage(null);
@@ -51,9 +51,9 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
                 },
                 body: JSON.stringify({ username, email, password }),
             });
-
             if (response.ok) {
-                setSnackbarOpen(true); // Show success message
+                onSuccessfulSignUp(); // Notify SignIn of successful sign-up
+                setIsSigningUp(false);
             } else {
                 const errorData = await response.json();
                 setErrorMessage(
@@ -67,6 +67,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp }) => {
         } finally {
             setLoading(false);
         }
+
     };
 
     const handleSnackbarClose = () => {

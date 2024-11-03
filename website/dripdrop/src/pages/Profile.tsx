@@ -5,7 +5,7 @@ import Button from '@mui/material/Button';
 import Switch from '@mui/material/Switch';
 import TextField from '@mui/material/TextField';
 import Paper from '@mui/material/Paper';
-import { useTheme, createTheme, ThemeProvider } from '@mui/material/styles';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 const Profile = () => {
     const [isDarkMode, setIsDarkMode] = useState(false);
