@@ -53,7 +53,7 @@ const Sidebar = () => {
             link="#" // Prevent navigation
             onClick={() => setFilterOpen(true)} // Open filter drawer
           />
-          <SidebarItem iconClass="bi bi-gear" label="Settings" link="/settings" isLast />
+  
 
           {/* User Information as Sidebar Item */}
           <MenuItem
@@ -70,8 +70,8 @@ const Sidebar = () => {
               <Avatar sx={{ height: '3rem', width: '3rem', border: '3px solid black' }} />
             </ListItemIcon>
             <Box>
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>John Doe</Typography>
-              <Typography sx={{ fontSize: '1rem', margin: 0 }}>@user</Typography>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>{sessionStorage.getItem("email")}</Typography>
+              <Typography sx={{ fontSize: '1rem', margin: 0 }}>@{sessionStorage.getItem("username")}</Typography>
             </Box>
           </MenuItem>
 
