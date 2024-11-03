@@ -44,6 +44,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                 const userExists = data.some((user: { email: string }) => user.email === email);
                 if (userExists) {
                     onSignIn(email, password);
+                    
+
                 } else {
                     setError('User not found. Please sign up first.');
                 }
@@ -58,11 +60,13 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     };
 
 
-    const handleAutoLogin = () => {
+    const handleAutoLogin = async () => {
         setEmail("test");
         setPassword("test");
-        handleSignIn();
+        onSignIn(email, password);
     };
+
+
 
     const handleClickShowPassword = () => {
         setShowPassword((prev) => !prev);
