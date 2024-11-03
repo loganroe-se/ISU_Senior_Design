@@ -10,6 +10,8 @@ import IconButton from '@mui/material/IconButton';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
 
+
+
 const Profile = () => {
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [email, setEmail] = useState('');
@@ -36,9 +38,12 @@ const Profile = () => {
 
     const handleLogout = () => {
         sessionStorage.clear();
-        
+        const currentBaseUrl = window.location.origin;
+        window.location.replace(currentBaseUrl);
+
         console.log("User logged out");
     };
+
 
     const handleUpdate = () => {
         console.log("Updated email:", email);
