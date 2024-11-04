@@ -4,7 +4,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Profile from './Profile';
-import SettingsPage from './Settings';
 import SearchResults from './SearchResults';
 import HomePage from './Home';
 import Sidebar from '../components/Sidebar'; 
@@ -26,7 +25,6 @@ export default function Home() {
                     <Route path="/search" element={<SearchResults />} />
                     <Route path="/post" element={<CreatePost />} />
                     <Route path="/profile" element={<Profile />} />
-                    <Route path="/settings" element={<SettingsPage />} />
                 </Routes>
             </Container>
         </Box>

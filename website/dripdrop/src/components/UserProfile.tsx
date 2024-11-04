@@ -28,7 +28,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                 src={user.profilePicUrl} 
                 alt={user.name} 
                 sx={{
-                    width: { xs: 48, sm: 64, md: 80 },  // Responsive sizing
+                    width: { xs: 48, sm: 64, md: 80 },  
                     height: { xs: 48, sm: 64, md: 80 },
                     marginRight: '1rem'
                 }}
