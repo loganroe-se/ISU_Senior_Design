@@ -7,6 +7,7 @@ stages:
   - build
   - aws-cdk-diff
   - aws-cdk-deploy
+  - aws-cdk-stop-branch
 
 # GENERAL
 
@@ -178,7 +179,7 @@ aws_cdk_deploy_branch:
         - website/dripdrop/**/*
 
 stop_branch_deploy:
-  stage: aws-cdk-deploy
+  stage: aws-cdk-stop-branch
   image: $BUILD_IMAGE
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
