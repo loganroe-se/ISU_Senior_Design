@@ -207,6 +207,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/deleteUser",
       "deleteUser"
     );
+    const userSignInLambda = createLambda(
+      "UserSignInLambda",
+      "lib/lambdas/user/userSignIn",
+      "signIn"
+    );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
@@ -340,6 +345,15 @@ export class ApiConstruct extends Construct {
         operationName: "DeleteUser",
       }
     );
+
+    // Define the /users/signIn resource
+    const signIn = users.addResource("signIn")
+
+    // POST /users/signIn
+    signIn.addMethod("POST", new apigateway.LambdaIntegration(userSignInLambda), {
+      operationName: "UserSignIn",
+    });
+    
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {

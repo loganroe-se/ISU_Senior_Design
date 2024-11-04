@@ -1,5 +1,6 @@
 import os
 import json
+from sqlalchemy.exc import IntegrityError
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import User
 
@@ -64,6 +65,26 @@ def createUser(event, context):
         
         finally:
             session.close()
+
+    except IntegrityError as e:
+        session.rollback()
+        
+        # Check for duplicate email or username in the error message
+        if 'email' in str(e.orig):
+            error_message = 'Email already exists'
+        elif 'username' in str(e.orig):
+            error_message = 'Username already exists'
+        else:
+            error_message = 'Duplicate entry'
+
+        return {
+            'statusCode': 409,
+            'headers': {
+                'Access-Control-Allow-Origin': '*',
+                'Access-Control-Allow-Headers': 'Content-Type'
+            },
+            'body': json.dumps(error_message)
+        }
     
     except Exception as e:
         return {
