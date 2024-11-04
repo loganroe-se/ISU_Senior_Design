@@ -198,4 +198,4 @@ stop_branch_deploy:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH
+    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH}
