@@ -181,6 +181,9 @@ aws_cdk_deploy_branch:
 stop_branch_deploy:
   stage: aws-cdk-stop-branch
   image: $BUILD_IMAGE
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
