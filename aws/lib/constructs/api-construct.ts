@@ -11,6 +11,7 @@ import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Stack } from "aws-cdk-lib";
 import { Secret } from "aws-cdk-lib/aws-secretsmanager";
+import { create } from "domain";
 
 export interface StaticSiteProps {
   domainName: string;
@@ -183,28 +184,33 @@ export class ApiConstruct extends Construct {
     // Create separate Lambda functions for each CRUD operation
     const createUserLambda = createLambda(
       "CreateUserLambda",
-      "lib/lambdas/sample",
-      "lambda_handler"
+      "lib/lambdas/user/createUser",
+      "createUser"
     );
     const getUsersLambda = createLambda(
       "GetUsersLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/getUsers",
+      "getUsers"
     );
     const getUserByIdLambda = createLambda(
       "GetUserByIdLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/getUserById",
+      "getUserById"
     );
     const updateUserLambda = createLambda(
       "UpdateUserLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/updateUser",
+      "updateUser"
     );
     const deleteUserLambda = createLambda(
       "DeleteUserLambda",
-      "lib/lambdas/user",
-      "test"
+      "lib/lambdas/user/deleteUser",
+      "deleteUser"
+    );
+    const userSignInLambda = createLambda(
+      "UserSignInLambda",
+      "lib/lambdas/user/userSignIn",
+      "signIn"
     );
     const createImageLambda = createLambda(
       "CreateImageLambda",
@@ -239,8 +245,35 @@ export class ApiConstruct extends Construct {
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
-      "manage_db"
+      "manageDB"
+    );
+    const createPostLambda = createLambda(
+      "CreatePostLambda",
+      "lib/lambdas/post/createPost",
+      "createPost"
+    );
+    const deletePostLambda = createLambda(
+      "DeletePostLambda",
+      "lib/lambdas/post/deletePost",
+      "deletePost"
+    );
+    const getPostsLambda = createLambda(
+      "GetPostsLambda",
+      "lib/lambdas/post/getPosts",
+      "getPosts"
+    );
+    const getPostByIdLambda = createLambda(
+      "GetPostByIdLambda",
+      "lib/lambdas/post/getPostById",
+      "getPostById"
     )
+    const updatePostLambda = createLambda(
+      "UpdatePostLambda",
+      "lib/lambdas/post/updatePost",
+      "updatePost"
+    )
+
+  
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
@@ -260,7 +293,53 @@ export class ApiConstruct extends Construct {
 
     // Define the /users resource
     const users = api.root.addResource("users");
+    const posts = api.root.addResource("posts");
 
+    //-----POST LAMBDAS-----
+    //POST /posts - Create 
+    posts.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createPostLambda),
+      {
+        operationName: "CreatePost",
+      }
+    );
+    // GET /posts - Get All Posts
+    posts.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getPostsLambda),
+      {
+        operationName: "GetPosts",
+      }
+    )
+
+    // Define the /posts/{id} resource
+    const post = posts.addResource("{id}");
+
+    // DELETE /posts/{id} - Delete Post
+    post.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deletePostLambda),
+      {
+        operationName: "DeletePost",
+      }
+    );
+    // GET /posts/{id} - Get Post by ID
+    post.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getPostByIdLambda),
+      {
+        operationName: "GetPostById",
+      }
+    )
+    // PUT /posts/{id} - Update Post
+    post.addMethod("PUT", new apigateway.LambdaIntegration(updatePostLambda), {
+      operationName: "UpdatePost",
+    });
+
+
+
+    // -----USER LAMBDAS-----
     // POST /users - Create User
     users.addMethod(
       "POST",
@@ -296,6 +375,15 @@ export class ApiConstruct extends Construct {
         operationName: "DeleteUser",
       }
     );
+
+    // Define the /users/signIn resource
+    const signIn = users.addResource("signIn")
+
+    // POST /users/signIn
+    signIn.addMethod("POST", new apigateway.LambdaIntegration(userSignInLambda), {
+      operationName: "UserSignIn",
+    });
+    
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {

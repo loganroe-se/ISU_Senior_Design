@@ -9,7 +9,7 @@ import * as cloudfront_origins from "aws-cdk-lib/aws-cloudfront-origins";
 import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
-import path = require("path");
+import fs = require("fs");
 
 export interface StaticSiteProps {
   domainName: string;
@@ -26,11 +26,13 @@ export class StaticSite extends Construct {
   constructor(parent: Stack, name: string, props: StaticSiteProps) {
     super(parent, name);
 
+    console.log("NAME: ",)
+    const subdomain = name == "WebsiteHostingStack" ? props.siteSubDomain : name;
     const zone = route53.HostedZone.fromLookup(this, "Zone", {
-      domainName: props.domainName,
+      domainName:  props.domainName,
     });
 
-    const siteDomain = props.siteSubDomain + "." + props.domainName;
+    const siteDomain = subdomain + "." + props.domainName;
 
     const cloudfrontOAC = new cloudfront.S3OriginAccessControl(this, "MyOAC", {
       signing: cloudfront.Signing.SIGV4_NO_OVERRIDE,
@@ -115,12 +117,18 @@ export class StaticSite extends Construct {
     );
 
     // Deploy site contents to S3 bucket
-    new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
-      sources: [s3deploy.Source.asset("../website/dripdrop/build")],
-      destinationBucket: siteBucket,
-      distribution,
-      distributionPaths: ["/*"],
-    });
+
+    if (fs.existsSync('../website/dripdrop/build')) {
+      // Deploy site contents to S3 bucket
+      new s3deploy.BucketDeployment(this, "DeployWithInvalidation", {
+        sources: [s3deploy.Source.asset("../website/dripdrop/build")],
+        destinationBucket: siteBucket,
+        distribution,
+        distributionPaths: ["/*"],
+      });
+    } else {
+      console.warn("Website assets not found. Skipping deployment.");
+    }
 
     new CfnOutput(this, "Bucket", { value: siteBucket.bucketName });
     new CfnOutput(this, "DistributionId", {

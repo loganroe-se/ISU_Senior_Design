@@ -8,7 +8,7 @@ function App() {
   const [isSignedIn, setIsSignedIn] = useState(false);
 
   const handleSignIn = () => {
-    // This is where we can handle authentication logic
+
     setIsSignedIn(true);
   };
 
@@ -16,7 +16,7 @@ function App() {
     <Box sx={{
       margin: '0px !important'
     }}>
-      {isSignedIn ? <HomePage /> : <SignIn onSignIn={handleSignIn} />}
+      {isSignedIn ? <HomePage /> : <SignIn onSignIn={handleSignIn} />} 
     </Box>
   );
 }

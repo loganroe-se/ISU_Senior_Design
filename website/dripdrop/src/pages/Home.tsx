@@ -7,10 +7,14 @@ import PostCard from '../components/PostCard';
 
 export default function Home() {
 
+  const storedUsername = sessionStorage.getItem("email");
+  console.log("email: " + storedUsername);
+  console.log("username: " + sessionStorage.getItem("username"));
+
   const posts = [
     {
       image: "/outfit_1.jpg",
-      username: "EliseTravers",
+      username: "This is a test branch",
       caption: "New fall outfit!",
     },
     {

@@ -8,12 +8,13 @@ import FormControl from '@mui/material/FormControl';
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import PostCard from '../components/PostCard';
+import { useNavigate } from 'react-router-dom';
 
 const dropzoneStyle: React.CSSProperties = {
     border: '2px dashed #cccccc',
     borderRadius: '8px',
     padding: '20px',
-    textAlign: 'center' as 'center',
+    textAlign: 'center' as const,
     cursor: 'pointer',
     marginTop: '20px',
     marginBottom: '20px',
@@ -82,6 +83,7 @@ const CreatePost = () => {
             prevImages.filter((_, i) => i !== index)
         );
     };
+    const navigate = useNavigate();
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -99,6 +101,9 @@ const CreatePost = () => {
         // Reset form
         setPostDetails({ caption: '', clothesUrl: '' });
         setSelectedImages([]);
+
+        navigate('/home');
+
     };
 
     return (

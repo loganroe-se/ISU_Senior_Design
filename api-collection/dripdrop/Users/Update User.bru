@@ -1,0 +1,19 @@
+meta {
+  name: Update User
+  type: http
+  seq: 5
+}
+
+put {
+  url: https://api.dripdropco.com/users/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "username": "Update",
+      "email": "email",
+      "password": "password123"
+  }
+}

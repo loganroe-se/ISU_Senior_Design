@@ -7,7 +7,10 @@ import { ApiStack } from '../lib/api-stack';
 
 const app = new cdk.App();
 
-const websiteStack = new WebsiteHostingStack(app, 'WebsiteHostingStack', {
+const websiteStackName: string = app.node.tryGetContext("websiteStackName") || "WebsiteHostingStack";
+const apiStackName:string = app.node.tryGetContext("apiStackName") || "ApiStack";
+
+const websiteStack = new WebsiteHostingStack(app, websiteStackName, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -19,11 +22,11 @@ const websiteStack = new WebsiteHostingStack(app, 'WebsiteHostingStack', {
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
   env: { account: app.node.tryGetContext("accountId"), region: 'us-east-1' },
-
+  stackName: websiteStackName,
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });
 
-const apiStack = new ApiStack(app, 'ApiStack', {
+const apiStack = new ApiStack(app, apiStackName, {
   /* If you don't specify 'env', this stack will be environment-agnostic.
    * Account/Region-dependent features and context lookups will not work,
    * but a single synthesized template can be deployed anywhere. */
@@ -35,6 +38,7 @@ const apiStack = new ApiStack(app, 'ApiStack', {
   /* Uncomment the next line if you know exactly what Account and Region you
    * want to deploy the stack to. */
   env: { account: app.node.tryGetContext("accountId"), region: 'us-east-1' },
+  stackName: apiStackName,
 
   /* For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html */
 });

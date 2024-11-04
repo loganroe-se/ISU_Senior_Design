@@ -1,107 +1,198 @@
-stages:
-  - build-website
-  - build-mobile
-  - deploy-to-s3
-  - update-cdk
+variables:
+  AWS_ROOT: "aws"
+  BUILD_IMAGE: node:lts-alpine
 
-.assume_role: &assume_role
+stages:
+  - assume-role
+  - build
+  - aws-cdk-diff
+  - aws-cdk-deploy
+  - aws-cdk-stop-branch
+
+# GENERAL
+
+.setup:
+  script:
+    - node --version  # Print out nodejs version for debugging
+    - apk add --no-cache aws-cli  # install aws-cli
+    - npm install -g aws-cdk  # install aws-cdk
+    - echo "Compiling the code..."
+    - npm install  # install project dependencies
+    - echo "Compile complete."
+
+.assume_role:
+  script:
+    - echo ${ID_TOKEN}
     - >
-      STS=($(aws sts assume-role-with-web-identity
+      export $(printf "AWS_ACCESS_KEY_ID=%s AWS_SECRET_ACCESS_KEY=%s AWS_SESSION_TOKEN=%s"
+      $(aws sts assume-role-with-web-identity
       --role-arn ${ROLE_ARN}
       --role-session-name "GitLabRunner-${CI_PROJECT_ID}-${CI_PIPELINE_ID}"
-      --web-identity-token $ID_TOKEN
+      --web-identity-token ${ID_TOKEN}
       --duration-seconds 3600
       --query 'Credentials.[AccessKeyId,SecretAccessKey,SessionToken]'
       --output text))
-    - export AWS_ACCESS_KEY_ID="${STS[0]}"
-    - export AWS_SECRET_ACCESS_KEY="${STS[1]}"
-    - export AWS_SESSION_TOKEN="${STS[2]}"
+    - aws sts get-caller-identity
+
+# WEBSITE 
 
 build website:
-  stage: build-website
+  stage: build
   image: node:latest
-  before_script:
+  script:
     - cd website/dripdrop  # Navigate to the directory where package.json is
     - npm install
-  script:
     - npm run build
   artifacts:
     paths:
       - website/dripdrop/build/ 
     when: always
   rules:
-    - if: '$CI_COMMIT_REF_NAME == "master"'
+    - if: $CI_COMMIT_REF_NAME
       changes:
         - website/dripdrop/**/*
 
-# build mobile:
-#   stage: build-mobile
-#   image: node:latest
-#   before_script:
-#     - cd mobile/dripdrop  # Navigate to the directory where package.json is
-#     - npm install  
-#   script:
-#     - npm run build
-#   artifacts:
-#     paths:
-#       - mobile/dripdrop/build/  
-#     when: always
-#   rules:
-#     - changes:
-#       - mobile/dripdrop/**/*  # Only run if changes occur in the website folder
-#     - if: '$CI_COMMIT_REF_NAME == "master"'
 
-deploy s3:
-  stage: deploy-to-s3
-  image:
-    name: amazon/aws-cli:latest
-    entrypoint:
-      - '/usr/bin/env'
+aws-cdk-diff:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-diff
+  dependencies:
+    - build website
   id_tokens:
-      ID_TOKEN:
-        aud: sdmay25-25-s3-deploy
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
   before_script:
-    - cd website/dripdrop
+    - cd ${AWS_ROOT} 
   script:
-    # Assume role and check for errors
-    - *assume_role
-    - aws cloudfront create-invalidation --distribution-id $DISTRIBUTION_ID --paths "/*"
-    - echo "Syncing files to S3..."
-    - aws s3 sync build/ s3://$S3_BUCKET --delete  # Sync and remove obsolete files
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - cdk diff WebsiteHostingStack --exclusively true
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - website/dripdrop/**/*
 
-# update-cdk:
-#   stage: update-cdk
-#   image:
-#     # Update this to reference your GitLab Container Registry image
-#     name: git.ece.iastate.edu:5050/sd/sdmay25-25:latest
-#     entrypoint:
-#       - '/usr/bin/env'
-#   id_tokens:
-#     ID_TOKEN:
-#       aud: sdmay25-25-s3-deploy
-#   before_script:
-#     - *assume_role  # Ensure you are properly assuming the role
-#     - cd website/dripdrop
-#     - npm install
-#     - npm run build 
-#     - ls
-#     - pwd
-#     - cd ../../aws  # Navigate to the AWS CDK directory
-#     - ls
-#     - pwd
-#     - npm install  # Install CDK dependencies
-#   script:
-#     - npm run build
-#     - npx cdk deploy --all
-#   rules:
-#     - if: '$CI_COMMIT_REF_NAME == "master"'
-#       # changes:
-#       #   - aws/**/*
+
+aws-cdk-deploy:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-deploy
+  dependencies:
+    - build website
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - npm run build
+    - cdk deploy WebsiteHostingStack --require-approval never
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - website/dripdrop/**/*
 
 
+# API 
+
+build layer:
+  stage: build
+  image: python:3.11
+  script:
+    - cd ${AWS_ROOT}/lib/layer  # Navigate to the directory where package.json is
+    - pip install -r requirements.txt -t ./python
+    - cp *.py ./python
+  artifacts:
+    paths:
+      - ${AWS_ROOT}/lib/layer/python
+    when: always
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - aws/**/*
+
+aws-cdk-diff-api:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-diff
+  dependencies:
+    - build layer
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - cdk diff ApiStack --exclusively true
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - aws/**/*
 
 
+aws-cdk-deploy-api:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-deploy
+  dependencies:
+    - build layer
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - npm run build
+    - cdk deploy ApiStack --require-approval never
+  rules:
+    - if: '$CI_COMMIT_REF_NAME == "master"'
+      changes:
+        - aws/**/*
+
+# BRANCH DEPLOY
+
+aws_cdk_deploy_branch:
+  image: $BUILD_IMAGE
+  stage: aws-cdk-deploy
+  environment:
+    name: branch/${CI_COMMIT_BRANCH}
+    url: https://${CI_COMMIT_BRANCH}.dripdropco.com
+    on_stop: stop_branch_deploy
+  dependencies:
+    - build website
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
+  before_script:
+    - cd ${AWS_ROOT} 
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - npm run build
+    - cdk deploy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH}  --require-approval never
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - website/dripdrop/**/*
+
+stop_branch_deploy:
+  stage: aws-cdk-stop-branch
+  image: $BUILD_IMAGE
+  rules:
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      changes:
+        - website/dripdrop/**/*
+      when: manual
+  environment:
+    name: branch/${CI_COMMIT_BRANCH}
+    action: stop
+  before_script:
+    - cd ${AWS_ROOT}  
+  script:
+    - !reference [.setup, script]
+    - !reference [.assume_role, script]
+    - npm run build
+    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH
