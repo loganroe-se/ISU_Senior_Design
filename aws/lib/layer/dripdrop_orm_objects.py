@@ -19,7 +19,7 @@ class User(Base):
 class Follow(Base):
     __tablename__ = 'follows'
     followID = Column(Integer, primary_key=True)
-    followerID = Column(Integer, nullable=False)
+    followerID = Column(Integer, ForeignKey('users.userID'))
     followedID = Column(Integer, nullable=False)
     #Establish relationship with follow
     userRel = relationship("User", order_by="User.userID", back_populates="follows")
