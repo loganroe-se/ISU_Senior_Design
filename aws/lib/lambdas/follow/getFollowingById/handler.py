@@ -44,8 +44,8 @@ def getFollowingById(event, context):
             # Initialize SQLAlchemy engine and session
             session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
 
-            # Fetch user
-            following_result = session.execute(select(Follow).where(Follow.followerID == user_id)).scalars()
+            # Fetch following
+            following_result = session.execute(select(Follow).where(Follow.followerID == user_id)).scalars().all()
 
             following_list = [{'followID': following.followID, 'followerID': following.followerID, 'followedID': following.followedID} for following in following_result]
         
