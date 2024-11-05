@@ -247,6 +247,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/follow/followUser",
       "followUser"
     );
+    const getFollowingByIdLambda = createLambda(
+      "GetFollowingByIdLambda",
+      "lib/lambdas/follow/getFollowingById",
+      "getFollowingById"
+    );
 
   
 
@@ -322,6 +327,14 @@ export class ApiConstruct extends Construct {
         operationName: "FollowUser",
       }
     );
+
+    // Define the /users/{id} resource
+    const followUser = follows.addResource("{id}");
+
+    // GET /users/{id} - Get Following by ID
+    followUser.addMethod("GET", new apigateway.LambdaIntegration(getFollowingByIdLambda), {
+      operationName: "GetFollowingById",
+    });
 
     // -----USER LAMBDAS-----
     // POST /users - Create User
