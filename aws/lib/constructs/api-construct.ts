@@ -313,7 +313,15 @@ export class ApiConstruct extends Construct {
       operationName: "UpdatePost",
     });
 
-
+    // -----FOLLOW LAMBDAS-----
+    // POST /follow - Follow User
+    follows.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(followUserLambda),
+      {
+        operationName: "FollowUser",
+      }
+    );
 
     // -----USER LAMBDAS-----
     // POST /users - Create User
@@ -322,15 +330,6 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(createUserLambda),
       {
         operationName: "CreateUser",
-      }
-    );
-
-    // POST /users/follow - Follow User
-    users.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(followUserLambda),
-      {
-        operationName: "FollowUser",
       }
     );
 
