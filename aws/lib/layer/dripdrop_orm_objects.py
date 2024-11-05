@@ -27,7 +27,7 @@ class Post(Base):
 class Image(Base):
     __tablename__ = 'image'
     imageID = Column(Integer, primary_key=True)
-    postID = Column(Integer)
+    postID = Column(Integer, ForeignKey('posts.postID'))
     imageURL = Column(String(2000), nullable=False)
     #Establish relationship with post
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel")
