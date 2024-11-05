@@ -14,6 +14,15 @@ class User(Base):
     #Establish relationship with post
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel")
 
+# Following table
+class Follow(Base):
+    __tablename__ = 'follows'
+    followID = Column(Integer, primary_key=True)
+    followerID = Column(Integer, ForeignKey('users.userID'))
+    followedID = Column(Integer, ForeignKey('users.userID'))
+    #Establish relationship with follow
+    follows = relationship("Follow", order_by="Follow.followID", back_populates="follows")
+
 # Post table
 class Post(Base):
     __tablename__ = 'posts'
