@@ -13,6 +13,7 @@ class User(Base):
     password = Column(String(100), nullable=False)
     #Establish relationship with post
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel")
+    follows = relationship("Follow", order_by="Follow.followID", back_populates="userRel")
 
 # Following table
 class Follow(Base):
@@ -21,7 +22,7 @@ class Follow(Base):
     followerID = Column(Integer, nullable=False)
     followedID = Column(Integer, nullable=False)
     #Establish relationship with follow
-    follows = relationship("Follow", order_by="Follow.followID", back_populates="follows")
+    userRel = relationship("User", order_by="User.userID", back_populates="follows")
 
 # Post table
 class Post(Base):
