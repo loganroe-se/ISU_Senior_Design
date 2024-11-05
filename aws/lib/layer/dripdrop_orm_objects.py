@@ -28,8 +28,6 @@ class Image(Base):
     __tablename__ = 'image'
     imageID = Column(Integer, primary_key=True)
     postID = Column(Integer)
-    tagID = Column(Integer, unique=True)
     imageURL = Column(String(2000), nullable=False)
-    password = Column(String(100), nullable=False)
     #Establish relationship with post
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel")

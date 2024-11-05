@@ -18,6 +18,10 @@ def deleteImage(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -28,6 +32,10 @@ def deleteImage(event, context):
         if not image_id:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing image ID')
             }
         
@@ -43,12 +51,20 @@ def deleteImage(event, context):
 
             return {
                 'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps(f'Image with ID {image_id} deleted')
             }
         
         else:
             return {
                 'statusCode': 404,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps(f'Image with ID {image_id} not found')
             }
     
@@ -56,6 +72,10 @@ def deleteImage(event, context):
         print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error deleting image: {str(e)}")
         }
     

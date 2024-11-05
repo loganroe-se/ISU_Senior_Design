@@ -17,6 +17,10 @@ def createImage(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -24,12 +28,15 @@ def createImage(event, context):
         # Parse the image data from event
         body = json.loads(event['body'])
         postID = body.get('postID')
-        tagID = body.get('tagID')
         imageURL = body.get('imageURL')
 
         if not imageURL:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing required field in image creation')
             }
 
@@ -37,7 +44,7 @@ def createImage(event, context):
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
         
         # Create a new image
-        new_image = Image(postID=postID, tagID=tagID, imageURL=imageURL)
+        new_image = Image(postID=postID, imageURL=imageURL)
 
         # Add the image to the db
         session.add(new_image)
@@ -46,6 +53,10 @@ def createImage(event, context):
         # Return message
         return {
             'statusCode': 201,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f'Image created successfully')
         }
     
@@ -53,6 +64,10 @@ def createImage(event, context):
         print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error creating image: {str(e)}")
         }
     

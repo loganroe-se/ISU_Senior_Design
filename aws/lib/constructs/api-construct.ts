@@ -233,14 +233,14 @@ export class ApiConstruct extends Construct {
       "getImageByPostId"
     );
     const getImagesLambda = createLambda(
-      "getImagesLambda",
+      "GetImagesLambda",
       "lib/lambdas/image",
-      "GetImages"
+      "getImages"
     );
     const updateImageLambda = createLambda(
       "UpdateImageLambda",
       "lib/lambdas/image",
-      "UpdateImage"
+      "updateImage"
     );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
@@ -294,6 +294,26 @@ export class ApiConstruct extends Construct {
     // Define the /users resource
     const users = api.root.addResource("users");
     const posts = api.root.addResource("posts");
+    const images = api.root.addResource("images");
+
+    //-----IMAGE LAMBDAS-----
+    // POST /images - Create
+    images.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createImageLambda),
+      {
+        operationName: "CreateImage",
+      }
+    );
+
+    // GET /images - Get All Images
+    images.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getImagesLambda),
+      {
+        operationName: "GetImages",
+      }
+    );
 
     //-----POST LAMBDAS-----
     //POST /posts - Create 

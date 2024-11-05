@@ -18,6 +18,10 @@ def getImages(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -32,13 +36,16 @@ def getImages(event, context):
         images_data = [{
             'imageID': image.imageID,
             'postID': image.postID,
-            'tagID': image.tagID,
             'imageURL': image.imageURL
         } for image in images]
         
         # Return message
         return {
             'statusCode': 200,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(images_data)
         }
     
@@ -46,6 +53,10 @@ def getImages(event, context):
         print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error retrieving images: {str(e)}")
         }
     

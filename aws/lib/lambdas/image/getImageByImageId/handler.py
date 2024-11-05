@@ -18,6 +18,10 @@ def getImageByImageId(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -28,6 +32,10 @@ def getImageByImageId(event, context):
         if not image_id:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing image ID')
             }
         
@@ -42,17 +50,24 @@ def getImageByImageId(event, context):
             image_data = {
                 'imageID': image.imageID,
                 'postID': image.postID,
-                'tagID': image.tagID,
                 'imageURL': image.imageURL
             }
 
             return {
                 'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps(image_data)
             }
         else:
             return {
                 'statusCode': 404,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps(f'Image with ID {image_id} not found')
             }
     
@@ -60,6 +75,10 @@ def getImageByImageId(event, context):
         print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error retrieving image: {str(e)}")
         }
     

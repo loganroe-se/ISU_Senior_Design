@@ -18,6 +18,10 @@ def updateImage(event, context):
     if not creds:
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps('Error retrieving database credentials')
         }
     
@@ -28,18 +32,25 @@ def updateImage(event, context):
         if not image_id:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing image ID')
             }
 
         # Parse the updated image data from event
         body = json.loads(event['body'])
         postID = body.get('postID')
-        tagID = body.get('tagID')
         imageURL = body.get('imageURL')
 
         if not imageURL:
             return {
                 'statusCode': 400,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps('Missing required field to update image')
             }
 
@@ -52,8 +63,6 @@ def updateImage(event, context):
             # Update image information
             if postID:
                image.postID = postID
-            if tagID:
-                image.tagID = tagID
             if imageURL:
                 image.imageURL = imageURL
                 
@@ -61,12 +70,20 @@ def updateImage(event, context):
 
             return {
                 'statusCode': 200,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps(f'Image with ID {image_id} updated successfully')
             }
     
         else:
             return {
                 'statusCode': 404,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
                 'body': json.dumps(f'Image with ID {image_id} not found')
             }
         
@@ -75,6 +92,10 @@ def updateImage(event, context):
         print(f"Error: {e}")
         return {
             'statusCode': 500,
+            'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
             'body': json.dumps(f"Error updating image: {str(e)}")
         }
     
