@@ -187,11 +187,6 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/createUser",
       "createUser"
     );
-    const followUserLambda = createLambda(
-      "FollowUserLambda",
-      "lib/lambdas/user/followUser",
-      "followUser"
-    );
     const getUsersLambda = createLambda(
       "GetUsersLambda",
       "lib/lambdas/user/getUsers",
@@ -247,6 +242,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/post/updatePost",
       "updatePost"
     )
+    const followUserLambda = createLambda(
+      "FollowUserLambda",
+      "lib/lambdas/follow/followUser",
+      "followUser"
+    );
 
   
 
