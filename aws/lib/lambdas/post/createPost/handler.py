@@ -30,9 +30,8 @@ def createPost(event, context):
         userID = body.get('userID')
         caption  = body.get('caption')
         createdDate = body.get('createdDate')
-        imageURL = body.get('imageURL')
 
-        if not caption or not imageURL:
+        if not caption:
             return {
                 'statusCode': 400,
                 'body': json.dumps('Missing required field')
@@ -44,7 +43,7 @@ def createPost(event, context):
             session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
             
             # Create a new user
-            new_post = Post(userID=userID, caption=caption, createdDate=createdDate, imageURL=imageURL)
+            new_post = Post(userID=userID, caption=caption, createdDate=createdDate)
 
             # Add the user to the db
             session.add(new_post)

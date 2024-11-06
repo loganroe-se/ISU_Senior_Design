@@ -57,7 +57,7 @@ def createImage(event, context):
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-            'body': json.dumps(f'Image created successfully')
+            'body': json.dumps(f'Image with postID: {postID} was created successfully')
         }
     
     except Exception as e:

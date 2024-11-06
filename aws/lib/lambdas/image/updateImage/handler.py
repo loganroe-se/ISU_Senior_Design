@@ -44,25 +44,25 @@ def updateImage(event, context):
         postID = body.get('postID')
         imageURL = body.get('imageURL')
 
-        if not imageURL:
+        if not postID and not imageURL:
             return {
                 'statusCode': 400,
                 'headers': {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-                'body': json.dumps('Missing required field to update image')
+                'body': json.dumps('Missing fields to update image')
             }
 
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
         
-        image = session.execute(select(Image).where(Image.imageID == image_id)) 
+        image = session.execute(select(Image).where(Image.imageID == image_id)).scalars().first()
 
         if image:
             # Update image information
             if postID:
-               image.postID = postID
+                image.postID = postID
             if imageURL:
                 image.imageURL = imageURL
                 

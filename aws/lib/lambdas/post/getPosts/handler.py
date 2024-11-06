@@ -36,7 +36,7 @@ def getPosts(event, context):
         # Create a list of post dictionaries directly
         posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate': (
             post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
-            else post.createdDate), "imageURL" : post.imageURL} for post in posts_result]
+            else post.createdDate)} for post in posts_result]
         
         # Return message
         return {

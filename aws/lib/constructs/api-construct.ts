@@ -214,32 +214,32 @@ export class ApiConstruct extends Construct {
     );
     const createImageLambda = createLambda(
       "CreateImageLambda",
-      "lib/lambdas/image",
+      "lib/lambdas/image/createImage",
       "createImage"
     );
     const deleteImageLambda = createLambda(
       "DeleteImageLambda",
-      "lib/lambdas/image",
+      "lib/lambdas/image/deleteImage",
       "deleteImage"
     );
     const getImageByImageIdLambda = createLambda(
       "GetImageByImageIdLambda",
-      "lib/lambdas/image",
+      "lib/lambdas/image/getImageByImageId",
       "getImageByImageId"
     );
     const getImageByPostIdLambda = createLambda(
       "GetImageByPostIdLambda",
-      "lib/lambdas/image",
+      "lib/lambdas/image/getImageByPostId",
       "getImageByPostId"
     );
     const getImagesLambda = createLambda(
       "GetImagesLambda",
-      "lib/lambdas/image",
+      "lib/lambdas/image/getImages",
       "getImages"
     );
     const updateImageLambda = createLambda(
       "UpdateImageLambda",
-      "lib/lambdas/image",
+      "lib/lambdas/image/updateImage",
       "updateImage"
     );
     const manageDBLambda = createLambda(
@@ -323,6 +323,45 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(getImagesLambda),
       {
         operationName: "GetImages",
+      }
+    );
+
+    // Define the /images/{id} resource
+    const image = images.addResource("{id}");
+
+    // DELETE /images/{id} - Delete Image
+    image.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deleteImageLambda),
+      {
+        operationName: "DeleteImageLambda",
+      }
+    );
+
+    // GET /images/{id} - Get Image by Image ID
+    image.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getImageByImageIdLambda),
+      {
+        operationName: "GetImageByImageId",
+      }
+    );
+
+    // PUT /images/{id} - Update Image
+    image.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateImageLambda),
+      {
+        operationName: "UpdateImage",
+      }
+    );
+
+    // GET /images/{id} - Get Image(s) by Post ID
+    images.addResource("post-id").addResource("{id}").addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getImageByPostIdLambda),
+      {
+        operationName: "GetImageByPostId",
       }
     );
 
