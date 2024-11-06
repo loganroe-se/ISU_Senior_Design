@@ -2,8 +2,7 @@ import os
 import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
-from dripdrop_orm_objects import Post
-from datetime import datetime, date
+from dripdrop_orm_objects import Image
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -11,7 +10,7 @@ DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
-def getPosts(event, context):
+def getImages(event, context):
     # Get database credentials
     creds = get_db_credentials(DB_SECRET_ARN)
     
@@ -30,33 +29,37 @@ def getPosts(event, context):
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
 
-        # Fetch all posts
-        posts_result = session.execute(select(Post)).scalars().all()  # Get a list of user objects
+        # Fetch all images
+        images = session.execute(select(Image)).scalars().all()  # Get a list of image objects
 
-        # Create a list of post dictionaries directly
-        posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate': (
-            post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
-            else post.createdDate)} for post in posts_result]
+        # Convert images to dictionary or JSON-friendly format
+        images_data = [{
+            'imageID': image.imageID,
+            'postID': image.postID,
+            'imageURL': image.imageURL
+        } for image in images]
         
         # Return message
         return {
-            'statusCode': 200,  # Changed to 200 for a successful retrieval
+            'statusCode': 200,
             'headers': {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-            'body': json.dumps(posts_list)  # Serialize the list of users
+            'body': json.dumps(images_data)
         }
     
     except Exception as e:
+        print(f"Error: {e}")
         return {
             'statusCode': 500,
             'headers': {
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-            'body': json.dumps(f"Error retrieving posts: {str(e)}")
+            'body': json.dumps(f"Error retrieving images: {str(e)}")
         }
     
     finally:
-        session.close()
+        if 'session' in locals():
+            session.close()
