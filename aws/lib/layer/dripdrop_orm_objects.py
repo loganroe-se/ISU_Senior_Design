@@ -44,3 +44,9 @@ class Image(Base):
     imageURL = Column(String(2000), nullable=False)
     #Establish relationship with post
     postRel = relationship("Post", back_populates="images")
+
+# Tag table
+class Tag(Base):
+    __tablename__ = 'tags'
+    tagID = Column(Integer, primary_key=True)
+    tag = Column(String(100), nullable=False)

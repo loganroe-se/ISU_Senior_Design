@@ -242,6 +242,31 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/image/updateImage",
       "updateImage"
     );
+    const createTagLambda = createLambda(
+      "CreateTagLambda",
+      "lib/lambdas/tag/createTag",
+      "createTag"
+    );
+    const deleteTagLambda = createLambda(
+      "DeleteTagLambda",
+      "lib/lambdas/tag/deleteTag",
+      "deleteTag"
+    );
+    const getTagByIdLambda = createLambda(
+      "GetTagByIdLambda",
+      "lib/lambdas/tag/getTagById",
+      "getTagById"
+    );
+    const getTagsLambda = createLambda(
+      "GetTagsLambda",
+      "lib/lambdas/tag/getTags",
+      "getTags"
+    );
+    const updateTagLambda = createLambda(
+      "UpdateTagLambda",
+      "lib/lambdas/tag/updateTag",
+      "updateTag"
+    );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
@@ -306,8 +331,9 @@ export class ApiConstruct extends Construct {
     const follows = api.root.addResource("follows");
     const posts = api.root.addResource("posts");
     const images = api.root.addResource("images");
+    const tags = api.root.addResource("tags");
 
-    //-----IMAGE LAMBDAS-----
+    // --------------- IMAGE LAMBDAS ---------------
     // POST /images - Create
     images.addMethod(
       "POST",
@@ -365,7 +391,56 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    //-----POST LAMBDAS-----
+    // --------------- TAG LAMBDAS ---------------
+    // POST /tags - Create
+    tags.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createTagLambda),
+      {
+        operationName: "CreateTag",
+      }
+    );
+
+    // GET /tags - Get ALL Tags
+    tags.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getTagsLambda),
+      {
+        operationName: "GetTags",
+      }
+    );
+
+    // Define the /tags/{id} resource
+    const tag = tags.addResource("{id}");
+
+    // DELETE /tags/{id} - Delte Tag
+    tag.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deleteTagLambda),
+      {
+        operationName: "DeleteTagLambda",
+      }
+    );
+
+    // GET /tags/{id} - Get Tag by ID
+    tag.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getTagByIdLambda),
+      {
+        operationName: "GetTagById"
+      }
+    );
+
+    // PUT /tags/{id} - Update Tag
+    tag.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateTagLambda),
+      {
+        operationName: "UpdateTag",
+      }
+    );
+
+    // --------------- POST LAMBDAS ---------------
     //POST /posts - Create 
     posts.addMethod(
       "POST",
@@ -407,7 +482,7 @@ export class ApiConstruct extends Construct {
       operationName: "UpdatePost",
     });
 
-    // -----FOLLOW LAMBDAS-----
+    // --------------- FOLLOW LAMBDAS ---------------
     // POST /follows - Follow User
     follows.addMethod(
       "POST",
@@ -425,7 +500,7 @@ export class ApiConstruct extends Construct {
       operationName: "GetFollowingById",
     });
 
-    // -----USER LAMBDAS-----
+    // --------------- USER LAMBDAS ---------------
     // POST /users - Create User
     users.addMethod(
       "POST",
