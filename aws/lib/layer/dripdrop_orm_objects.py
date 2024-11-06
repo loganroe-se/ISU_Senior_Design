@@ -10,7 +10,23 @@ class User(Base):
     userID = Column(Integer, primary_key=True)
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False, unique=True)
+<<<<<<< HEAD
     password = Column(String(50), nullable=False)
+=======
+    password = Column(String(100), nullable=False)
+    #Establish relationship with post
+    posts = relationship("Post", order_by="Post.postID", back_populates="userRel")
+    follows = relationship("Follow", order_by="Follow.followID", back_populates="userRel")
+
+# Following table
+class Follow(Base):
+    __tablename__ = 'follows'
+    followID = Column(Integer, primary_key=True)
+    followerID = Column(Integer, ForeignKey('users.userID'))
+    followedID = Column(Integer, nullable=False)
+    #Establish relationship with follow
+    userRel = relationship("User", order_by="User.userID", back_populates="follows")
+>>>>>>> master
 
 # Post table
 class Post(Base):

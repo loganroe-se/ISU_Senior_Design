@@ -272,6 +272,16 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/post/updatePost",
       "updatePost"
     )
+    const followUserLambda = createLambda(
+      "FollowUserLambda",
+      "lib/lambdas/follow/followUser",
+      "followUser"
+    );
+    const getFollowingByIdLambda = createLambda(
+      "GetFollowingByIdLambda",
+      "lib/lambdas/follow/getFollowingById",
+      "getFollowingById"
+    );
 
   
 
@@ -293,6 +303,7 @@ export class ApiConstruct extends Construct {
 
     // Define the /users resource
     const users = api.root.addResource("users");
+    const follows = api.root.addResource("follows");
     const posts = api.root.addResource("posts");
     const images = api.root.addResource("images");
 
@@ -357,7 +368,23 @@ export class ApiConstruct extends Construct {
       operationName: "UpdatePost",
     });
 
+    // -----FOLLOW LAMBDAS-----
+    // POST /follows - Follow User
+    follows.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(followUserLambda),
+      {
+        operationName: "FollowUser",
+      }
+    );
 
+    // Define the /follows/{id} resource
+    const followUser = follows.addResource("{id}");
+
+    // GET /follows/{id} - Get Following by ID
+    followUser.addMethod("GET", new apigateway.LambdaIntegration(getFollowingByIdLambda), {
+      operationName: "GetFollowingById",
+    });
 
     // -----USER LAMBDAS-----
     // POST /users - Create User
