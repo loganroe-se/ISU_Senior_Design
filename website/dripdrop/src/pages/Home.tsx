@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 import PostCard from '../components/PostCard';
 
 interface Post {
@@ -12,9 +13,9 @@ interface Post {
 }
 
 export default function Home() {
-  const [posts, setPosts] = useState<Post[]>([]); // Specify the state type
+  const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null); // Allow null values
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -23,7 +24,7 @@ export default function Home() {
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        const data: Post[] = await response.json(); // Explicitly type the data
+        const data: Post[] = await response.json();
         setPosts(data);
       } catch (err) {
         setError('Failed to fetch posts');
@@ -37,7 +38,18 @@ export default function Home() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <CircularProgress /> {/* Circular loading indicator */}
+      </Box>
+    );
   }
 
   if (error) {
@@ -65,10 +77,10 @@ export default function Home() {
         <div className="post">
           {posts.map((post, index) => (
             <PostCard
-              key={post.postID || index} // Use postID if available, else use index
-              image="/default_image.jpg" // Placeholder image, update if needed
-              username={post.userID || 'Anonymous'} // Placeholder username
-              caption={post.caption || 'No caption provided'} // Fallback for caption
+              key={post.postID || index}
+              image="/default_image.jpg"
+              username={post.userID || 'Anonymous'}
+              caption={post.caption || 'No caption provided'}
             />
           ))}
         </div>
