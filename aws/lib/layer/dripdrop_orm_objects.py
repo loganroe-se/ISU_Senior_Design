@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
 from sqlalchemy.orm import relationship
+from sqlalchemy.orm import validates
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -49,4 +50,8 @@ class Image(Base):
 class Tag(Base):
     __tablename__ = 'tags'
     tagID = Column(Integer, primary_key=True)
-    tag = Column(String(100), nullable=False)
+    tag = Column(String(100), nullable=False, unique=True)
+
+    @validates('tag')
+    def convert_lower(self, key, value):
+        return value.lower()
