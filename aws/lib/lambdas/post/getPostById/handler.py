@@ -55,8 +55,7 @@ def getPostById(event, context):
                         'userID': post.userID,
                         'caption': post.caption,
                         'createdDate': (post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
-                        else post.createdDate),
-                        'imageURL' : post.imageURL
+                        else post.createdDate)
                     }
 
                     return {

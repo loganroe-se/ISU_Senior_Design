@@ -207,6 +207,41 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/deleteUser",
       "deleteUser"
     );
+    const userSignInLambda = createLambda(
+      "UserSignInLambda",
+      "lib/lambdas/user/userSignIn",
+      "signIn"
+    );
+    const createImageLambda = createLambda(
+      "CreateImageLambda",
+      "lib/lambdas/image/createImage",
+      "createImage"
+    );
+    const deleteImageLambda = createLambda(
+      "DeleteImageLambda",
+      "lib/lambdas/image/deleteImage",
+      "deleteImage"
+    );
+    const getImageByImageIdLambda = createLambda(
+      "GetImageByImageIdLambda",
+      "lib/lambdas/image/getImageByImageId",
+      "getImageByImageId"
+    );
+    const getImageByPostIdLambda = createLambda(
+      "GetImageByPostIdLambda",
+      "lib/lambdas/image/getImageByPostId",
+      "getImageByPostId"
+    );
+    const getImagesLambda = createLambda(
+      "GetImagesLambda",
+      "lib/lambdas/image/getImages",
+      "getImages"
+    );
+    const updateImageLambda = createLambda(
+      "UpdateImageLambda",
+      "lib/lambdas/image/updateImage",
+      "updateImage"
+    );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
@@ -237,6 +272,21 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/post/updatePost",
       "updatePost"
     )
+    const followUserLambda = createLambda(
+      "FollowUserLambda",
+      "lib/lambdas/follow/followUser",
+      "followUser"
+    );
+    const getFollowingByIdLambda = createLambda(
+      "GetFollowingByIdLambda",
+      "lib/lambdas/follow/getFollowingById",
+      "getFollowingById"
+    );
+    const getFollowersByIdLambda = createLambda(
+      "GetFollowersByIdLambda",
+      "lib/lambdas/follow/getFollowersById",
+      "getFollowersById"
+    );
 
   
 
@@ -258,7 +308,67 @@ export class ApiConstruct extends Construct {
 
     // Define the /users resource
     const users = api.root.addResource("users");
+    const follows = api.root.addResource("follows");
     const posts = api.root.addResource("posts");
+    const images = api.root.addResource("images");
+
+    //-----IMAGE LAMBDAS-----
+    // POST /images - Create
+    images.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(createImageLambda),
+      {
+        operationName: "CreateImage",
+      }
+    );
+
+    // GET /images - Get All Images
+    images.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getImagesLambda),
+      {
+        operationName: "GetImages",
+      }
+    );
+
+    // Define the /images/{id} resource
+    const image = images.addResource("{id}");
+
+    // DELETE /images/{id} - Delete Image
+    image.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deleteImageLambda),
+      {
+        operationName: "DeleteImageLambda",
+      }
+    );
+
+    // GET /images/{id} - Get Image by Image ID
+    image.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getImageByImageIdLambda),
+      {
+        operationName: "GetImageByImageId",
+      }
+    );
+
+    // PUT /images/{id} - Update Image
+    image.addMethod(
+      "PUT",
+      new apigateway.LambdaIntegration(updateImageLambda),
+      {
+        operationName: "UpdateImage",
+      }
+    );
+
+    // GET /images/{id} - Get Image(s) by Post ID
+    images.addResource("post-id").addResource("{id}").addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getImageByPostIdLambda),
+      {
+        operationName: "GetImageByPostId",
+      }
+    );
 
     //-----POST LAMBDAS-----
     //POST /posts - Create 
@@ -302,7 +412,30 @@ export class ApiConstruct extends Construct {
       operationName: "UpdatePost",
     });
 
+    // -----FOLLOW LAMBDAS-----
+    // POST /follows - Follow User
+    follows.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(followUserLambda),
+      {
+        operationName: "FollowUser",
+      }
+    );
 
+    // Define the /follows/{id} resource
+    const followUser = follows.addResource("{id}");
+
+    // GET /follows/{id} - Get Following by ID
+    followUser.addMethod("GET", new apigateway.LambdaIntegration(getFollowingByIdLambda), {
+      operationName: "GetFollowingById",
+    });
+
+    const userFollowers = followUser.addResource("followers")
+
+    // GET /follows/{id}/followers - Get Followers by ID
+    userFollowers.addMethod("GET", new apigateway.LambdaIntegration(getFollowersByIdLambda), {
+      operationName: "GetFollowersById",
+    });
 
     // -----USER LAMBDAS-----
     // POST /users - Create User
@@ -340,6 +473,15 @@ export class ApiConstruct extends Construct {
         operationName: "DeleteUser",
       }
     );
+
+    // Define the /users/signIn resource
+    const signIn = users.addResource("signIn")
+
+    // POST /users/signIn
+    signIn.addMethod("POST", new apigateway.LambdaIntegration(userSignInLambda), {
+      operationName: "UserSignIn",
+    });
+    
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {
