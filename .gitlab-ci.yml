@@ -50,7 +50,10 @@ build website:
   rules:
     - if: $CI_COMMIT_REF_NAME
       changes:
-        - website/dripdrop/**/*
+        paths:
+          - website/dripdrop/**/*
+        compare_to: "master"
+      
 
 
 aws-cdk-diff:
@@ -176,7 +179,9 @@ aws_cdk_deploy_branch:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
-        - website/dripdrop/**/*
+        paths:
+          - website/dripdrop/**/*
+        compare_to: "master"
 
 stop_branch_deploy:
   stage: aws-cdk-stop-branch
@@ -187,7 +192,9 @@ stop_branch_deploy:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
-        - website/dripdrop/**/*
+        paths:
+          - website/dripdrop/**/*
+        compare_to: "master"
       when: manual
   environment:
     name: branch/${CI_COMMIT_BRANCH}
