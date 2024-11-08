@@ -41,6 +41,18 @@ def createTag(event, context):
 
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+
+        # Check if the tag already exists
+        existing_tag = session.query(Tag).filter(Tag.tag.ilike(tag)).first()
+        if existing_tag:
+            return {
+                'statusCode': 409,
+                'headers': {
+                    'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Headers': 'Content-Type'
+                },
+                'body': json.dumps(f'A tag already exists for the value {tag}, with tag ID: {existing_tag.tagID}')
+            }
         
         # Create a new tag
         new_tag = Tag(tag=tag)
