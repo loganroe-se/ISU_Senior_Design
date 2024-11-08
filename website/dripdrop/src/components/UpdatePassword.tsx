@@ -9,7 +9,9 @@ interface UpdatePasswordProps {
 }
 
 const UpdatePassword: React.FC<UpdatePasswordProps> = ({ loading, onPasswordChange, feedback, setFeedback }) => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [oldPassword, setOldPassword] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [newPassword, setNewPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [passwordError, setPasswordError] = useState('');

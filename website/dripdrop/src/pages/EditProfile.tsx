@@ -6,9 +6,11 @@ import UpdatePassword from '../components/UpdatePassword';
 
 const EditProfile = () => {
     const [username, setUsername] = useState('');
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
     const [currentTab, setCurrentTab] = useState(0); // To control the active tab
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [loading, setLoading] = useState(false);
     const [feedback, setFeedback] = useState<{ message: string; type: 'error' | 'success' | 'info' | 'warning' | undefined }>({ message: '', type: undefined });
     const [touchedFields, setTouchedFields] = useState<{ username: boolean, email: boolean, password: boolean }>({
