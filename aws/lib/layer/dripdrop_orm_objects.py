@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -44,3 +44,13 @@ class Image(Base):
     imageURL = Column(String(2000), nullable=False)
     #Establish relationship with post
     postRel = relationship("Post", back_populates="images")
+
+# Tag table
+class Tag(Base):
+    __tablename__ = 'tags'
+    tagID = Column(Integer, primary_key=True)
+    tag = Column(String(100), nullable=False, unique=True)
+
+    @validates('tag')
+    def convert_lower(self, key, value):
+        return value.lower()
