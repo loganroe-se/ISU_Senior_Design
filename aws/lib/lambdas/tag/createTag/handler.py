@@ -27,7 +27,6 @@ def createTag(event, context):
     try:
         # Parse the tag data from event
         body = json.loads(event['body'])
-        tagID = body.get('tagID')
         tag = body.get('tag')
 
         if not tag:
@@ -44,7 +43,7 @@ def createTag(event, context):
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
         
         # Create a new tag
-        new_tag = Tag(tagID=tagID, tag=tag)
+        new_tag = Tag(tag=tag)
 
         # Add the tag to the db
         session.add(new_tag)
@@ -57,7 +56,7 @@ def createTag(event, context):
                     'Access-Control-Allow-Origin': '*',
                     'Access-Control-Allow-Headers': 'Content-Type'
                 },
-            'body': json.dumps(f'Tag with tagID: {tagID} was created successfully')
+            'body': json.dumps(f'Tag with tagID: {new_tag.tagID} was created successfully')
         }
     
     except Exception as e:
