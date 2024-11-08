@@ -52,7 +52,7 @@ build website:
       changes:
         paths:
           - website/dripdrop/**/*
-        compare_to: "master"
+        compare_to:  'refs/heads/master'
       
 
 
@@ -181,7 +181,7 @@ aws_cdk_deploy_branch:
       changes:
         paths:
           - website/dripdrop/**/*
-        compare_to: "master"
+        compare_to: 'refs/heads/master'
 
 stop_branch_deploy:
   stage: aws-cdk-stop-branch
@@ -194,7 +194,7 @@ stop_branch_deploy:
       changes:
         paths:
           - website/dripdrop/**/*
-        compare_to: "master"
+        compare_to: 'refs/heads/master'
       when: manual
   environment:
     name: branch/${CI_COMMIT_BRANCH}
