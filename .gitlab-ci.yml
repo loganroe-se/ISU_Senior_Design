@@ -128,7 +128,7 @@ aws-cdk-diff-api:
   script:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
-    - cdk diff ApiStack --exclusively true
+    - cdk diff MainAPI --exclusively true
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -149,7 +149,7 @@ aws-cdk-deploy-api:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk deploy ApiStack --require-approval never
+    - cdk deploy MainAPI --require-approval never
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
