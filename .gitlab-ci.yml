@@ -52,7 +52,7 @@ build website:
       changes:
         paths:
           - website/dripdrop/**/*
-        compare_to: "master"
+        compare_to:  'refs/heads/master'
       
 
 
@@ -128,7 +128,7 @@ aws-cdk-diff-api:
   script:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
-    - cdk diff ApiStack --exclusively true
+    - cdk diff MainAPI --exclusively true
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -149,7 +149,7 @@ aws-cdk-deploy-api:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk deploy ApiStack --require-approval never
+    - cdk deploy MainAPI --require-approval never
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -181,7 +181,7 @@ aws_cdk_deploy_branch:
       changes:
         paths:
           - website/dripdrop/**/*
-        compare_to: "master"
+        compare_to: 'refs/heads/master'
 
 stop_branch_deploy:
   stage: aws-cdk-stop-branch
@@ -194,7 +194,7 @@ stop_branch_deploy:
       changes:
         paths:
           - website/dripdrop/**/*
-        compare_to: "master"
+        compare_to: 'refs/heads/master'
       when: manual
   environment:
     name: branch/${CI_COMMIT_BRANCH}
