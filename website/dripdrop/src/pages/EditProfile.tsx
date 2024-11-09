@@ -41,7 +41,7 @@ const EditProfile = () => {
     };
 
     const handlePasswordChange = (oldPassword: string, newPassword: string) => {
-        setPassword(newPassword);  // Assuming password update happens here.
+        setPassword(newPassword);
         setFeedback({ message: 'Password updated successfully', type: 'success' });
     };
 
