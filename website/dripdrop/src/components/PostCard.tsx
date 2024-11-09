@@ -5,7 +5,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
 
-const PostCard = ({image, username, caption } : { image: string; username: string; caption: string}) => {
+const PostCard = ({image, username, caption } : { image: string; username?: string; caption: string}) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showLinks, setShowLinks] = useState(false);

@@ -85,8 +85,6 @@ const Sidebar = () => {
         </Box>
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
       </Box>
-
-      {/* Post Modal */}
       <PostModal isOpen={isPostModalOpen} onClose={() => setPostModalOpen(false)} />
     </Box>
   );
