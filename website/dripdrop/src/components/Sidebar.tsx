@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { Box, Typography, Avatar, MenuItem, ListItemIcon } from '@mui/material';
+import { Box, Typography, MenuItem, ListItemIcon, Avatar, IconButton } from '@mui/material';
 import { Link } from 'react-router-dom';
 import Filter from './Filters'; // Assuming Filter component is imported
+import PostModal from './PostModal'; // Import the PostModal component
+
 
 interface SidebarItemProps {
   iconClass: string;
   label: string;
-  isLast?: boolean;
   link: string;
-  onClick?: () => void;  // Add onClick to handle filter button
+  isLast?: boolean;
+  onClick?: () => void;
 }
 
 const Sidebar = () => {
   const [isFilterOpen, setFilterOpen] = useState(false); // State for drawer visibility
+  const [isPostModalOpen, setPostModalOpen] = useState(false); // State for modal visibility
 
   return (
     <Box sx={{
@@ -44,7 +47,12 @@ const Sidebar = () => {
         <Box sx={{ padding: '1rem 0', border: '1px solid #DFDFDF' }}>
           <SidebarItem iconClass="bi bi-house-door" label="Home" link="/" />
           <SidebarItem iconClass="bi bi-search" label="Search" link="/search" />
-          <SidebarItem iconClass="bi bi-plus-square" label="Post" link="/post" />
+          <SidebarItem
+            iconClass="bi bi-plus-square"
+            label="Post"
+            link="#"
+            onClick={() => setPostModalOpen(true)} // Open the modal on click
+          />
           <SidebarItem iconClass="bi bi-bookmarks" label="Lists" link="/lists" />
           <SidebarItem iconClass="bi bi-bell" label="Notifications" link="/notifications" />
           <SidebarItem
@@ -53,7 +61,6 @@ const Sidebar = () => {
             link="#" // Prevent navigation
             onClick={() => setFilterOpen(true)} // Open filter drawer
           />
-  
 
           {/* User Information as Sidebar Item */}
           <MenuItem
@@ -78,6 +85,7 @@ const Sidebar = () => {
         </Box>
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
       </Box>
+      <PostModal isOpen={isPostModalOpen} onClose={() => setPostModalOpen(false)} />
     </Box>
   );
 };
