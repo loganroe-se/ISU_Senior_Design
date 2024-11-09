@@ -60,9 +60,6 @@ const Profile = () => {
         <ThemeProvider theme={theme}>
             <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
                 <Box textAlign="center" mb={4}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Profile
-                    </Typography>
                 </Box>
 
                 {/* Profile Header */}
@@ -115,11 +112,22 @@ const Profile = () => {
 
                     <Button
                         variant="contained"
-                        color="primary"
                         onClick={navigateToEditProfile}
+                        sx={{
+                            backgroundColor: 'white',
+                            color: 'grey',
+                            padding: '0.5rem 1.5rem',
+                            borderRadius: '20px',
+                            boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                            '&:hover': {
+                                backgroundColor: '#f0f0f0', // Lighter gray on hover
+                            },
+                            border: '1px solid grey', // Add a border to make it more defined
+                        }}
                     >
                         Edit Profile
                     </Button>
+
                 </Box>
 
                 {/* Divider */}

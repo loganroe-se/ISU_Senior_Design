@@ -108,9 +108,6 @@ const CreatePost = () => {
 
     return (
         <Box sx={{ maxWidth: 600, mx: 'auto', p: 4 }}>
-            <Typography variant="h4" component="h1" gutterBottom>
-                Create New Post
-            </Typography>
             <form onSubmit={handleSubmit}>
                 {/* Caption input */}
                 <TextField
