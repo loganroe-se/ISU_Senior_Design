@@ -24,7 +24,6 @@ export default function Home() {
                     <Route path="/" element={<Navigate to="/home" />} />
                     <Route path="/home" element={<HomePage />} />
                     <Route path="/search" element={<SearchResults />} />
-                    <Route path="/post" element={<CreatePost />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/editProfile" element={<EditProfile />} />
                 </Routes>
