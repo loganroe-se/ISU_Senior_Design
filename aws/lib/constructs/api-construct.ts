@@ -642,11 +642,12 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    // Define the /users/{username} resource
-    const username = users.addResource("{username}");
+    // Define the /username/{username} resource
+    const username = users.addResource("username");
+    const get_username = username.addResource("{username}")
 
-    // GET /users/{username} - Get User by Username
-    username.addMethod("GET", new apigateway.LambdaIntegration(getUserByUsernameLambda), {
+    // GET /username/{username} - Get User by Username
+    get_username.addMethod("GET", new apigateway.LambdaIntegration(getUserByUsernameLambda), {
       operationName: "GetUserByUsername",
     });
 
