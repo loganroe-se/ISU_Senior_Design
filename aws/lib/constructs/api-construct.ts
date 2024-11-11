@@ -318,6 +318,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/deleteUser",
       "deleteUser"
     );
+    const getUserByUsernameLambda = createLambda(
+      "GetUserByUsernameLambda",
+      "lib/lambdas/user/getUserByUsername",
+      "getUserByUsername"
+    );
     const userSignInLambda = createLambda(
       "UserSignInLambda",
       "lib/lambdas/user/userSignIn",
@@ -636,6 +641,14 @@ export class ApiConstruct extends Construct {
         operationName: "DeleteUser",
       }
     );
+
+    // Define the /users/{username} resource
+    const username = users.addResource("{username}");
+
+    // GET /users/{username} - Get User by Username
+    username.addMethod("GET", new apigateway.LambdaIntegration(getUserByUsernameLambda), {
+      operationName: "GetUserByUsername",
+    });
 
     // Define the /users/signIn resource
     const signIn = users.addResource("signIn");

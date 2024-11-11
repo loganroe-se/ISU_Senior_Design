@@ -43,7 +43,7 @@ def createPost(event, context):
             session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
             
             # Verify if userID exists in the User table
-            user_exists = session.query(User).filter_by(id=userID).first()
+            user_exists = session.query(User).filter_by(userID=userID).first()
 
             if not user_exists:
                 return {
