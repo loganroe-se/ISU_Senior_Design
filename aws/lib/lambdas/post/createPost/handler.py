@@ -1,7 +1,8 @@
 import os
 import json
+from datetime import date
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
-from dripdrop_orm_objects import Post
+from dripdrop_orm_objects import Post, User
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -29,9 +30,8 @@ def createPost(event, context):
         body = json.loads(event['body'])
         userID = body.get('userID')
         caption  = body.get('caption')
-        createdDate = body.get('createdDate')
 
-        if not caption:
+        if not userID:
             return {
                 'statusCode': 400,
                 'body': json.dumps('Missing required field')
@@ -42,13 +42,24 @@ def createPost(event, context):
             # Initialize SQLAlchemy engine and session
             session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
             
-            # Create a new user
+            # Verify if userID exists in the User table
+            user_exists = session.query(User).filter_by(userID=userID).first()
+
+            if not user_exists:
+                return {
+                    'statusCode': 404,
+                    'body': json.dumps('User does not exist')
+                }
+
+            # Auto-fill createdDate with current time
+            createdDate = date.today()
+
+            # Create a new post
             new_post = Post(userID=userID, caption=caption, createdDate=createdDate)
 
-            # Add the user to the db
+            # Add the post to the db
             session.add(new_post)
             session.commit()
-            session.close()
 
             # Return message
             return {

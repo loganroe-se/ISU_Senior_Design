@@ -12,7 +12,7 @@ class User(Base):
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     #Establish relationship with post
-    posts = relationship("Post", order_by="Post.postID", back_populates="userRel")
+    posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
     follows = relationship("Follow", order_by="Follow.followID", back_populates="userRel")
 
 # Following table
@@ -29,7 +29,7 @@ class Post(Base):
     __tablename__ = 'posts'
     postID = Column(Integer, primary_key=True)
     userID = Column(Integer, ForeignKey('users.userID'))
-    caption = Column(String(50), nullable=False)
+    caption = Column(String(50))
     createdDate = Column(Date)
     #Establish relationship with user
     userRel = relationship("User", back_populates="posts")
