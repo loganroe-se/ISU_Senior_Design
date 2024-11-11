@@ -1,0 +1,19 @@
+meta {
+  name: User Sign In
+  type: http
+  seq: 6
+}
+
+post {
+  url: https://api.dripdropco.com/users/signIn
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "email": "testusername@test.edu",
+      "password": "password123"
+  }
+  
+}

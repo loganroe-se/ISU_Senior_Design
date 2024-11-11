@@ -6,13 +6,11 @@ import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
     const navigate = useNavigate();
+    // eslint-disable-next-line
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
-    const [postCount, setPostCount] = useState(2); // Placeholder for the number of posts
-    const [followers, setFollowers] = useState(150); // Placeholder
-    const [following, setFollowing] = useState(120); // Placeholder
 
     useEffect(() => {
         const storedEmail = sessionStorage.getItem('email');
@@ -60,13 +58,10 @@ const Profile = () => {
         <ThemeProvider theme={theme}>
             <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
                 <Box textAlign="center" mb={4}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Profile
-                    </Typography>
                 </Box>
 
                 {/* Profile Header */}
-                <Box display="flex" alignItems="center" mb={2}>
+                <Box display="flex" mb={2}>
                     <IconButton
                         component="label"
                         sx={{ width: 100, height: 100, mr: 3 }}
@@ -95,32 +90,64 @@ const Profile = () => {
                         />
                     </IconButton>
 
-                    <Box flexGrow={1}>
-                        <Typography variant="h5">{username}</Typography>
-                        <Typography variant="body2" color="textSecondary">
-                            {email}
-                        </Typography>
-                        <Box display="flex" mt={1}>
-                            <Typography variant="body2" color="textSecondary" mr={2}>
-                                {postCount} Posts
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" mr={2}>
-                                {followers} Followers
-                            </Typography>
+                        <Box>
+                            <Typography variant="h5">{username}</Typography>
                             <Typography variant="body2" color="textSecondary">
-                                {following} Following
+                                {email}
                             </Typography>
+                            <Box display="flex" mt={1}>
+                                <Typography variant="body2" color="textSecondary" mr={2}>
+                                    {13} Posts
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary" mr={2}>
+                                    {150} Followers
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                    {120} Following
+                                </Typography>
+                            </Box>
                         </Box>
+                    <Box sx={{ display: "flex", gap: 3, flexDirection: 'column', ml: 'auto' }}>
+                        <Button
+                            variant="contained"
+                            onClick={navigateToEditProfile}
+                            sx={{
+                                backgroundColor: 'white',
+                                color: 'grey',
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '20px',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                '&:hover': {
+                                    backgroundColor: '#f0f0f0', // Lighter gray on hover
+                                },
+                                border: '1px solid grey', // Add a border to make it more defined
+                            }}
+                        >
+                            Edit Profile
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            color="error"  // Set color to red for "Log Out" button
+                            onClick={handleLogout}
+                            sx={{
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '20px',
+                                borderColor: 'error.main', // Make the border red as well
+                                '&:hover': {
+                                    borderColor: 'darkred', // Darker red on hover
+                                    backgroundColor: 'lightcoral', // Light red background on hover
+                                },
+                            }}
+                        >
+                            Log Out
+                        </Button>
                     </Box>
 
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={navigateToEditProfile}
-                    >
-                        Edit Profile
-                    </Button>
-                </Box>
+
+                    </Box>
+
+
 
                 {/* Divider */}
                 <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
