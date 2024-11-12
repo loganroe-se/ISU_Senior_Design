@@ -21,6 +21,8 @@ const Sidebar = () => {
     <Box sx={{
       height: '100vh',
       display: 'flex',
+      alignItems: 'center',
+      padding: '0px .5rem'
     }}>
       <Box>
         <Box
@@ -29,6 +31,8 @@ const Sidebar = () => {
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            borderRadius: '5px 5px 0px 0px',
+            height: '10vh'
           }}
         >
           <Box
@@ -44,7 +48,7 @@ const Sidebar = () => {
           </Box>
         </Box>
 
-        <Box sx={{ padding: '1rem 0', border: '1px solid #DFDFDF' }}>
+        <Box sx={{ display: 'grid', alignItems: 'center', padding: '1rem 0', border: '1px solid #DFDFDF', height: '75vh' }}>
           <SidebarItem iconClass="bi bi-house-door" label="Home" link="/" />
           <SidebarItem iconClass="bi bi-search" label="Search" link="/search" />
           <SidebarItem
@@ -61,7 +65,13 @@ const Sidebar = () => {
             link="#" // Prevent navigation
             onClick={() => setFilterOpen(true)} // Open filter drawer
           />
-
+        </Box>
+        <Box sx={{
+          border: '1px solid #dfdfdf',
+          borderRadius: '0px 0px 5px 5px',
+          height: '10vh',
+          display: 'flex'
+        }}>
           {/* User Information as Sidebar Item */}
           <MenuItem
             component={Link}
@@ -70,18 +80,16 @@ const Sidebar = () => {
               display: 'flex',
               alignItems: 'center',
               paddingLeft: '2rem',
-              marginTop: '1.5rem', // Add space above
             }}
           >
-            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1.5rem' }}>
+            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1rem' }}>
               <Avatar sx={{ height: '3rem', width: '3rem', border: '3px solid black' }} />
             </ListItemIcon>
             <Box>
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>{sessionStorage.getItem("email")}</Typography>
+              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, lineHeight: '1.5rem' }}>{sessionStorage.getItem("email")}</Typography>
               <Typography sx={{ fontSize: '1rem', margin: 0 }}>@{sessionStorage.getItem("username")}</Typography>
             </Box>
           </MenuItem>
-
         </Box>
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
       </Box>
@@ -99,15 +107,18 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ iconClass, label, link, isLas
       sx={{
         paddingLeft: '2rem',
         alignItems: 'center',
-        marginBottom: isLast ? '0rem' : '1.25rem',
       }}
     >
       <ListItemIcon
         sx={{
           minWidth: 'unset',
-          marginRight: '1.5rem',
+          marginRight: '1rem',
           fontSize: '2rem',
-          color: 'black'
+          color: 'black',
+          height: '3rem',
+          width: '3rem',
+          display: 'flex',
+          justifyContent: 'center'
         }}
       >
         <i className={iconClass}></i>
