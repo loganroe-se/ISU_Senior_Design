@@ -1,4 +1,4 @@
-from util import detect_dominant_color, map_to_clothing_label, detect
+from util import detect_dominant_color, map_to_clothing_label, detect, save_image_with_detections
 import torch
 from torchvision import transforms
 from PIL import Image
@@ -10,7 +10,7 @@ from ultralytics import YOLO
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load a COCO-pretrained YOLO11n model
-model = YOLO("yolo11n.pt")
+model = YOLO("./trained_models/best.pt")
 
 #Temp categories for image classification as model is not trained
 with open("imagenet_classes.txt", "r") as f:
@@ -30,10 +30,11 @@ transform = transforms.Compose([
 
 
 # Load the image
-image_path = 'outfit.jpg'
+image_path = 'test.jpg'
 img = cv2.imread(image_path)
 
 detected_objects = detect(model=model, img=img, thres=50)
+save_image_with_detections(img, detected_objects, "detected_outfit_with_boxes_pretrained_test.jpg")
 # Extract relevant information
 items = []
 i = 0 

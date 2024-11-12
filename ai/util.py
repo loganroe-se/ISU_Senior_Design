@@ -3,6 +3,7 @@ import webcolors
 import pandas as pd
 import numpy as np
 import time
+import cv2
 
 
 # Map YOLO classes to clothing items
@@ -94,3 +95,22 @@ def detect(model, img, thres):
     # Convert detections to a DataFrame
     detections_df = detections_to_dataframe(results, model.names, thres)
     return detections_df
+
+# Assuming `detected_objects` contains the bounding boxes and class labels
+def save_image_with_detections(img, detected_objects, output_path="output_with_detections.jpg"):
+    for _, row in detected_objects.iterrows():
+        # Get coordinates and label
+        xmin, ymin, xmax, ymax = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
+        label = map_to_clothing_label(row['name'])
+        confidence = row['confidence']
+        
+        # Draw bounding box
+        cv2.rectangle(img, (xmin, ymin), (xmax, ymax), (0, 255, 0), 2)  # Green box
+        label_text = f"{label} ({confidence:.2f})"
+        
+        # Draw label and confidence above the bounding box
+        cv2.putText(img, label_text, (xmin, ymin - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+
+    # Save the output image
+    cv2.imwrite(output_path, img)
+    print(f"Output image saved as {output_path}")
