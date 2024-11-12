@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Grid, CircularProgress, Typography } from '@mui/material';
-import PostCard from './PostCard';
+import React, { useState, useEffect } from "react";
+import { Container, Grid, CircularProgress, Typography } from "@mui/material";
+import PostCard from "./PostCard";
 
 // The interface for post data
 interface Post {
@@ -14,14 +14,16 @@ interface Post {
 const getPosts = async (): Promise<Post[]> => {
   try {
     // Example of an API request to the backend (replace with your actual API URL)
-    const response = await fetch('https://y02r1obse5.execute-api.us-east-1.amazonaws.com/prod/posts');
+    const response = await fetch(
+      "https://y02r1obse5.execute-api.us-east-1.amazonaws.com/prod/posts"
+    );
     if (!response.ok) {
-      throw new Error('Failed to fetch posts');
+      throw new Error("Failed to fetch posts");
     }
     const data = await response.json();
     return data.posts; // Assuming the response structure has a 'posts' array
   } catch (error) {
-    console.error('Error fetching posts:', error);
+    console.error("Error fetching posts:", error);
     return []; // Return an empty array if there's an error
   }
 };
@@ -41,7 +43,7 @@ const Feed = () => {
         const fetchedPosts = await getPosts();
         setPosts(fetchedPosts);
       } catch (error) {
-        setError('Failed to load posts');
+        setError("Failed to load posts");
       } finally {
         setLoading(false);
       }
@@ -75,7 +77,11 @@ const Feed = () => {
       <Grid container spacing={2}>
         {posts.map((post) => (
           <Grid item key={post.id} xs={12} sm={6} md={4}>
-            <PostCard image={post.image} username={post.username} caption={post.caption} />
+            <PostCard
+              image={post.image}
+              username={post.username}
+              caption={post.caption}
+            />
           </Grid>
         ))}
       </Grid>
