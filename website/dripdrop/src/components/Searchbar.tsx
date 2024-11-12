@@ -3,6 +3,7 @@ import { Box, Typography, MenuItem, ListItemIcon, Avatar, TextField } from '@mui
 import { Link } from 'react-router-dom';
 import Filter from './Filters'; // Assuming Filter component is imported
 import PostModal from './PostModal'; // Import the PostModal component
+import { v4 as uuidv4 } from 'uuid';
 
 
 interface SearchbarItemProps {
@@ -13,7 +14,23 @@ interface SearchbarItemProps {
   onClick?: () => void;
 }
 
-const Searchbar = () => {
+interface User {
+  username: string;
+  email: string;
+  id: string;
+}
+
+interface SearchbarProps {
+  value: string;
+  setValue: (newValue: string) => void;
+  results: User[];
+}
+
+const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results }) => {
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value);
+  };
+
   return (
     <Box sx={{
       height: '100vh',
@@ -35,7 +52,9 @@ const Searchbar = () => {
           alignItems: 'center',
           height: '10%'
         }}>
-          <TextField id="outlined-basic" placeholder="Search..." variant="outlined" sx={{
+          <TextField id="outlined-basic" placeholder="Search..." variant="outlined" value={value} onChange={
+            handleChange
+          } sx={{
             width: '90%',
             backgroundColor: '#f0f0f0',
             borderRadius: '4px',
@@ -54,14 +73,14 @@ const Searchbar = () => {
           }} />
         </Box>
         <Box>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe1" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe2" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe3" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe4" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe5" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe6" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe7" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe8" profilePic="" profileID=""/>
+          {
+            results.length > 0 ? results.map((user) => {
+                return <SearchbarItem profileName="Bob" profileUsername={user.username} profilePic="" profileID={user.id} key={uuidv4()}/>
+              }) : <Typography sx={{
+                width: '90%',
+                marginLeft: '5%'
+              }}>No results found</Typography>
+          }
         </Box>
       </Box>
     </Box>
