@@ -8,7 +8,7 @@ import { ApiStack } from '../lib/api-stack';
 const app = new cdk.App();
 
 const websiteStackName: string = app.node.tryGetContext("websiteStackName") || "WebsiteHostingStack";
-const apiStackName:string = app.node.tryGetContext("apiStackName") || "ApiStack";
+const apiStackName:string = app.node.tryGetContext("apiStackName") || "MainAPI";
 
 const websiteStack = new WebsiteHostingStack(app, websiteStackName, {
   /* If you don't specify 'env', this stack will be environment-agnostic.

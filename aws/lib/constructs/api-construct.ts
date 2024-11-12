@@ -10,8 +10,6 @@ import * as targets from "aws-cdk-lib/aws-route53-targets";
 import * as certificatemanager from "aws-cdk-lib/aws-certificatemanager";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Stack } from "aws-cdk-lib";
-import { Secret } from "aws-cdk-lib/aws-secretsmanager";
-import { create } from "domain";
 
 export interface StaticSiteProps {
   domainName: string;
@@ -29,7 +27,7 @@ export class ApiConstruct extends Construct {
     super(parent, name);
 
     // Route 53 DNS setup
-    const zone = route53.HostedZone.fromLookup(this, "Zone", {
+    const zone = route53.HostedZone.fromLookup(this, "dripdropzone", {
       domainName: props.domainName,
     });
 
@@ -44,19 +42,20 @@ export class ApiConstruct extends Construct {
     );
 
     // VPC for Aurora
-    const vpc = new ec2.Vpc(this, "AuroraVpc", {
+    const vpc = new ec2.Vpc(this, "dripdropvpc", {
       maxAzs: 2,
       natGateways: 0,
       subnetConfiguration: [
         {
           cidrMask: 24,
-          name: "privatelambda",
-          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+          name: "ingress",
+          subnetType: ec2.SubnetType.PUBLIC,
+          mapPublicIpOnLaunch: true,
         },
         {
           cidrMask: 24,
-          name: "public",
-          subnetType: ec2.SubnetType.PUBLIC,
+          name: "private",
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
         },
       ],
     });
@@ -82,12 +81,19 @@ export class ApiConstruct extends Construct {
 
     const dbSecurityGroup = new ec2.SecurityGroup(this, "DbSecurityGroup", {
       vpc,
+      allowAllOutbound: true,
     });
 
     dbSecurityGroup.addIngressRule(
       lambdaSecurityGroup,
       ec2.Port.tcp(3306),
       "Lambda to database"
+    );
+
+    dbSecurityGroup.addIngressRule(
+      ec2.Peer.anyIpv4(),
+      ec2.Port.allTraffic(),
+      "Connection for mysql databench"
     );
 
     new ec2.InterfaceVpcEndpoint(this, "Secrets ManagerEndpoint", {
@@ -100,11 +106,47 @@ export class ApiConstruct extends Construct {
       }),
     });
 
+    new ec2.InterfaceVpcEndpoint(this, "System ManagerEndpoint", {
+      vpc: vpc,
+      service: ec2.InterfaceVpcEndpointAwsService.SSM,
+      securityGroups: [lambdaSecurityGroup],
+      subnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        availabilityZones: ["us-east-1a", "us-east-1b"],
+      }),
+    });
+
+    new ec2.InterfaceVpcEndpoint(this, "System Messages Endpoint", {
+      vpc: vpc,
+      service: ec2.InterfaceVpcEndpointAwsService.SSM_MESSAGES,
+      securityGroups: [lambdaSecurityGroup],
+      subnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        availabilityZones: ["us-east-1a", "us-east-1b"],
+      }),
+    });
+
+    new ec2.InterfaceVpcEndpoint(this, "EC2 Messages Endpoint", {
+      vpc: vpc,
+      service: ec2.InterfaceVpcEndpointAwsService.EC2_MESSAGES,
+      securityGroups: [lambdaSecurityGroup],
+      subnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        availabilityZones: ["us-east-1a", "us-east-1b"],
+      }),
+    });
+
+
+
+
     const databaseName = "dripdropdb";
     // Aurora MySQL Cluster
     const cluster = new rds.DatabaseInstance(this, "AuroraCluster", {
       engine: rds.DatabaseInstanceEngine.MYSQL,
-      instanceType: ec2.InstanceType.of(ec2.InstanceClass.T3, ec2.InstanceSize.MICRO),
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T3,
+        ec2.InstanceSize.MICRO
+      ),
       vpc: vpc,
       vpcSubnets: vpc.selectSubnets({
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
@@ -118,6 +160,7 @@ export class ApiConstruct extends Construct {
       credentials: rds.Credentials.fromGeneratedSecret("clusteradmin"),
       databaseName: databaseName,
       removalPolicy: cdk.RemovalPolicy.DESTROY, // For development purposes
+      publiclyAccessible: true,
     });
 
     const dbProxy = cluster.addProxy("DripDropProx", {
@@ -129,6 +172,75 @@ export class ApiConstruct extends Construct {
         subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
       }),
     });
+
+    // Step 4: Create a bastion host in the public subnet
+    const bastionSecurityGroup = new ec2.SecurityGroup(
+      this,
+      "BastionSecurityGroup",
+      {
+        vpc,
+        allowAllOutbound: true,
+      }
+    );
+
+    // Allow the bastion to access the Aurora RDS
+    dbSecurityGroup.addIngressRule(
+      bastionSecurityGroup,
+      ec2.Port.tcp(3306),
+      "Allow bastion to access RDS on port 3306"
+    );
+
+    // Create the IAM Role
+    const ssmRole = new iam.Role(this, "AmazonSSMRoleForInstancesQuickSetup", {
+      assumedBy: new iam.CompositePrincipal(
+        new iam.ServicePrincipal("ec2.amazonaws.com"),
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/ekriegel"),
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/kolbykuc") // Replace <Account ID> and <Specific IAM User> with your details
+      ),
+      roleName: "AmazonSSMRoleForInstancesQuickSetup",
+    });
+
+    // Attach Managed Policies
+    ssmRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
+    );
+    ssmRole.addManagedPolicy(
+      iam.ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMPatchAssociation")
+    );
+
+    // Define an inline policy with ssm:StartSession permission
+    const ssmStartSessionPolicy = new iam.Policy(
+      this,
+      "SSMStartSessionPolicy",
+      {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["ssm:*"],
+            resources: ["*"], // Adjust resource as necessary
+          }),
+        ],
+      }
+    );
+
+    // Attach the inline policy to the role
+    ssmRole.attachInlinePolicy(ssmStartSessionPolicy);
+
+    const bastionHost = new ec2.Instance(this, "BastionHost", {
+      instanceType: ec2.InstanceType.of(
+        ec2.InstanceClass.T3,
+        ec2.InstanceSize.MICRO
+      ),
+      machineImage: ec2.MachineImage.latestAmazonLinux2(),
+      vpc,
+      vpcSubnets: vpc.selectSubnets({
+        subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+      }),
+      securityGroup: bastionSecurityGroup,
+      role: ssmRole,
+    });
+
+    // Step 5: Grant the bastion host access to the RDS cluster
+    cluster.connections.allowDefaultPortFrom(bastionHost);
 
     // IAM Role for Lambda functions
     const lambdaRole = new iam.Role(this, "LambdaRole", {
@@ -207,6 +319,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/deleteUser",
       "deleteUser"
     );
+    const getUserByUsernameLambda = createLambda(
+      "GetUserByUsernameLambda",
+      "lib/lambdas/user/getUserByUsername",
+      "getUserByUsername"
+    );
     const userSignInLambda = createLambda(
       "UserSignInLambda",
       "lib/lambdas/user/userSignIn",
@@ -242,6 +359,31 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/image/updateImage",
       "updateImage"
     );
+    const createTagLambda = createLambda(
+      "CreateTagLambda",
+      "lib/lambdas/tag/createTag",
+      "createTag"
+    );
+    const deleteTagLambda = createLambda(
+      "DeleteTagLambda",
+      "lib/lambdas/tag/deleteTag",
+      "deleteTag"
+    );
+    const getTagByIdLambda = createLambda(
+      "GetTagByIdLambda",
+      "lib/lambdas/tag/getTagById",
+      "getTagById"
+    );
+    const getTagsLambda = createLambda(
+      "GetTagsLambda",
+      "lib/lambdas/tag/getTags",
+      "getTags"
+    );
+    const updateTagLambda = createLambda(
+      "UpdateTagLambda",
+      "lib/lambdas/tag/updateTag",
+      "updateTag"
+    );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
@@ -266,12 +408,12 @@ export class ApiConstruct extends Construct {
       "GetPostByIdLambda",
       "lib/lambdas/post/getPostById",
       "getPostById"
-    )
+    );
     const updatePostLambda = createLambda(
       "UpdatePostLambda",
       "lib/lambdas/post/updatePost",
       "updatePost"
-    )
+    );
     const followUserLambda = createLambda(
       "FollowUserLambda",
       "lib/lambdas/follow/followUser",
@@ -287,8 +429,6 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/follow/getFollowersById",
       "getFollowersById"
     );
-
-  
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
@@ -311,8 +451,9 @@ export class ApiConstruct extends Construct {
     const follows = api.root.addResource("follows");
     const posts = api.root.addResource("posts");
     const images = api.root.addResource("images");
+    const tags = api.root.addResource("tags");
 
-    //-----IMAGE LAMBDAS-----
+    // --------------- IMAGE LAMBDAS ---------------
     // POST /images - Create
     images.addMethod(
       "POST",
@@ -323,13 +464,9 @@ export class ApiConstruct extends Construct {
     );
 
     // GET /images - Get All Images
-    images.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getImagesLambda),
-      {
-        operationName: "GetImages",
-      }
-    );
+    images.addMethod("GET", new apigateway.LambdaIntegration(getImagesLambda), {
+      operationName: "GetImages",
+    });
 
     // Define the /images/{id} resource
     const image = images.addResource("{id}");
@@ -362,16 +499,48 @@ export class ApiConstruct extends Construct {
     );
 
     // GET /images/{id} - Get Image(s) by Post ID
-    images.addResource("post-id").addResource("{id}").addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getImageByPostIdLambda),
-      {
-        operationName: "GetImageByPostId",
-      }
-    );
+    images
+      .addResource("post-id")
+      .addResource("{id}")
+      .addMethod(
+        "GET",
+        new apigateway.LambdaIntegration(getImageByPostIdLambda),
+        {
+          operationName: "GetImageByPostId",
+        }
+      );
 
-    //-----POST LAMBDAS-----
-    //POST /posts - Create 
+    // --------------- TAG LAMBDAS ---------------
+    // POST /tags - Create
+    tags.addMethod("POST", new apigateway.LambdaIntegration(createTagLambda), {
+      operationName: "CreateTag",
+    });
+
+    // GET /tags - Get ALL Tags
+    tags.addMethod("GET", new apigateway.LambdaIntegration(getTagsLambda), {
+      operationName: "GetTags",
+    });
+
+    // Define the /tags/{id} resource
+    const tag = tags.addResource("{id}");
+
+    // DELETE /tags/{id} - Delte Tag
+    tag.addMethod("DELETE", new apigateway.LambdaIntegration(deleteTagLambda), {
+      operationName: "DeleteTagLambda",
+    });
+
+    // GET /tags/{id} - Get Tag by ID
+    tag.addMethod("GET", new apigateway.LambdaIntegration(getTagByIdLambda), {
+      operationName: "GetTagById",
+    });
+
+    // PUT /tags/{id} - Update Tag
+    tag.addMethod("PUT", new apigateway.LambdaIntegration(updateTagLambda), {
+      operationName: "UpdateTag",
+    });
+
+    // --------------- POST LAMBDAS ---------------
+    //POST /posts - Create
     posts.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createPostLambda),
@@ -380,13 +549,9 @@ export class ApiConstruct extends Construct {
       }
     );
     // GET /posts - Get All Posts
-    posts.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getPostsLambda),
-      {
-        operationName: "GetPosts",
-      }
-    )
+    posts.addMethod("GET", new apigateway.LambdaIntegration(getPostsLambda), {
+      operationName: "GetPosts",
+    });
 
     // Define the /posts/{id} resource
     const post = posts.addResource("{id}");
@@ -400,19 +565,15 @@ export class ApiConstruct extends Construct {
       }
     );
     // GET /posts/{id} - Get Post by ID
-    post.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getPostByIdLambda),
-      {
-        operationName: "GetPostById",
-      }
-    )
+    post.addMethod("GET", new apigateway.LambdaIntegration(getPostByIdLambda), {
+      operationName: "GetPostById",
+    });
     // PUT /posts/{id} - Update Post
     post.addMethod("PUT", new apigateway.LambdaIntegration(updatePostLambda), {
       operationName: "UpdatePost",
     });
 
-    // -----FOLLOW LAMBDAS-----
+    // --------------- FOLLOW LAMBDAS ---------------
     // POST /follows - Follow User
     follows.addMethod(
       "POST",
@@ -426,18 +587,26 @@ export class ApiConstruct extends Construct {
     const followUser = follows.addResource("{id}");
 
     // GET /follows/{id} - Get Following by ID
-    followUser.addMethod("GET", new apigateway.LambdaIntegration(getFollowingByIdLambda), {
-      operationName: "GetFollowingById",
-    });
+    followUser.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFollowingByIdLambda),
+      {
+        operationName: "GetFollowingById",
+      }
+    );
 
-    const userFollowers = followUser.addResource("followers")
+    const userFollowers = followUser.addResource("followers");
 
     // GET /follows/{id}/followers - Get Followers by ID
-    userFollowers.addMethod("GET", new apigateway.LambdaIntegration(getFollowersByIdLambda), {
-      operationName: "GetFollowersById",
-    });
+    userFollowers.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFollowersByIdLambda),
+      {
+        operationName: "GetFollowersById",
+      }
+    );
 
-    // -----USER LAMBDAS-----
+    // --------------- USER LAMBDAS ---------------
     // POST /users - Create User
     users.addMethod(
       "POST",
@@ -474,14 +643,26 @@ export class ApiConstruct extends Construct {
       }
     );
 
+    // Define the /username/{username} resource
+    const username = users.addResource("username");
+    const get_username = username.addResource("{username}")
+
+    // GET /username/{username} - Get User by Username
+    get_username.addMethod("GET", new apigateway.LambdaIntegration(getUserByUsernameLambda), {
+      operationName: "GetUserByUsername",
+    });
+
     // Define the /users/signIn resource
-    const signIn = users.addResource("signIn")
+    const signIn = users.addResource("signIn");
 
     // POST /users/signIn
-    signIn.addMethod("POST", new apigateway.LambdaIntegration(userSignInLambda), {
-      operationName: "UserSignIn",
-    });
-    
+    signIn.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(userSignInLambda),
+      {
+        operationName: "UserSignIn",
+      }
+    );
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {
@@ -493,6 +674,15 @@ export class ApiConstruct extends Construct {
     // Output the API endpoint
     new cdk.CfnOutput(this, "ApiUrl", {
       value: api.url,
+    });
+
+    // // Optional: Output the bastion public IP and RDS endpoint
+    // new cdk.CfnOutput(this, "BastionPublicIP", {
+    //   value: bastionHost.instancePublicIp,
+    // });
+
+    new cdk.CfnOutput(this, "RDSEndpoint", {
+      value: cluster.instanceEndpoint.hostname,
     });
   }
 }

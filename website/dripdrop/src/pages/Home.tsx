@@ -1,59 +1,90 @@
-
+import React, { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
+import CircularProgress from '@mui/material/CircularProgress'; // Import CircularProgress
 import PostCard from '../components/PostCard';
 
+interface Post {
+  postID: number;
+  userID: string | null;
+  caption: string;
+  createdDate: string | null;
+}
 
 export default function Home() {
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const storedUsername = sessionStorage.getItem("email");
-  console.log("email: " + storedUsername);
-  console.log("username: " + sessionStorage.getItem("username"));
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch('https://api.dripdropco.com/posts/');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data: Post[] = await response.json();
+        setPosts(data);
+      } catch (err) {
+        setError('Failed to fetch posts');
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const posts = [
-    {
-      image: "/outfit_1.jpg",
-      username: "This is a test branch",
-      caption: "New fall outfit!",
-    },
-    {
-      image: "/outfit_2.jpeg",
-      username: "JohnDoe",
-      caption: "Ready for winter!",
-    },
-  
-  ];
+    fetchPosts();
+  }, []);
+
+  if (loading) {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+        }}
+      >
+        <CircularProgress /> {/* Circular loading indicator */}
+      </Box>
+    );
+  }
+
+  if (error) {
+    return <div>{error}</div>;
+  }
 
   return (
-    <Box id="feed" sx={{
-      display: "flex",
-      maxHeight: "95vh",
-      overflow: "scroll"
-    }}>
+    <Box
+      id="feed"
+      sx={{
+        display: 'flex',
+        maxHeight: '95vh',
+        overflow: 'scroll',
+      }}
+    >
       <CssBaseline />
-
       <Container
         component="main"
         sx={{
-          justifyContent: "center",
+          justifyContent: 'center',
           flexGrow: 1,
-          display: "flex"
+          display: 'flex',
         }}
       >
         <div className="post">
           {posts.map((post, index) => (
             <PostCard
-              key={index}
-              image={post.image}
-              username={post.username}
-              caption={post.caption}
+              key={post.postID || index}
+              image="/default_image.jpg"
+              username={post.userID || 'Anonymous'}
+              caption={post.caption || 'No caption provided'}
             />
           ))}
         </div>
       </Container>
-
-
     </Box>
   );
 }

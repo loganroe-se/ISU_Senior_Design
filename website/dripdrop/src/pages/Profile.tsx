@@ -1,26 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import Typography from '@mui/material/Typography';
-import Box from '@mui/material/Box';
-import Button from '@mui/material/Button';
-import Switch from '@mui/material/Switch';
-import TextField from '@mui/material/TextField';
-import Paper from '@mui/material/Paper';
-import Avatar from '@mui/material/Avatar';
-import IconButton from '@mui/material/IconButton';
+import { Typography, Box, Button, Paper, Avatar, IconButton, Divider } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
-
-
+import { useNavigate } from 'react-router-dom';
 
 const Profile = () => {
+    const navigate = useNavigate();
+    // eslint-disable-next-line
     const [isDarkMode, setIsDarkMode] = useState(false);
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg'); // default profile pic
+    const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
 
     useEffect(() => {
-        // Retrieve user info from sessionStorage
         const storedEmail = sessionStorage.getItem('email');
         const storedUsername = sessionStorage.getItem('username');
         const storedProfilePic = sessionStorage.getItem('profilePic');
@@ -40,14 +32,7 @@ const Profile = () => {
         sessionStorage.clear();
         const currentBaseUrl = window.location.origin;
         window.location.replace(currentBaseUrl);
-
         console.log("User logged out");
-    };
-
-
-    const handleUpdate = () => {
-        console.log("Updated email:", email);
-        console.log("Updated password:", password);
     };
 
     const handleProfilePicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,29 +40,31 @@ const Profile = () => {
         if (file) {
             const reader = new FileReader();
             reader.onload = () => {
-                const imageUrl = reader.result as string;
-                setProfilePic(imageUrl);
-                sessionStorage.setItem('profilePic', imageUrl); // Store in session
+                const imageUrl = reader.result;
+                if (typeof imageUrl === 'string') {
+                    setProfilePic(imageUrl);
+                    sessionStorage.setItem('profilePic', imageUrl);
+                }
             };
             reader.readAsDataURL(file);
         }
     };
 
+    const navigateToEditProfile = () => {
+        navigate('/editProfile');
+    };
 
     return (
         <ThemeProvider theme={theme}>
             <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
                 <Box textAlign="center" mb={4}>
-                    <Typography variant="h4" component="h1" gutterBottom>
-                        Profile
-                    </Typography>
                 </Box>
 
                 {/* Profile Header */}
-                <Box display="flex" flexDirection="column" alignItems="center">
+                <Box display="flex" mb={2}>
                     <IconButton
                         component="label"
-                        sx={{ position: 'relative', width: 100, height: 100 }}
+                        sx={{ width: 100, height: 100, mr: 3 }}
                     >
                         <Avatar
                             alt="Profile Picture"
@@ -103,65 +90,83 @@ const Profile = () => {
                         />
                     </IconButton>
 
-                    <Typography variant="h5" mt={2}>{username}</Typography>
-                    <Typography variant="body2" color="textSecondary">
-                        {email}
-                    </Typography>
+                        <Box>
+                            <Typography variant="h5">{username}</Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {email}
+                            </Typography>
+                            <Box display="flex" mt={1}>
+                                <Typography variant="body2" color="textSecondary" mr={2}>
+                                    {13} Posts
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary" mr={2}>
+                                    {150} Followers
+                                </Typography>
+                                <Typography variant="body2" color="textSecondary">
+                                    {120} Following
+                                </Typography>
+                            </Box>
+                        </Box>
+                    <Box sx={{ display: "flex", gap: 3, flexDirection: 'column', ml: 'auto' }}>
+                        <Button
+                            variant="contained"
+                            onClick={navigateToEditProfile}
+                            sx={{
+                                backgroundColor: 'white',
+                                color: 'grey',
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '20px',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                '&:hover': {
+                                    backgroundColor: '#f0f0f0', // Lighter gray on hover
+                                },
+                                border: '1px solid grey', // Add a border to make it more defined
+                            }}
+                        >
+                            Edit Profile
+                        </Button>
 
-                    {/* Followers and Following */}
-                    <Box display="flex" gap={4} mt={2}>
+                        <Button
+                            variant="outlined"
+                            color="error"  // Set color to red for "Log Out" button
+                            onClick={handleLogout}
+                            sx={{
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '20px',
+                                borderColor: 'error.main', // Make the border red as well
+                                '&:hover': {
+                                    borderColor: 'darkred', // Darker red on hover
+                                    backgroundColor: 'lightcoral', // Light red background on hover
+                                },
+                            }}
+                        >
+                            Log Out
+                        </Button>
+                    </Box>
+
+
+                    </Box>
+
+
+
+                {/* Divider */}
+                <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
+
+                {/* User's Posts Section */}
+                <Box mt={3}>
+                    <Typography variant="h6" gutterBottom>
+                        User's Posts
+                    </Typography>
+                    {/* Example Posts */}
+                    <Box mb={2} p={2} sx={{ backgroundColor: 'grey.100', borderRadius: '8px' }}>
                         <Typography variant="body1">
-                            <strong>100</strong> Followers
-                        </Typography>
-                        <Typography variant="body1">
-                            <strong>50</strong> Following
+                            Post 1: This is an example of a user's post.
                         </Typography>
                     </Box>
-                </Box>
-
-                {/* Update Email and Password */}
-                <Box mt={4}>
-                    <Typography variant="h6">Update Email/Password</Typography>
-                    <TextField
-                        label="Email"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                    />
-                    <TextField
-                        label="Password"
-                        type="password"
-                        variant="outlined"
-                        fullWidth
-                        margin="normal"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                    <Button
-                        variant="contained"
-                        color="primary"
-                        onClick={handleUpdate}
-                        sx={{ mt: 2 }}
-                        fullWidth
-                    >
-                        Update
-                    </Button>
-                </Box>
-
-                {/* Log Out and Dark Mode Toggle */}
-                <Box mt={4} display="flex" justifyContent="space-between">
-                    <Button variant="outlined" color="secondary" onClick={handleLogout}>
-                        Log Out
-                    </Button>
-                    <Box display="flex" alignItems="center">
-                        <Typography>Dark Mode</Typography>
-                        <Switch
-                            checked={isDarkMode}
-                            onChange={() => setIsDarkMode(!isDarkMode)}
-                            sx={{ ml: 1 }}
-                        />
+                    <Box mb={2} p={2} sx={{ backgroundColor: 'grey.100', borderRadius: '8px' }}>
+                        <Typography variant="body1">
+                            Post 2: Another example post from the user.
+                        </Typography>
                     </Box>
                 </Box>
             </Paper>

@@ -50,7 +50,10 @@ build website:
   rules:
     - if: $CI_COMMIT_REF_NAME
       changes:
-        - website/dripdrop/**/*
+        paths:
+          - website/dripdrop/**/*
+        compare_to:  'refs/heads/master'
+      
 
 
 aws-cdk-diff:
@@ -125,7 +128,7 @@ aws-cdk-diff-api:
   script:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
-    - cdk diff ApiStack --exclusively true
+    - cdk diff MainAPI --exclusively true
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -146,7 +149,7 @@ aws-cdk-deploy-api:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk deploy ApiStack --require-approval never
+    - cdk deploy MainAPI --require-approval never
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
@@ -176,15 +179,22 @@ aws_cdk_deploy_branch:
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
-        - website/dripdrop/**/*
+        paths:
+          - website/dripdrop/**/*
+        compare_to: 'refs/heads/master'
 
 stop_branch_deploy:
   stage: aws-cdk-stop-branch
   image: $BUILD_IMAGE
+  id_tokens:
+    ID_TOKEN:
+      aud: sdmay25-25-s3-deploy
   rules:
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       changes:
-        - website/dripdrop/**/*
+        paths:
+          - website/dripdrop/**/*
+        compare_to: 'refs/heads/master'
       when: manual
   environment:
     name: branch/${CI_COMMIT_BRANCH}
@@ -195,4 +205,4 @@ stop_branch_deploy:
     - !reference [.setup, script]
     - !reference [.assume_role, script]
     - npm run build
-    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH
+    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH}

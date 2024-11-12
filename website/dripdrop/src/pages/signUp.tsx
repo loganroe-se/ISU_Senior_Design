@@ -55,18 +55,21 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp, onSuccessfulS
                 onSuccessfulSignUp(); // Notify SignIn of successful sign-up
                 setIsSigningUp(false);
             } else {
-                const errorData = await response.json();
-                setErrorMessage(
-                    errorData.error && errorData.error.includes("Duplicate entry")
-                        ? "An account with this email or username already exists."
-                        : "Failed to create user. Please try again."
-                );
+                if (response.status === 409) {
+                    // Handle the specific case of a duplicate entry
+                    setErrorMessage("An account with this email or username already exists.");
+                } else {
+                    // Generic error handling for other status codes
+                    const errorData = await response.json();
+                    setErrorMessage(errorData.error || "Failed to create user. Please try again.");
+                }
             }
         } catch (error) {
             setErrorMessage("An error occurred. Please try again.");
         } finally {
             setLoading(false);
         }
+
 
     };
 

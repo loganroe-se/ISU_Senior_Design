@@ -47,6 +47,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     if (user) {
                         sessionStorage.setItem("username", user.username);
                         sessionStorage.setItem("email", user.email);
+                        sessionStorage.setItem("password", password);
                     }
 
                     onSignIn(email, password);

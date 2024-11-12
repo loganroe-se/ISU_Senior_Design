@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
 Base = declarative_base()
@@ -12,7 +12,7 @@ class User(Base):
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     #Establish relationship with post
-    posts = relationship("Post", order_by="Post.postID", back_populates="userRel")
+    posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
     follows = relationship("Follow", order_by="Follow.followID", back_populates="userRel")
 
 # Following table
@@ -29,7 +29,7 @@ class Post(Base):
     __tablename__ = 'posts'
     postID = Column(Integer, primary_key=True)
     userID = Column(Integer, ForeignKey('users.userID'))
-    caption = Column(String(50), nullable=False)
+    caption = Column(String(50))
     createdDate = Column(Date)
     #Establish relationship with user
     userRel = relationship("User", back_populates="posts")
@@ -44,3 +44,13 @@ class Image(Base):
     imageURL = Column(String(2000), nullable=False)
     #Establish relationship with post
     postRel = relationship("Post", back_populates="images")
+
+# Tag table
+class Tag(Base):
+    __tablename__ = 'tags'
+    tagID = Column(Integer, primary_key=True)
+    tag = Column(String(100), nullable=False, unique=True)
+
+    @validates('tag')
+    def convert_lower(self, key, value):
+        return value.lower()
