@@ -1,39 +1,53 @@
-import React, { useState, useEffect } from "react"; 
+import React, { useState, useEffect } from "react";
 import { Container, Grid, CircularProgress, Typography } from "@mui/material";
 import PostCard from "./PostCard";
-import { fetchPosts } from "../api/api"; // Import the fetchPosts function
+import { Post } from "../types";
+import { fetchPosts, fetchUserById } from "../api/api";  // Import API functions
 
-// The interface for post data
-export interface Post {
-  id: string;
-  images: { imageURL: string }[]; // Array of image objects with imageURL field
-  username: string;
-  caption: string;
-}
-
-// Feed component that fetches and displays posts
 const Feed = () => {
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [loading, setLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [posts, setPosts] = useState<Post[]>([]);  // State for posts
+  const [loading, setLoading] = useState<boolean>(true);  // State for loading
+  const [error, setError] = useState<string | null>(null);  // State for error message
+  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({});  // State for storing usernames
+  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true);  // Loading state for usernames
 
   useEffect(() => {
-    const loadPosts = async () => {
+    const loadPostsAndUsernames = async () => {
       try {
-        const data = await fetchPosts(); // Call the function from api.ts
-        setPosts(data);  // Set posts state with the fetched data
-      } catch (err: any) {
-        setError(err.message);  // Handle error
+        // Fetch posts from the API
+        const postsData = await fetchPosts();
+        setPosts(postsData);
+
+        // Fetch usernames for all posts concurrently (parallel fetch)
+        const usernamesData = await Promise.all(
+          postsData.map((post) => fetchUserById(post.userID))
+        );
+
+        // Create a mapping of post IDs to usernames
+        const usernamesMap: { [key: string]: string } = {};
+        postsData.forEach((post, index) => {
+          const username = usernamesData[index] || "Unknown User";  // Use default if username is not found
+          usernamesMap[post.id] = username;  // Map the post ID to the username
+        });
+
+        // Update state with the new usernames map
+        setUsernamesMap(usernamesMap);
+
+      } catch (err) {
+        setError("Failed to fetch posts");
+        console.error(err);
       } finally {
-        setLoading(false);  // Stop loading spinner
+        // Once everything is loaded, set loading to false
+        setLoading(false);
+        setUsernamesLoading(false);  // Set usernames loading state to false
       }
     };
 
-    loadPosts();  // Invoke the function to load posts
-  }, []);  // Run only once when the component mounts
+    loadPostsAndUsernames();  // Call the function to fetch posts and usernames
+  }, []);  // Empty dependency array ensures this runs only once when the component mounts
 
   // If we're loading, show a loading spinner
-  if (loading) {
+  if (loading || usernamesLoading) {
     return (
       <Container>
         <CircularProgress />
@@ -52,20 +66,20 @@ const Feed = () => {
     );
   }
 
+  // Render the posts
   return (
     <Container>
       <Grid container spacing={2}>
         {Array.isArray(posts) && posts.length > 0 ? (
           posts.map((post) => {
-            // Ensure images is an array, even if it's not defined
-            const images = post.images || [];  // Default to an empty array if images is undefined
+            const images = post.images || [];  // Default to empty array if images are undefined
+            const username = usernamesMap[post.id] || "Loading...";  // Get username for each post
 
             return (
-              // This ensures each post spans the full width (12 columns)
               <Grid item key={post.id} xs={12}>
                 <PostCard
-                  images={images.length > 0 ? [images[0].imageURL] : ["/default_image.jpg"]}  // Wrap image URL in an array
-                  username={post.username}
+                  images={images.length > 0 ? [images[0].imageURL] : ["/default_image.jpg"]}
+                  username={username}  // Pass username to PostCard
                   caption={post.caption}
                 />
               </Grid>
