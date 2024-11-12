@@ -1,32 +1,15 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react"; 
 import { Container, Grid, CircularProgress, Typography } from "@mui/material";
 import PostCard from "./PostCard";
+import { fetchPosts } from "../api/api"; // Import the fetchPosts function
 
 // The interface for post data
-interface Post {
+export interface Post {
   id: string;
-  image: string;
+  images: { imageURL: string }[]; // Array of image objects with imageURL field
   username: string;
   caption: string;
 }
-
-// A function to simulate fetching posts from the backend
-const getPosts = async (): Promise<Post[]> => {
-  try {
-    // Example of an API request to the backend (replace with your actual API URL)
-    const response = await fetch(
-      "https://y02r1obse5.execute-api.us-east-1.amazonaws.com/prod/posts"
-    );
-    if (!response.ok) {
-      throw new Error("Failed to fetch posts");
-    }
-    const data = await response.json();
-    return data.posts; // Assuming the response structure has a 'posts' array
-  } catch (error) {
-    console.error("Error fetching posts:", error);
-    return []; // Return an empty array if there's an error
-  }
-};
 
 // Feed component that fetches and displays posts
 const Feed = () => {
@@ -35,22 +18,19 @@ const Feed = () => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Fetch posts when the component mounts
-    const fetchPosts = async () => {
-      setLoading(true);
-      setError(null);
+    const loadPosts = async () => {
       try {
-        const fetchedPosts = await getPosts();
-        setPosts(fetchedPosts);
-      } catch (error) {
-        setError("Failed to load posts");
+        const data = await fetchPosts(); // Call the function from api.ts
+        setPosts(data);  // Set posts state with the fetched data
+      } catch (err: any) {
+        setError(err.message);  // Handle error
       } finally {
-        setLoading(false);
+        setLoading(false);  // Stop loading spinner
       }
     };
 
-    fetchPosts();
-  }, []);
+    loadPosts();  // Invoke the function to load posts
+  }, []);  // Run only once when the component mounts
 
   // If we're loading, show a loading spinner
   if (loading) {
@@ -75,15 +55,27 @@ const Feed = () => {
   return (
     <Container>
       <Grid container spacing={2}>
-        {posts.map((post) => (
-          <Grid item key={post.id} xs={12} sm={6} md={4}>
-            <PostCard
-              image={post.image}
-              username={post.username}
-              caption={post.caption}
-            />
-          </Grid>
-        ))}
+        {Array.isArray(posts) && posts.length > 0 ? (
+          posts.map((post) => {
+            // Ensure images is an array, even if it's not defined
+            const images = post.images || [];  // Default to an empty array if images is undefined
+
+            return (
+              // This ensures each post spans the full width (12 columns)
+              <Grid item key={post.id} xs={12}>
+                <PostCard
+                  images={images.length > 0 ? [images[0].imageURL] : ["/default_image.jpg"]}  // Wrap image URL in an array
+                  username={post.username}
+                  caption={post.caption}
+                />
+              </Grid>
+            );
+          })
+        ) : (
+          <Typography variant="h6" color="textSecondary">
+            No posts available.
+          </Typography>
+        )}
       </Grid>
     </Container>
   );
