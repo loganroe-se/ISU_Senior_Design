@@ -80,10 +80,11 @@ const Sidebar = () => {
               display: 'flex',
               alignItems: 'center',
               paddingLeft: '2rem',
+              width: '100%'
             }}
           >
             <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1rem' }}>
-              <Avatar sx={{ height: '3rem', width: '3rem', border: '3px solid black' }} />
+              <Avatar sx={{ height: '3rem', width: '3rem' }} />
             </ListItemIcon>
             <Box>
               <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0, lineHeight: '1.5rem' }}>{sessionStorage.getItem("email")}</Typography>
