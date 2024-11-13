@@ -32,57 +32,54 @@ export default function Home() {
     const location = useLocation();
 
     useEffect(() => {
-        const performSearch = async() => {
-            if(search !== "") {
-                try {
-                    if(!hasSearched || search.length < lastSearch.length || !search.includes(lastSearch)) {
-                        const response = await fetch('https://api.dripdropco.com/users');
-                        const data = await response.json();
-            
-                        let totalResults: User[] = [];
-                        let results: User[] = [];
-            
-                        data.forEach((user: User) => {
-                            totalResults.push(user);
-                            if(user.username.toLowerCase().includes(search) && search !== "") {
-                                results.push(user);
-                            }
-                        });
+        const performSearch = async () => {
+          if (search !== "") {
+            try {
+              if (!hasSearched || search.length < lastSearch.length || !search.includes(lastSearch)) {
+                const response = await fetch('https://api.dripdropco.com/users');
+                const data = await response.json();
     
-                        setSearchResults(totalResults);
-                        setFilteredSearchResults(results);
+                let totalResults: User[] = [];
+                let results: User[] = [];
     
-                        setHasSearched(true);
-                        setLastSearch(search);
-                    }
-                    else {
-                        let results: User[] = [];
+                data.forEach((user: User) => {
+                  totalResults.push(user);
+                  if (user.username.toLowerCase().includes(search.toLowerCase())) {
+                    results.push(user);
+                  }
+                });
     
-                        searchResults.forEach((result) => {
-                            if(result.username.toLowerCase().includes(search)) {
-                                results.push(result);
-                            }
-                        })
+                setSearchResults(totalResults);
+                setFilteredSearchResults(results);
     
-                        setFilteredSearchResults(results);
-                        setLastSearch(search);
-                    }
-                    
-                } catch (error) {
-                    console.error('Error fetching user data:', error);
-                } finally {
-                }
+                setHasSearched(true);
+                setLastSearch(search);
+              } else {
+                let results: User[] = [];
+                searchResults.forEach((result) => {
+                  if (result.username.toLowerCase().includes(search.toLowerCase())) {
+                    results.push(result);
+                  }
+                });
+                setFilteredSearchResults(results);
+              }
+            } catch (error) {
+              console.error('Error fetching user data:', error);
             }
-            else {
-                setSearchResults([]);
-                setFilteredSearchResults([]);
+          } else {
+            setSearchResults([]);
+            setFilteredSearchResults([]);
+            setHasSearched(false);
+            setLastSearch('');
+          }
+        };
     
-                setHasSearched(false);
-            }
-        }
-
-        performSearch();
-    }, [search, hasSearched, lastSearch, searchResults])
+        const timeoutId = setTimeout(() => {
+            performSearch();
+        }, 1000);
+    
+        return () => clearTimeout(timeoutId);
+      }, [search, hasSearched, lastSearch, searchResults]);
 
     useEffect(() => {
         if(location.pathname !== currLocation) {
