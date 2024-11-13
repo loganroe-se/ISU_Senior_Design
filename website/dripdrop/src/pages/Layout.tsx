@@ -19,49 +19,77 @@ export default function Home() {
         id: string;
     }
 
+    const [lastSearch, setLastSearch] = useState('');
     const [search, setSearch] = useState('');
+    const [hasSearched, setHasSearched] = useState(false);
+
     const [searchResults, setSearchResults] = useState<User[]>([]);
+    const [filteredSearchResults, setFilteredSearchResults] = useState<User[]>([]);
 
     const [currLocation, setCurrLocation] = useState('');
 
     const [showSearch, setShowSearch] = useState(false);
     const location = useLocation();
 
-    const performSearch = async() => {
-        if(search != "") {
-            try {
-                const response = await fetch('https://api.dripdropco.com/users');
-                const data = await response.json();
+    useEffect(() => {
+        const performSearch = async() => {
+            if(search !== "") {
+                try {
+                    if(!hasSearched || search.length < lastSearch.length || !search.includes(lastSearch)) {
+                        const response = await fetch('https://api.dripdropco.com/users');
+                        const data = await response.json();
+            
+                        let totalResults: User[] = [];
+                        let results: User[] = [];
+            
+                        data.forEach((user: User) => {
+                            totalResults.push(user);
+                            if(user.username.toLowerCase().includes(search) && search !== "") {
+                                results.push(user);
+                            }
+                        });
     
-                let results: User[] = [];
+                        setSearchResults(totalResults);
+                        setFilteredSearchResults(results);
     
-                data.forEach((user: User) => {
-                    if(user.username.toLowerCase().includes(search)) {
-                        results.push(user);
+                        setHasSearched(true);
+                        setLastSearch(search);
                     }
-                });
+                    else {
+                        let results: User[] = [];
     
-                setSearchResults(results);
-            } catch (error) {
-                console.error('Error fetching user data:', error);
-            } finally {
+                        searchResults.forEach((result) => {
+                            if(result.username.toLowerCase().includes(search)) {
+                                results.push(result);
+                            }
+                        })
+    
+                        setFilteredSearchResults(results);
+                        setLastSearch(search);
+                    }
+                    
+                } catch (error) {
+                    console.error('Error fetching user data:', error);
+                } finally {
+                }
+            }
+            else {
+                setSearchResults([]);
+                setFilteredSearchResults([]);
+    
+                setHasSearched(false);
             }
         }
-        else {
-            setSearchResults([]);
-        }
-    }
 
-    useEffect(() => {
         performSearch();
-    }, [search])
+    }, [search, hasSearched, lastSearch, searchResults])
 
     useEffect(() => {
-        if(location.pathname != currLocation) {
+        if(location.pathname !== currLocation) {
             setCurrLocation(location.pathname);
             setShowSearch(false);
         }
-    }, [location])
+    }, [location, currLocation])
 
     return (
         <Box sx={{ display: 'flex' }}>
@@ -70,7 +98,7 @@ export default function Home() {
             <Sidebar showSearch={showSearch} setShowSearch={setShowSearch} />
             
             {
-                showSearch && <Searchbar value={search} setValue={setSearch} results={searchResults}/>
+                showSearch && <Searchbar value={search} setValue={setSearch} results={filteredSearchResults}/>
             }
 
             <Container
