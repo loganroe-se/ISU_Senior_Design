@@ -3,6 +3,7 @@ import json
 from sqlalchemy.exc import IntegrityError
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import User
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,14 +17,16 @@ def createUser(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        # return {
+        #     'statusCode': 500,
+        #     'headers': {
+        #             'Access-Control-Allow-Origin': '*',
+        #             'Access-Control-Allow-Headers': 'Content-Type'
+        #     },
+        #     'body': json.dumps('Error retrieving database credentials')
+        # }
+        return create_response(500, 'Error retrieving database credentials')
+
     
     try:
         # Parse the user data from event
@@ -54,14 +57,15 @@ def createUser(event, context):
             session.commit()
 
             # Return message
-            return {
-                'statusCode': 201,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps(f'User {username} created successfully')
-            }
+            # return {
+            #     'statusCode': 201,
+            #     'headers': {
+            #         'Access-Control-Allow-Origin': '*',
+            #         'Access-Control-Allow-Headers': 'Content-Type'
+            #     },
+            #     'body': json.dumps(f'User {username} created successfully')
+            # }
+            create_response(201, "THIS IS FROM MY TEST: User {username} created successfully")
         
         finally:
             session.close()
