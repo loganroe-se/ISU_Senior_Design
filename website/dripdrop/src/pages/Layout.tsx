@@ -8,7 +8,6 @@ import SearchResults from './SearchResults';
 import HomePage from './Home';
 import Sidebar from '../components/Sidebar';
 import EditProfile from './EditProfile';
-import Searchbar from '../components/Searchbar';
 
 export default function Home() {
     return (

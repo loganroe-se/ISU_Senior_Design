@@ -1,14 +1,18 @@
-// PostCard.js
 import React, { useState } from 'react';
 import { Card, CardMedia, CardContent, Typography, CardActions, IconButton } from '@mui/material';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
 
-const PostCard = ({image, username, caption } : { image: string; username: string; caption: string}) => {
+interface PostCardProps {
+  images: string[];  // Expect an array of image URLs
+  username: string;
+  caption: string;
+}
+
+const PostCard: React.FC<PostCardProps> = ({ images, username, caption }) => {
   const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [showLinks, setShowLinks] = useState(false);
 
   const handleLike = () => {
     setLiked(!liked);
@@ -23,22 +27,18 @@ const PostCard = ({image, username, caption } : { image: string; username: strin
       {/* Image section */}
       <CardMedia
         component="img"
-        id="post1_pic"
-        image={image} // Use dynamic clothing item image
-        alt="Clothing post"
-        onClick={() => setShowLinks(!showLinks)}
+        image={images[0]}  // Use the first image from the images array
+        alt="Post image"
       />
-
       {/* Content of the post */}
       <CardContent>
-        <Typography variant="h5" component="div">
-          {username}
+        <Typography variant="h6" component="div" color="text.primary">
+          {username} {/* Display the username */}
         </Typography>
         <Typography variant="body2" color="text.secondary">
           {caption}
         </Typography>
       </CardContent>
-
       {/* Action buttons for the post */}
       <CardActions>
         <IconButton onClick={handleLike} color={liked ? 'secondary' : 'default'}>
