@@ -17,14 +17,6 @@ def createUser(event, context):
     
     # Check credentials
     if not creds:
-        # return {
-        #     'statusCode': 500,
-        #     'headers': {
-        #             'Access-Control-Allow-Origin': '*',
-        #             'Access-Control-Allow-Headers': 'Content-Type'
-        #     },
-        #     'body': json.dumps('Error retrieving database credentials')
-        # }
         return create_response(500, 'Error retrieving database credentials')
 
     
@@ -36,14 +28,7 @@ def createUser(event, context):
         password = body.get('password')
 
         if not username or not email or not password:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing required field')
-            }
+            return create_response(400, 'Missing required field')
         
         try:
             # Initialize SQLAlchemy engine and session
@@ -57,15 +42,7 @@ def createUser(event, context):
             session.commit()
 
             # Return message
-            # return {
-            #     'statusCode': 201,
-            #     'headers': {
-            #         'Access-Control-Allow-Origin': '*',
-            #         'Access-Control-Allow-Headers': 'Content-Type'
-            #     },
-            #     'body': json.dumps(f'User {username} created successfully')
-            # }
-            create_response(201, "THIS IS FROM MY TEST: User {username} created successfully")
+            return create_response(201, f"User {username} created successfully")
         
         finally:
             session.close()
@@ -81,21 +58,8 @@ def createUser(event, context):
         else:
             error_message = 'Duplicate entry'
 
-        return {
-            'statusCode': 409,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': json.dumps(error_message)
-        }
+        return create_response(409, error_message)
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error Creating User: {str(e)}")
-        }
+        return create_response(500, f"Error Creating User: {str(e)}")
+    

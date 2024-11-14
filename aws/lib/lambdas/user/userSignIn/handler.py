@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import User
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -17,14 +18,7 @@ def signIn(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500,'Error retrieving database credentials')
     
     try:
         # Parse the login data from event
@@ -33,14 +27,7 @@ def signIn(event, context):
         password = body.get('password')
 
         if not email or not password:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing email or password')
-            }
+             return create_response(400,'Missing email or password')
 
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
@@ -49,36 +36,15 @@ def signIn(event, context):
         user = session.execute(select(User).where(User.email == email)).scalars().first()
 
         if user and user.password == password:  # Check hashed password
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps({
+            return create_response(200,{
                     'message': f'User {user.username} signed in successfully',
                     'id': user.userID
                 })
-            }
         else:
-            return {
-                'statusCode': 401,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Invalid email or password')
-            }
+            return create_response(401,'Invalid email or password')
 
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': json.dumps(f"Error Signing In: {str(e)}")
-        }
+        return create_response(500,f"Error Signing In: {str(e)}")
     
     finally:
         if session:

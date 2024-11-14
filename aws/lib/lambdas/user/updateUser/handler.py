@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import User
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,14 +17,7 @@ def updateUser(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
 
@@ -31,14 +25,7 @@ def updateUser(event, context):
         user_id = event['pathParameters'].get('id')
         
         if not user_id:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing user ID')
-            }
+            return create_response(400, 'Missing user ID')
 
         # Parse the update data from the body
         body = json.loads(event['body'])
@@ -47,14 +34,8 @@ def updateUser(event, context):
         password = body.get('password')
 
         if not username and not email and not password:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing fields to update')
-            }
+            return create_response(400, 'Missing fields to update')
+        
 
         try:
             # Initialize SQLAlchemy engine and session
@@ -72,36 +53,14 @@ def updateUser(event, context):
                     user.password = password
                     
                 session.commit()
-
-                return {
-                    'statusCode': 200,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    },
-                    'body': json.dumps(f'User {user_id} updated successfully')
-                }
+                return create_response(200, f'User {user_id} updated successfully')
         
             else:
-                return {
-                    'statusCode': 404,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    },
-                    'body': json.dumps(f'User with ID {user_id} not found')
-                }
+                 return create_response(404, f'User with ID {user_id} not found')
             
         finally:
             session.close()
         
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error updating user: {str(e)}")
-        }
+        return create_response(500, f"Error updating user: {str(e)}")
