@@ -124,7 +124,8 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                                 <Button onClick={handleSignIn} sx={{ mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', width: '50%', fontSize: '20px', fontWeight: 600, padding: '0.8rem 1.5rem', '&:hover': { bgcolor: '#005BB5' } }}>
                                     Login
                                 </Button>
-                                <Button onClick={handleAutoLogin} sx={{ mb: 2, color: '#0073FF' }}>Auto Login with Test Account</Button>
+                                {/* <Button onClick={handleAutoLogin} sx={{ mb: 2, color: '#0073FF' }}>Auto Login with Test Account</Button> */}
+                                        <Button onClick={handleAutoLogin} sx={{ mb: 2, color: '#0073FF' }}>TESTING THE PIPELINE</Button>
                             </>
                         )}
                         <Button onClick={() => setIsSigningUp(true)} sx={{ background: "none", color: "#AFAFAF" }}>
