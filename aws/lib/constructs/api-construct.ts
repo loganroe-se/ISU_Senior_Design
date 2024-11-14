@@ -195,7 +195,11 @@ export class ApiConstruct extends Construct {
       assumedBy: new iam.CompositePrincipal(
         new iam.ServicePrincipal("ec2.amazonaws.com"),
         new iam.ArnPrincipal("arn:aws:iam::626635444817:user/ekriegel"),
-        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/kolbykuc") // Replace <Account ID> and <Specific IAM User> with your details
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/kadenwin"),
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/kolbykuc"),
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/lroe"),
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/grich02"),
+        new iam.ArnPrincipal("arn:aws:iam::626635444817:user/zdfoote")
       ),
       roleName: "AmazonSSMRoleForInstancesQuickSetup",
     });
