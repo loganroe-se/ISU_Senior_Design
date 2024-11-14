@@ -27,11 +27,12 @@ const Feed = () => {
         const usernamesMap: { [key: string]: string } = {};
         postsData.forEach((post, index) => {
           const username = usernamesData[index] || "Unknown User";  // Use default if username is not found
-          usernamesMap[post.id] = username;  // Map the post ID to the username
+          usernamesMap[index] = username;  // Map the post ID to the username
         });
 
         // Update state with the new usernames map
         setUsernamesMap(usernamesMap);
+        console.log("This is the usernamesmap: " + usernamesMap);
 
       } catch (err) {
         setError("Failed to fetch posts");
@@ -71,9 +72,9 @@ const Feed = () => {
     <Container>
       <Grid container spacing={2}>
         {Array.isArray(posts) && posts.length > 0 ? (
-          posts.map((post) => {
+          posts.map((post, index) => {
             const images = post.images || [];  // Default to empty array if images are undefined
-            const username = usernamesMap[post.id] || "Loading...";  // Get username for each post
+            const username = usernamesMap[index] || "Loading...";  // Get username for each post
 
             return (
               <Grid item key={post.id} xs={12}>
