@@ -4,6 +4,7 @@ from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Post
 from datetime import datetime, date
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -17,14 +18,7 @@ def getPosts(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500,'Error retrieving database credentials')
     
     try:
         # Initialize SQLAlchemy engine and session
@@ -39,24 +33,10 @@ def getPosts(event, context):
             else post.createdDate)} for post in posts_result]
         
         # Return message
-        return {
-            'statusCode': 200,  # Changed to 200 for a successful retrieval
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(posts_list)  # Serialize the list of users
-        }
+        return create_response(200,posts_list)
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error retrieving posts: {str(e)}")
-        }
+        return create_response(500,f"Error retrieving posts: {str(e)}")
     
     finally:
         session.close()

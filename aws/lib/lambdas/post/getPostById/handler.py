@@ -4,6 +4,7 @@ from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Post
 from datetime import datetime, date
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -17,14 +18,7 @@ def getPostById(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
 
@@ -32,14 +26,7 @@ def getPostById(event, context):
         post_id = event['pathParameters'].get('id')
         
         if not post_id:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing post ID')
-            }
+            return create_response(400, 'Missing post ID')
         
         try:
             # Initialize SQLAlchemy engine and session
@@ -58,33 +45,12 @@ def getPostById(event, context):
                         else post.createdDate)
                     }
 
-                    return {
-                        'statusCode': 200,
-                        'headers': {
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Headers': 'Content-Type'
-                        },
-                        'body': json.dumps(post_data)
-                    }
+                    return create_response(200, post_data)
             else:
-                    return {
-                        'statusCode': 404,
-                        'headers': {
-                            'Access-Control-Allow-Origin': '*',
-                            'Access-Control-Allow-Headers': 'Content-Type'
-                        },
-                        'body': json.dumps(f'Post with ID {post_id} not found')
-                    }
+                    return create_response(404, f'Post with ID {post_id} not found')
             
         finally:
             session.close()
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': json.dumps(f"Error retrieving post: {str(e)}")
-        }
+        return create_response(500, f"Error retrieving post: {str(e)}")
