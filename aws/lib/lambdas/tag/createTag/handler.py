@@ -2,6 +2,7 @@ import os
 import json
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import Tag
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -15,14 +16,7 @@ def createTag(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500,'Error retrieving database credentials')
     
     try:
         # Parse the tag data from event
@@ -30,14 +24,7 @@ def createTag(event, context):
         tag = body.get('tag')
 
         if not tag:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing required field in tag creation')
-            }
+            return create_response(400, 'Missing required field in tag creation')
 
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
@@ -45,14 +32,7 @@ def createTag(event, context):
         # Check if the tag already exists
         existing_tag = session.query(Tag).filter(Tag.tag.ilike(tag)).first()
         if existing_tag:
-            return {
-                'statusCode': 409,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps(f'A tag already exists for the value {tag}, with tag ID: {existing_tag.tagID}')
-            }
+            return create_response(409, f'A tag already exists for the value {tag}, with tag ID: {existing_tag.tagID}')
         
         # Create a new tag
         new_tag = Tag(tag=tag)
@@ -62,25 +42,11 @@ def createTag(event, context):
         session.commit()
 
         # Return message
-        return {
-            'statusCode': 201,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f'Tag with tagID: {new_tag.tagID} was created successfully')
-        }
+        return create_response(201, f'Tag with tagID: {new_tag.tagID} was created successfully')
     
     except Exception as e:
         print(f"Error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error creating tag: {str(e)}")
-        }
+        return create_response(500, f"Error creating tag: {str(e)}")
     
     finally:
         if 'session' in locals():
