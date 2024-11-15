@@ -2,6 +2,7 @@ import os
 import json
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import Image
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -15,14 +16,7 @@ def createImage(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
         # Parse the image data from event
@@ -31,14 +25,7 @@ def createImage(event, context):
         imageURL = body.get('imageURL')
 
         if not imageURL:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing required field in image creation')
-            }
+            return create_response(400, 'Missing required field in image creation')
 
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
@@ -51,25 +38,11 @@ def createImage(event, context):
         session.commit()
 
         # Return message
-        return {
-            'statusCode': 201,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f'Image with postID: {postID} was created successfully')
-        }
+        return create_response(201, f'Image with postID: {postID} was created successfully')
     
     except Exception as e:
         print(f"Error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error creating image: {str(e)}")
-        }
+        return create_response(500, f"Error creating image: {str(e)}")
     
     finally:
         if 'session' in locals():
