@@ -1,6 +1,4 @@
-# import os
 from sqlalchemy import select
-# from dripdrop_utils import create_sqlalchemy_session
 from dripdrop_utils import create_session
 from dripdrop_orm_objects import Tag
 

@@ -29,7 +29,6 @@
 #   The JSON has to be in this format to simulate what the event JSON would actually be.
 # Invoke the test event once this has been done.
 
-import os
 import json
 # **TODO** -- fileName should be the name of the .py file containing functions to test (ex: tag.py --> <fileName> = tag)
 # import <fileName> as <fileName>PY
