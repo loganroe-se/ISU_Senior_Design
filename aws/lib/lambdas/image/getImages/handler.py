@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Image
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,14 +17,7 @@ def getImages(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
         # Initialize SQLAlchemy engine and session
@@ -40,25 +34,11 @@ def getImages(event, context):
         } for image in images]
         
         # Return message
-        return {
-            'statusCode': 200,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(images_data)
-        }
+        return create_response(200, images_data)
     
     except Exception as e:
         print(f"Error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error retrieving images: {str(e)}")
-        }
+        return create_response(500, f"Error retrieving images: {str(e)}")
     
     finally:
         if 'session' in locals():

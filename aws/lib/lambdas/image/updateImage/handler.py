@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import Image
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,28 +17,14 @@ def updateImage(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
         # Parse the image ID from event
         image_id = event['pathParameters'].get('id')
         
         if not image_id:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing image ID')
-            }
+            return create_response(400, 'Missing image ID')
 
         # Parse the updated image data from event
         body = json.loads(event['body'])
@@ -45,14 +32,7 @@ def updateImage(event, context):
         imageURL = body.get('imageURL')
 
         if not postID and not imageURL:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing fields to update image')
-            }
+            return create_response(400, 'Missing fields to update image')
 
         # Initialize SQLAlchemy engine and session
         session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
@@ -68,36 +48,16 @@ def updateImage(event, context):
                 
             session.commit()
 
-            return {
-                'statusCode': 200,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps(f'Image with ID {image_id} updated successfully')
-            }
+            return create_response(200, f'Image with ID {image_id} updated successfully')
+        
     
         else:
-            return {
-                'statusCode': 404,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps(f'Image with ID {image_id} not found')
-            }
+            return create_response(404, f'Image with ID {image_id} not found')
         
     
     except Exception as e:
         print(f"Error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error updating image: {str(e)}")
-        }
+        return create_response(500, f"Error updating image: {str(e)}")
     
     finally:
         if 'session' in locals():

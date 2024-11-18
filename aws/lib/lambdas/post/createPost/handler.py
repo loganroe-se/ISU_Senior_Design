@@ -3,6 +3,7 @@ import json
 from datetime import date
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import Post, User
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,14 +17,7 @@ def createPost(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500,'Error retrieving database credentials')
     
     try:
         # Parse the user data from event
@@ -32,10 +26,7 @@ def createPost(event, context):
         caption  = body.get('caption')
 
         if not userID:
-            return {
-                'statusCode': 400,
-                'body': json.dumps('Missing required field')
-            }
+            return create_response(400,'Missing required field')
         
         try:
 
@@ -46,10 +37,7 @@ def createPost(event, context):
             user_exists = session.query(User).filter_by(userID=userID).first()
 
             if not user_exists:
-                return {
-                    'statusCode': 404,
-                    'body': json.dumps('User does not exist')
-                }
+                return create_response(404,'User does not exist')
 
             # Auto-fill createdDate with current time
             createdDate = date.today()
@@ -62,19 +50,9 @@ def createPost(event, context):
             session.commit()
 
             # Return message
-            return {
-                'statusCode': 201,
-                'body': json.dumps(f'Post by user {userID} created successfully')
-            }
+            return create_response(201,f'Post by user {userID} created successfully')
         finally:
             session.close()
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error Creating Post: {str(e)}")
-        }
+        return create_response(500,f"Error Creating Post: {str(e)}")

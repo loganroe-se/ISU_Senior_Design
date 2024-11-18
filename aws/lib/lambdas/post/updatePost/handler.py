@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
 from dripdrop_orm_objects import Post
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,14 +17,7 @@ def updatePost(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
 
@@ -31,14 +25,7 @@ def updatePost(event, context):
         post_id = event['pathParameters'].get('id')
         
         if not post_id:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing post ID')
-            }
+            return create_response(400, 'Missing post ID')
 
         # Parse the update data from the body
         body = json.loads(event['body'])
@@ -47,14 +34,7 @@ def updatePost(event, context):
         imageURL = body.get('imageURL')
 
         if not caption and not imageURL and not createdDate:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing fields to update')
-            }
+            return create_response(400, 'Missing fields to update')
 
         try:
             # Initialize SQLAlchemy engine and session
@@ -71,36 +51,14 @@ def updatePost(event, context):
                 if imageURL:
                     post.imageURL = imageURL
                 session.commit()
-
-                return {
-                    'statusCode': 200,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    },
-                    'body': json.dumps(f'Post {post_id} updated successfully')
-                }
+                return create_response(200, f'Post {post_id} updated successfully')
         
             else:
-                return {
-                    'statusCode': 404,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    },
-                    'body': json.dumps(f'Post with ID {post_id} not found')
-                }
+                return create_response(404, f'Post with ID {post_id} not found')
             
         finally:
             session.close()
         
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error updating post: {str(e)}")
-        }
+        return create_response(500, f"Error updating post: {str(e)}")

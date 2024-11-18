@@ -3,6 +3,7 @@ import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import User, Follow
+from response_utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,14 +17,7 @@ def followUser(event, context):
     
     # Check credentials
     if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
         # Parse the user data from event
@@ -32,10 +26,7 @@ def followUser(event, context):
         followedID  = body.get('followedID')
 
         if not followerID or not followedID:
-            return {
-                'statusCode': 400,
-                'body': json.dumps('Missing required field')
-            }
+            return create_response(400, 'Missing required field')
         
         try:
 
@@ -51,19 +42,9 @@ def followUser(event, context):
             session.close()
 
             # Return message
-            return {
-                'statusCode': 201,
-                'body': json.dumps(f'user {followerID} successfully followed {followedID}')
-            }
+            return create_response(201, f'user {followerID} successfully followed {followedID}')
         finally:
             session.close()
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error Following: {str(e)}")
-        }
+        return create_response(500, f"Error Following: {str(e)}")
