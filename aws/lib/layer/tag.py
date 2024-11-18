@@ -1,13 +1,8 @@
-import os
+# import os
 from sqlalchemy import select
-from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
+# from dripdrop_utils import create_sqlalchemy_session
+from dripdrop_utils import create_session
 from dripdrop_orm_objects import Tag
-
-# Fetch environment variables
-DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
 # Functions in this file meant to be used elsewhere:
 # createTag(tag_val)
@@ -20,7 +15,7 @@ def createTag(tag_val):
     # Try to create the tag
     try:
         # Create the session
-        session = createSession()
+        session = create_session()
 
         # Check if the tag already exists
         existing_tag = session.query(Tag).filter(Tag.tag.ilike(tag_val)).first()
@@ -43,7 +38,7 @@ def createTag(tag_val):
         return int(code), f"Tag.py Error - Message: {msg}"
 
     finally:
-        if 'session' in locals():
+        if 'session' in locals() and session:
             session.close()
 
 
@@ -51,7 +46,7 @@ def deleteTag(tag_id):
     # Try to delete the tag
     try:
         # Create the session
-        session = createSession()
+        session = create_session()
 
         # Fetch the tag
         tag = session.execute(select(Tag).where(Tag.tagID == tag_id)).scalars().first()
@@ -70,7 +65,7 @@ def deleteTag(tag_id):
         return int(code), f"Tag.py Error - Message: {msg}"
 
     finally:
-        if 'session' in locals():
+        if 'session' in locals() and session:
             session.close()
 
 
@@ -78,7 +73,7 @@ def getTagById(tag_id):
     # Try to get the tag
     try:
         # Create the session
-        session = createSession()
+        session = create_session()
 
         # Fetch the tag
         tag = session.execute(select(Tag).where(Tag.tagID == tag_id)).scalars().first()
@@ -100,7 +95,7 @@ def getTagById(tag_id):
         return int(code), f"Tag.py Error - Message: {msg}"
 
     finally:
-        if 'session' in locals():
+        if 'session' in locals() and session:
             session.close()
 
 
@@ -108,7 +103,7 @@ def getTags():
     # Try to get all tags
     try:
         # Create the session
-        session = createSession()
+        session = create_session()
 
         # Fetch all tags
         tags = session.execute(select(Tag)).scalars().all()  # Get a list of tag objects
@@ -127,7 +122,7 @@ def getTags():
         return int(code), f"Tag.py Error - Message: {msg}"
 
     finally:
-        if 'session' in locals():
+        if 'session' in locals() and session:
             session.close()
 
 
@@ -135,7 +130,7 @@ def updateTag(tag_id, tag_val):
     # Try to update the tag
     try:
         # Create the session
-        session = createSession()
+        session = create_session()
 
         # Fetch the tag
         tag = session.execute(select(Tag).where(Tag.tagID == tag_id)).scalars().first()
@@ -156,20 +151,5 @@ def updateTag(tag_id, tag_val):
         return int(code), f"Tag.py Error - Message: {msg}"
 
     finally:
-        if 'session' in locals():
+        if 'session' in locals() and session:
             session.close()
-
-
-def createSession():
-    # Get database credentials
-    creds = get_db_credentials(DB_SECRET_ARN)
-    
-    # Check credentials
-    if not creds:
-        raise Exception("500", "Error retrieving database credentials")
-    
-    # Initialize SQLAlchemy engine and session
-    session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-
-    # Return the session
-    return session

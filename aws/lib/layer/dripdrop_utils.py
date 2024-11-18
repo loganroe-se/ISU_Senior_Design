@@ -1,7 +1,14 @@
+import os
 import json
 import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+
+# Fetch environment variables
+DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
+DB_PORT = os.getenv("DB_PORT")
+DB_NAME = os.getenv("DB_NAME")
+DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
 
 Session = None
 
@@ -39,3 +46,17 @@ def create_sqlalchemy_engine(user, password, db_endpoint, dp_port, dp_name, debu
     engine = create_db_engine(db_url, debug_mode)
     Session = create_db_session(engine=engine)
     return Session
+
+def create_session():
+    # Get database credentials
+    creds = get_db_credentials(DB_SECRET_ARN)
+    
+    # Check credentials
+    if not creds:
+        raise Exception("500", "Error retrieving database credentials")
+    
+    # Initialize SQLAlchemy engine and session
+    session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+
+    # Return the session
+    return session

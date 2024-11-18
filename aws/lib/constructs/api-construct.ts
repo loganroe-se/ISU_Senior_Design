@@ -408,6 +408,12 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/follow/getFollowersById",
       "getFollowersById"
     );
+    // Testing lambda
+    const testFunctionsLambda = createLambda(
+      "TestFunctionsLambda",
+      "lib/lambdas/testFunctions",
+      "testFunctions"
+    );
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
