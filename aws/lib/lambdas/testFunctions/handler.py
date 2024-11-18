@@ -32,6 +32,7 @@
 import json
 # **TODO** -- fileName should be the name of the .py file containing functions to test (ex: tag.py --> <fileName> = tag)
 # import <fileName> as <fileName>PY
+from response_utils import create_response
 
 def testFunctions(event, context):
     try:
@@ -46,36 +47,15 @@ def testFunctions(event, context):
         # **TODO** -- Add all missing value checks (ex: if val is needed --> <value> = val)
         # Check for any missing values
         # if not <value>:
-        #     return {
-        #         'statusCode': 400,
-        #         'headers': {
-        #             'Access-Control-Allow-Origin': '*',
-        #             'Access-Control-Allow-Headers': 'Content-Type'
-        #         },
-        #         'body': json.dumps('Missing required field in ***')
-        #     }
+        #     return create_response(400, "Missing required field in ***")
         
         # **TODO** -- Add the call to the function under test (ex: if fileName = tag & testing create --> <fileName> = tag, <function> = createTag, <values> = tag_val)
         # Call another function to handle the operation
         # status_code, message = <fileName>PY.<function>(<values>)
 
         # Return it with the proper format
-        return {
-            'statusCode': status_code,
-            'headers': {
-                'Access-Control-Allow-Origin': '*',
-                'Access-Control-Allow-Headers': 'Content-Type'
-            },
-            'body': message
-        }
+        return create_response(status_code, message)
         
     except Exception as e:
         print(f"Error: {e}")
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error: {str(e)}")
-        }
+        return create_response(500, f"Error: {str(e)}")
