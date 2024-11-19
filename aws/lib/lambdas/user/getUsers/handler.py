@@ -1,39 +1,13 @@
-import os
-import json
-from sqlalchemy import select
-from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
-from dripdrop_orm_objects import User
+import user as userPY
 from response_utils import create_response
 
-# Fetch environment variables
-DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
-
 def getUsers(event, context):
-    # Get database credentials
-    creds = get_db_credentials(DB_SECRET_ARN)
-    
-    # Check credentials
-    if not creds:
-        return create_response(500, 'Error retrieving database credentials')
-    
     try:
-        # Initialize SQLAlchemy engine and session
-        session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
+        # Call another function to get all posts
+        status_code, message = userPY.getUsers()
 
-        # Fetch all users
-        users_result = session.execute(select(User)).scalars().all()  # Get a list of user objects
-
-        # Create a list of user dictionaries directly
-        users_list = [{'username': user.username, 'email': user.email, 'id': user.userID} for user in users_result]
-        
         # Return message
-        return create_response(200, users_list)
-    
+        return create_response(status_code, message)
+
     except Exception as e:
         return create_response(500, f"Error retrieving users: {str(e)}")
-    
-    finally:
-        session.close()
