@@ -1,58 +1,30 @@
-import os
 import json
-from datetime import date
-from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
-from dripdrop_orm_objects import Post, User
+import post as postPY
 from response_utils import create_response
 
-# Fetch environment variables
-DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
-
-def createPost(event, context):
-    # Get database credentials
-    creds = get_db_credentials(DB_SECRET_ARN)
-    
-    # Check credentials
-    if not creds:
-        return create_response(500,'Error retrieving database credentials')
-    
+def createPost(event, context):    
     try:
         # Parse the user data from event
         body = json.loads(event['body'])
+
+        # Get all body attributes
         userID = body.get('userID')
-        caption  = body.get('caption')
+        caption = body.get('caption')
 
+        # Check for missing, required values
         if not userID:
-            return create_response(400,'Missing required field')
+            return create_response(400, 'Missing required field')
         
-        try:
+        # Ensure that a value is given to any variables that were not assigned
+        if not caption:
+            caption = ""
+        
+        # Call another function to create the post
+        status_code, message = postPY.createPost(userID, caption)
 
-            # Initialize SQLAlchemy engine and session
-            session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-            
-            # Verify if userID exists in the User table
-            user_exists = session.query(User).filter_by(userID=userID).first()
-
-            if not user_exists:
-                return create_response(404,'User does not exist')
-
-            # Auto-fill createdDate with current time
-            createdDate = date.today()
-
-            # Create a new post
-            new_post = Post(userID=userID, caption=caption, createdDate=createdDate)
-
-            # Add the post to the db
-            session.add(new_post)
-            session.commit()
-
-            # Return message
-            return create_response(201,f'Post by user {userID} created successfully')
-        finally:
-            session.close()
+        # Return message
+        return create_response(status_code, message)
     
     except Exception as e:
-        return create_response(500,f"Error Creating Post: {str(e)}")
+        print(f"Error: {e}")
+        return create_response(500, f"Error creating post: {str(e)}")
