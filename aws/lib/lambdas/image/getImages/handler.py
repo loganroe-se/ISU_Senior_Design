@@ -1,5 +1,4 @@
 import os
-import json
 from sqlalchemy import select
 from dripdrop_utils import create_sqlalchemy_engine, create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Image
@@ -26,7 +25,6 @@ def getImages(event, context):
         # Fetch all images
         images = session.execute(select(Image)).scalars().all()  # Get a list of image objects
 
-        # Convert images to dictionary or JSON-friendly format
         images_data = [{
             'imageID': image.imageID,
             'postID': image.postID,
