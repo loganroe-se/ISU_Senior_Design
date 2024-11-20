@@ -2,8 +2,8 @@ import os
 import json
 import boto3
 from sqlalchemy import text
-from dripdrop_utils import create_sqlalchemy_engine
-from response_utils import create_response
+from sqlalchemy_utils import create_sqlalchemy_engine
+from utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
