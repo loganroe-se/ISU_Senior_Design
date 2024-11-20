@@ -13,8 +13,8 @@ class User(Base):
     password = Column(String(100), nullable=False)
     #Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
-    following = relationship("Follow", order_by="Follow.followerId", back_populates="follower", cascade="all, delete orphan")
-    followers = relationship("Follow", order_by="Follow.followedId", back_populates="followed", cascade="all, delete orphan")
+    following = relationship("Follow", order_by="Follow.followerId", back_populates="follower", cascade="all, delete")
+    followers = relationship("Follow", order_by="Follow.followedId", back_populates="followed", cascade="all, delete")
 
 # Following table
 class Follow(Base):
