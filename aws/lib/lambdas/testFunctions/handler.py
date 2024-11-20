@@ -48,6 +48,11 @@ def testFunctions(event, context):
         # Check for any missing values
         # if not <value>:
         #     return create_response(400, "Missing required field in ***")
+
+        # **TODO** -- Ensure that all optional values have a value (ex: if val is optional (i.e. it can be given, but isn't required) --> <value> = val)
+        # Ensure that a value is given to any variables that were not assigned
+        # if not <value>:
+        #     <value> = ""
         
         # **TODO** -- Add the call to the function under test (ex: if fileName = tag & testing create --> <fileName> = tag, <function> = createTag, <values> = tag_val)
         # Call another function to handle the operation
