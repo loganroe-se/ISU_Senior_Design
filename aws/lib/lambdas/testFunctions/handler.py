@@ -32,7 +32,7 @@
 import json
 # **TODO** -- fileName should be the name of the .py file containing functions to test (ex: tag.py --> <fileName> = tag)
 # import <fileName> as <fileName>PY
-from response_utils import create_response
+from utils import create_response
 
 def testFunctions(event, context):
     try:
