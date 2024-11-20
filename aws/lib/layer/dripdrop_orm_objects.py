@@ -20,7 +20,9 @@ class User(Base):
 class Follow(Base):
     __tablename__ = 'follows'
     followId = Column(Integer, primary_key=True)
+    # This is the account doing the following
     followerId = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    # This is the account being followed
     followedId = Column(Integer, ForeignKey('users.userID'), nullable=False)
     #Relationships
     follower = relationship("User", foreign_keys=[followerId], back_populates="following")
