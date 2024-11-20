@@ -11,18 +11,20 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
-    #Establish relationship with post
+    #Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
-    follows = relationship("Follow", order_by="Follow.followID", back_populates="userRel")
+    following = relationship("Follow", order_by="Follow.followerId", back_populates="follower", cascade="all, delete orphan")
+    followers = relationship("Follow", order_by="Follow.followedId", back_populates="followed", cascade="all, delete orphan")
 
 # Following table
 class Follow(Base):
     __tablename__ = 'follows'
-    followID = Column(Integer, primary_key=True)
-    followerID = Column(Integer, ForeignKey('users.userID'))
-    followedID = Column(Integer, nullable=False)
-    #Establish relationship with follow
-    userRel = relationship("User", order_by="User.userID", back_populates="follows")
+    followId = Column(Integer, primary_key=True)
+    followerId = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    followedId = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    #Relationships
+    follower = relationship("User", foreign_keys=[followerId], back_populates="following")
+    followed = relationship("User", foreign_keys=[followedId], back_populates="followers")
 
 # Post table
 class Post(Base):

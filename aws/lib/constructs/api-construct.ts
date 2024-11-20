@@ -297,7 +297,7 @@ export class ApiConstruct extends Construct {
       return l;
     };
 
-    // Create separate Lambda functions for each CRUD operation
+    // User Lambdas
     const createUserLambda = createLambda(
       "CreateUserLambda",
       "lib/lambdas/user/createUser",
@@ -333,11 +333,8 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/userSignIn",
       "signIn"
     );
-    const manageDBLambda = createLambda(
-      "ManageDBLambda",
-      "lib/lambdas/db",
-      "manageDB"
-    );
+    
+    // Post Lambdas
     const createPostLambda = createLambda(
       "CreatePostLambda",
       "lib/lambdas/post/createPost",
@@ -363,6 +360,8 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/post/updatePost",
       "updatePost"
     );
+
+    // Follow Lambdas
     const followUserLambda = createLambda(
       "FollowUserLambda",
       "lib/lambdas/follow/followUser",
@@ -378,6 +377,7 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/follow/getFollowersById",
       "getFollowersById"
     );
+
     // Testing lambda
     const testFunctionsLambda = createLambda(
       "TestFunctionsLambda",
@@ -406,8 +406,9 @@ export class ApiConstruct extends Construct {
     const follows = api.root.addResource("follows");
     const posts = api.root.addResource("posts");
 
-    // --------------- POST LAMBDAS ---------------
-    //POST /posts - Create
+
+    // -------------------------------- POST LAMBDAS -------------------------
+    // POST /posts - Create
     posts.addMethod(
       "POST",
       new apigateway.LambdaIntegration(createPostLambda),
@@ -440,7 +441,7 @@ export class ApiConstruct extends Construct {
       operationName: "UpdatePost",
     });
 
-    // --------------- FOLLOW LAMBDAS ---------------
+    // ----------------------------- FOLLOW LAMBDAS -----------------------------
     // POST /follows - Follow User
     follows.addMethod(
       "POST",
@@ -473,7 +474,7 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    // --------------- USER LAMBDAS ---------------
+    // ---------------------------- USER LAMBDAS -------------------------------
     // POST /users - Create User
     users.addMethod(
       "POST",
