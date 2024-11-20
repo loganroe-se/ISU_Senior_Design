@@ -137,5 +137,4 @@ const EditProfile = () => {
         </Paper>
     );
 };
-
 export default EditProfile;

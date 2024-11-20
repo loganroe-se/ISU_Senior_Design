@@ -1,106 +1,38 @@
-import os
 import json
-from sqlalchemy import select
-from dripdrop_utils import create_sqlalchemy_engine, get_db_credentials
-from dripdrop_orm_objects import Post
+import post as postPY
+from response_utils import create_response
 
-# Fetch environment variables
-DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
-DB_PORT = os.getenv("DB_PORT")
-DB_NAME = os.getenv("DB_NAME")
-DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
-
-def updatePost(event, context):
-    # Get database credentials
-    creds = get_db_credentials(DB_SECRET_ARN)
-    
-    # Check credentials
-    if not creds:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps('Error retrieving database credentials')
-        }
-    
+def updatePost(event, context):    
     try:
-
         # Parse the post ID from event
         post_id = event['pathParameters'].get('id')
-        
+
+        # Check for missing, required values
         if not post_id:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing post ID')
-            }
+            return create_response(400, 'Missing post ID')
 
         # Parse the update data from the body
         body = json.loads(event['body'])
         caption = body.get('caption')
         createdDate = body.get('createdDate')
-        imageURL = body.get('imageURL')
 
-        if not caption and not imageURL and not createdDate:
-            return {
-                'statusCode': 400,
-                'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-                'body': json.dumps('Missing fields to update')
-            }
-
-        try:
-            # Initialize SQLAlchemy engine and session
-            session = create_sqlalchemy_engine(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-            
-            post = session.execute(select(Post).where(Post.postID == post_id)).scalars().first()
-
-            if post:
-                # Update post information
-                if caption:
-                    post.caption = caption
-                if createdDate:
-                    post.createdDate = createdDate
-                if imageURL:
-                    post.imageURL = imageURL
-                session.commit()
-
-                return {
-                    'statusCode': 200,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    },
-                    'body': json.dumps(f'Post {post_id} updated successfully')
-                }
+        # Check for missing, required values
+        if not caption and not createdDate:
+            return create_response(400, 'Missing required fields to update the post')
         
-            else:
-                return {
-                    'statusCode': 404,
-                    'headers': {
-                        'Access-Control-Allow-Origin': '*',
-                        'Access-Control-Allow-Headers': 'Content-Type'
-                    },
-                    'body': json.dumps(f'Post with ID {post_id} not found')
-                }
-            
-        finally:
-            session.close()
+        # Ensure that a value is given to any variables that were not assigned
+        if not caption:
+            caption = ""
         
+        # Ensure that a value is given to any variables that were not assigned
+        if not createdDate:
+            createdDate = ""
+
+        # Call another function to get all posts
+        status_code, message = postPY.updatePost(post_id, caption, createdDate)
+
+        # Return message
+        return create_response(status_code, message)
     
     except Exception as e:
-        return {
-            'statusCode': 500,
-            'headers': {
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Allow-Headers': 'Content-Type'
-                },
-            'body': json.dumps(f"Error updating post: {str(e)}")
-        }
+        return create_response(500, f"Error updating post: {str(e)}")
