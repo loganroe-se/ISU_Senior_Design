@@ -163,3 +163,30 @@ def updatePost(post_id, caption, created_date):
     finally:
         if 'session' in locals() and session:
             session.close()
+
+def getPostsByUserId(user_id):
+    try:
+        # Create the session
+        session = create_session()
+
+        # Fetch all posts that match the userID
+        posts_result = session.execute(select(Post).where(Post.userID == user_id)).scalars().all()
+
+        if posts_result:
+            # Create a list of post dictionaries directly
+            posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate': (
+                post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
+                else post.createdDate)} for post in posts_result]
+
+            return 200, posts_list
+        else:
+            return 404, f'No posts found for userID: {user_id}'
+
+    except Exception as e:
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Post.py")
+        return code, msg
+
+    finally:
+        if 'session' in locals() and session:
+            session.close()
