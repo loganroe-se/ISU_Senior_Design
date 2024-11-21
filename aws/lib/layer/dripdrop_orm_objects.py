@@ -13,22 +13,19 @@ class User(Base):
     password = Column(String(100), nullable=False)
     # Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
-    following = relationship("Follow", foreign_keys="[Follow.followerId]", back_populates="follower", cascade="all, delete")
-    followers = relationship("Follow", foreign_keys="[Follow.followedId]", back_populates="followed", cascade="all, delete")
+    following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
+    followers = relationship("Follow", foreign_keys="Follow.followedId", back_populates="followed", cascade="all, delete")
 
 # Following table
 class Follow(Base):
     __tablename__ = 'follows'
-    followId = Column(Integer, primary_key=True)
     # This is the account doing the following
-    followerId = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    followerId = Column(Integer, ForeignKey('users.userID'), primary_key=True)
     # This is the account being followed
-    followedId = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    followedId = Column(Integer, ForeignKey('users.userID'), primary_key=True)
     # Relationships
     follower = relationship("User", foreign_keys=[followerId], back_populates="following")
     followed = relationship("User", foreign_keys=[followedId], back_populates="followers")
-    # Handle duplicate entries
-    __table_args__ = (UniqueConstraint('followerId', 'followedId', name='unique_follower_followed'),)
 
 # Post table
 class Post(Base):
