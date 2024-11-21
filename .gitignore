@@ -2,6 +2,11 @@
 build
 typings
 
+# ai
+ai/cls_dataset/
+ai/seg_dataset/
+ai/classify/
+
 #python
 python/
 __pycache__/

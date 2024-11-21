@@ -1,0 +1,186 @@
+{
+    "0": {
+        "name": "shirt, blouse",
+        "supercategory": "upperbody"
+    },
+    "1": {
+        "name": "top, t-shirt, sweatshirt",
+        "supercategory": "upperbody"
+    },
+    "2": {
+        "name": "sweater",
+        "supercategory": "upperbody"
+    },
+    "3": {
+        "name": "cardigan",
+        "supercategory": "upperbody"
+    },
+    "4": {
+        "name": "jacket",
+        "supercategory": "upperbody"
+    },
+    "5": {
+        "name": "vest",
+        "supercategory": "upperbody"
+    },
+    "6": {
+        "name": "pants",
+        "supercategory": "lowerbody"
+    },
+    "7": {
+        "name": "shorts",
+        "supercategory": "lowerbody"
+    },
+    "8": {
+        "name": "skirt",
+        "supercategory": "lowerbody"
+    },
+    "9": {
+        "name": "coat",
+        "supercategory": "wholebody"
+    },
+    "10": {
+        "name": "dress",
+        "supercategory": "wholebody"
+    },
+    "11": {
+        "name": "jumpsuit",
+        "supercategory": "wholebody"
+    },
+    "12": {
+        "name": "cape",
+        "supercategory": "wholebody"
+    },
+    "13": {
+        "name": "glasses",
+        "supercategory": "head"
+    },
+    "14": {
+        "name": "hat",
+        "supercategory": "head"
+    },
+    "15": {
+        "name": "headband, head covering, hair accessory",
+        "supercategory": "head"
+    },
+    "16": {
+        "name": "tie",
+        "supercategory": "neck"
+    },
+    "17": {
+        "name": "glove",
+        "supercategory": "arms and hands"
+    },
+    "18": {
+        "name": "watch",
+        "supercategory": "arms and hands"
+    },
+    "19": {
+        "name": "belt",
+        "supercategory": "waist"
+    },
+    "20": {
+        "name": "leg warmer",
+        "supercategory": "legs and feet"
+    },
+    "21": {
+        "name": "tights, stockings",
+        "supercategory": "legs and feet"
+    },
+    "22": {
+        "name": "sock",
+        "supercategory": "legs and feet"
+    },
+    "23": {
+        "name": "shoe",
+        "supercategory": "legs and feet"
+    },
+    "24": {
+        "name": "bag, wallet",
+        "supercategory": "others"
+    },
+    "25": {
+        "name": "scarf",
+        "supercategory": "others"
+    },
+    "26": {
+        "name": "umbrella",
+        "supercategory": "others"
+    },
+    "27": {
+        "name": "hood",
+        "supercategory": "garment parts"
+    },
+    "28": {
+        "name": "collar",
+        "supercategory": "garment parts"
+    },
+    "29": {
+        "name": "lapel",
+        "supercategory": "garment parts"
+    },
+    "30": {
+        "name": "epaulette",
+        "supercategory": "garment parts"
+    },
+    "31": {
+        "name": "sleeve",
+        "supercategory": "garment parts"
+    },
+    "32": {
+        "name": "pocket",
+        "supercategory": "garment parts"
+    },
+    "33": {
+        "name": "neckline",
+        "supercategory": "garment parts"
+    },
+    "34": {
+        "name": "buckle",
+        "supercategory": "closures"
+    },
+    "35": {
+        "name": "zipper",
+        "supercategory": "closures"
+    },
+    "36": {
+        "name": "applique",
+        "supercategory": "decorations"
+    },
+    "37": {
+        "name": "bead",
+        "supercategory": "decorations"
+    },
+    "38": {
+        "name": "bow",
+        "supercategory": "decorations"
+    },
+    "39": {
+        "name": "flower",
+        "supercategory": "decorations"
+    },
+    "40": {
+        "name": "fringe",
+        "supercategory": "decorations"
+    },
+    "41": {
+        "name": "ribbon",
+        "supercategory": "decorations"
+    },
+    "42": {
+        "name": "rivet",
+        "supercategory": "decorations"
+    },
+    "43": {
+        "name": "ruffle",
+        "supercategory": "decorations"
+    },
+    "44": {
+        "name": "sequin",
+        "supercategory": "decorations"
+    },
+    "45": {
+        "name": "tassel",
+        "supercategory": "decorations"
+    }
+}

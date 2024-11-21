@@ -1,4 +1,4 @@
-from ultralytics import YOLO
+import ultralytics
 import torch
 
 def train():
@@ -6,15 +6,15 @@ def train():
     print("Device count:", torch.cuda.device_count())
     print("Device name:", torch.cuda.get_device_name(0))
     # Initialize a YOLO model, choosing a pretrained model (e.g., YOLOv8n)
-    model = YOLO("yolo11n.pt")  # build from YAML and transfer weights
+    model = ultralytics.YOLO("models/last.pt")  # build from YAML and transfer weights
 
     # Train the model
-    model.train(data="./fashionpedia.yaml", epochs=50, imgsz=640)
+    model.train(data="classify", epochs=10, imgsz=640, batch=16) 
 
     results = model.val()  # Evaluate model on validation data
 
     # Export the trained model weights
-    model.export(format="pt", weights="./trained_models/yolo11n-seg-trained.pt")
+    model.export()
 
 if __name__ == "__main__":
     train()
