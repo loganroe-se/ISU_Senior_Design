@@ -14,7 +14,6 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import { useDropzone } from "react-dropzone";
-import DeleteIcon from "@mui/icons-material/Delete";
 import { createPost } from "../api/api";  // Import API functions
 
 

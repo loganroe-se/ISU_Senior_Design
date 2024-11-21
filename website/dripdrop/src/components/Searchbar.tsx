@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, MenuItem, ListItemIcon, Avatar, TextField } from '@mui/material';
 import { Link } from 'react-router-dom';
-import Filter from './Filters'; // Assuming Filter component is imported
-import PostModal from './PostModal'; // Import the PostModal component
 
 
 interface SearchbarItemProps {

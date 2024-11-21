@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Container, Grid, CircularProgress, Typography } from "@mui/material";
 import PostCard from "./PostCard";
-import { retreivePost } from "../styles/types";
+import { retreivePost } from "../types";
 import { fetchPosts, fetchUserById } from "../api/api";  // Import API functions
 
 const Feed = () => {

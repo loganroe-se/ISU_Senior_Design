@@ -1,5 +1,5 @@
-import { sendPost } from "../styles/types";  // Ensure the Post type is correctly imported
-import { retreivePost } from "../styles/types";  // Ensure the Post type is correctly imported
+import { sendPost } from "../types";  // Ensure the Post type is correctly imported
+import { retreivePost } from "../types";  // Ensure the Post type is correctly imported
 
 // Fetch all posts
 export const fetchPosts = async (): Promise<retreivePost[]> => {
