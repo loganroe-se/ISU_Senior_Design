@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from dripdrop_utils import create_session
+from sqlalchemy_utils import create_session
+from utils import handle_exception
 from dripdrop_orm_objects import Follow
 import user as userPy
 
@@ -32,9 +33,9 @@ def createFollow(followerId, followedId):
         return 201, f"Follow with followId: {new_follow.followId} was created successfully"
     
     except Exception as e:
-        code, msg = e.args
-        print(f"follow.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"follow.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -64,9 +65,9 @@ def getFollowers(user_id):
         return 200, followers
 
     except Exception as e:
-        code, msg = e.args
-        print(f"follow.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"fser.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -98,9 +99,9 @@ def getFollowing(user_id):
         return 200, following
 
     except Exception as e:
-        code, msg = e.args
-        print(f"follow.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"fser.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -125,9 +126,9 @@ def deleteFollow(followerId, followedId):
             return 404, f'Follow relationship was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"follow.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"fser.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:

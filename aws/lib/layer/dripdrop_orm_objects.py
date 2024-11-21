@@ -11,10 +11,10 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
-    #Relationships
+    # Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
-    following = relationship("Follow", order_by="Follow.followerId", back_populates="follower", cascade="all, delete")
-    followers = relationship("Follow", order_by="Follow.followedId", back_populates="followed", cascade="all, delete")
+    following = relationship("Follow", foreign_keys="[Follow.followerId]", back_populates="follower", cascade="all, delete")
+    followers = relationship("Follow", foreign_keys="[Follow.followedId]", back_populates="followed", cascade="all, delete")
 
 # Following table
 class Follow(Base):
@@ -24,7 +24,7 @@ class Follow(Base):
     followerId = Column(Integer, ForeignKey('users.userID'), nullable=False)
     # This is the account being followed
     followedId = Column(Integer, ForeignKey('users.userID'), nullable=False)
-    #Relationships
+    # Relationships
     follower = relationship("User", foreign_keys=[followerId], back_populates="following")
     followed = relationship("User", foreign_keys=[followedId], back_populates="followers")
     # Handle duplicate entries

@@ -1,6 +1,6 @@
 import json
 import follow as followPY
-from response_utils import create_response
+from utils import create_response
 
 def unfollowUser(event, context):    
     try:
