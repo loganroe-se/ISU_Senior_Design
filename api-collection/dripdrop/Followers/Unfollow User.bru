@@ -1,0 +1,18 @@
+meta {
+  name: Unfollow User
+  type: http
+  seq: 4
+}
+
+delete {
+  url: https://api.dripdropco.com/follow
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+      "followerId": "3",
+      "followedId": "4"
+  }
+}
