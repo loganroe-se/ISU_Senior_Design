@@ -22,6 +22,10 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
   const [isFilterOpen, setFilterOpen] = useState(false); // State for drawer visibility
   const [isPostModalOpen, setPostModalOpen] = useState(false); // State for modal visibility
 
+  const linkProps = {
+    uID: sessionStorage.getItem("id"),
+  }
+
   return (
     <Box sx={{
       height: '100vh',
@@ -83,6 +87,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
           <MenuItem
             component={Link}
             to="/profile" // Link to the user's profile
+            state={linkProps}
             sx={{
               display: 'flex',
               alignItems: 'center',

@@ -44,9 +44,11 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                 const userExists = data.some((user: { email: string, username: string }) => user.email === email);
                 if (userExists) {
                     const user = data.find((user: { email: string }) => user.email === email);
+
                     if (user) {
                         sessionStorage.setItem("username", user.username);
                         sessionStorage.setItem("email", user.email);
+                        sessionStorage.setItem("id", user.id);
                         sessionStorage.setItem("password", password);
                     }
 
