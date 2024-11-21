@@ -32,3 +32,26 @@ export const fetchUserById = async (userID: number): Promise<string | null> => {
     return null;  // Return null if user fetching fails
   }
 };
+
+// Create a new post
+export const createPost = async (newPost: Post): Promise<Post> => {
+  try {
+    const response = await fetch("https://api.dripdropco.com/posts/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(newPost),  // Send the new post as JSON
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to create post");
+    }
+
+    const createdPost: Post = await response.json();
+    return createdPost;  // Return the newly created post
+  } catch (error) {
+    console.error("Error creating post:", error);
+    throw error;  // Re-throw the error to be handled in the calling component
+  }
+};
