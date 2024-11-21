@@ -9,7 +9,6 @@ import Sidebar from '../components/Sidebar';
 import EditProfile from './EditProfile';
 import Searchbar from '../components/Searchbar';
 import { useEffect, useState } from 'react';
-import { useLocation } from 'react-router-dom';
 
 export default function Home() {
     //idk if the following can be moved somewhere else or condensed. Feel free to change if need be
@@ -26,10 +25,7 @@ export default function Home() {
     const [searchResults, setSearchResults] = useState<User[]>([]);
     const [filteredSearchResults, setFilteredSearchResults] = useState<User[]>([]);
 
-    const [currLocation, setCurrLocation] = useState('');
-
     const [showSearch, setShowSearch] = useState(false);
-    const location = useLocation();
 
     useEffect(() => {
         const performSearch = async () => {
@@ -81,13 +77,6 @@ export default function Home() {
         return () => clearTimeout(timeoutId);
       }, [search, hasSearched, lastSearch, searchResults]);
 
-    useEffect(() => {
-        if(location.pathname !== currLocation) {
-            setCurrLocation(location.pathname);
-            setShowSearch(false);
-        }
-    }, [location, currLocation])
-
     return (
         <Box sx={{ display: 'flex' }}>
             <CssBaseline />
@@ -95,7 +84,7 @@ export default function Home() {
             <Sidebar showSearch={showSearch} setShowSearch={setShowSearch} />
             
             {
-                showSearch && <Searchbar value={search} setValue={setSearch} results={filteredSearchResults}/>
+                showSearch && <Searchbar value={search} setValue={setSearch} results={filteredSearchResults} setShowSearchBar={setShowSearch}/>
             }
 
             <Container

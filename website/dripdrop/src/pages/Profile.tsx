@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Typography, Box, Button, Paper, Avatar, IconButton, Divider } from '@mui/material';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import EditIcon from '@mui/icons-material/Edit';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Profile = () => {
     const navigate = useNavigate();
@@ -12,15 +12,36 @@ const Profile = () => {
     const [username, setUsername] = useState('');
     const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
 
+    let userID="";
+    let location=useLocation();
+
+    const getUser = async () => {
+        const response = await fetch('https://api.dripdropco.com/users/'+userID);
+        const data = await response.json();
+
+        setEmail(data.email);
+        setUsername(data.username);
+    }
+
+    try {
+        userID=location.state.uID;
+        getUser();
+    }
+    catch {
+        
+    }
+
     useEffect(() => {
         const storedEmail = sessionStorage.getItem('email');
         const storedUsername = sessionStorage.getItem('username');
         const storedProfilePic = sessionStorage.getItem('profilePic');
 
-        if (storedEmail) setEmail(storedEmail);
-        if (storedUsername) setUsername(storedUsername);
-        if (storedProfilePic) setProfilePic(storedProfilePic);
-    }, []);
+        if(username==='') {
+            if (storedEmail) setEmail(storedEmail);
+            if (storedUsername) setUsername(storedUsername);
+            if (storedProfilePic) setProfilePic(storedProfilePic);
+        }
+    }, [username]);
 
     const theme = createTheme({
         palette: {

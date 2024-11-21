@@ -8,6 +8,7 @@ interface SearchbarItemProps {
   profileName: string;
   profileUsername: string;
   profileID: string;
+  setShowSearchBar: (newValue: boolean) => void;
   onClick?: () => void;
 }
 
@@ -21,9 +22,10 @@ interface SearchbarProps {
   value: string;
   setValue: (newValue: string) => void;
   results: User[];
+  setShowSearchBar: (newValue: boolean) => void;
 }
 
-const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results }) => {
+const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShowSearchBar }) => {
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value);
   };
@@ -72,7 +74,7 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results }) => {
         <Box>
           {
             results.length > 0 ? results.map((user) => {
-                return <SearchbarItem profileName="Bob" profileUsername={user.username} profilePic="" profileID={user.id} key={uuidv4()}/>
+                return <SearchbarItem profileName="Bob" profileUsername={user.username} profilePic="" profileID={user.id} key={uuidv4()} setShowSearchBar={setShowSearchBar}/>
               }) : <Typography sx={{
                 width: '90%',
                 marginLeft: '5%'
@@ -84,11 +86,21 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results }) => {
   );
 };
 
-const SearchbarItem: React.FC<SearchbarItemProps> = ({ profilePic, profileName, profileUsername, profileID, onClick }) => {
+const SearchbarItem: React.FC<SearchbarItemProps> = ({ profilePic, profileName, profileUsername, profileID, setShowSearchBar, onClick }) => {
+  const linkProps = {
+    uID: profileID,
+  }
+
+  const hideSearchBar = () => {
+    setShowSearchBar(false);
+  }
+
   return (
     <MenuItem
       component={Link}
-      to="" // Link to the user's profile
+      to="/Profile" // Link to the user's profile
+      state={linkProps}
+      onClick={hideSearchBar}
       sx={{
         display: 'flex',
         alignItems: 'center',
