@@ -56,7 +56,7 @@ def getFollowers(user_id):
         # Get all users that follow the current user
         followers = [
             {
-                "userID": follow.follower.user_id,
+                "userID": follow.follower.userID,
                 "username": follow.follower.username,
                 "email": follow.follower.email,
             }
@@ -92,7 +92,7 @@ def getFollowing(user_id):
         # Get all users that the current user is following
         following = [
             {
-                "userID": follow.followed.user_id,
+                "userID": follow.followed.userID,
                 "username": follow.followed.username,
                 "email": follow.followed.email,
             }
