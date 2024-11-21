@@ -1,10 +1,10 @@
 import os
 import json
 from sqlalchemy import inspect
-from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
+from sqlalchemy_utils import create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Base
 from dripdrop_orm_objects import Post
-from response_utils import create_response
+from utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -22,7 +22,7 @@ def manageDB(event, context):
     try:
         # Initialize SQLAlchemy session
         conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-        engine = create_db_engine(conn_string);
+        engine = create_db_engine(conn_string)
         
         result = Base.metadata.create_all(engine)
 

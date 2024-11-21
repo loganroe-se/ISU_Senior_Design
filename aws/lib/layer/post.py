@@ -1,5 +1,6 @@
 from sqlalchemy import select
-from dripdrop_utils import create_session
+from sqlalchemy_utils import create_session
+from utils import handle_exception
 from dripdrop_orm_objects import Post, User
 from datetime import datetime, date
 
@@ -20,7 +21,7 @@ def createPost(user_id, caption):
         user_exists = session.query(User).filter_by(userID=user_id).first()
 
         if not user_exists:
-            raise Exception("409", f"User with userID {user_id} does not exist")
+            raise Exception("409", f"User with userID: {user_id} does not exist")
         
         # Auto-fill createdDate with current time
         createdDate = date.today()
@@ -36,9 +37,9 @@ def createPost(user_id, caption):
         return 201, f"Post with postID: {new_post.postID} by user with userID: {user_id} was created successfully"
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Post.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Post.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Post.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -63,9 +64,9 @@ def deletePost(post_id):
             return 404, f'Post with postID: {post_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Post.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Post.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Post.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -96,9 +97,9 @@ def getPostById(post_id):
             return 404, f'Post with postID: {post_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Post.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Post.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Post.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -123,9 +124,9 @@ def getPosts():
         return 200, posts_list
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Post.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Post.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Post.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -155,9 +156,9 @@ def updatePost(post_id, caption, created_date):
             return 404, f'Post with postID: {post_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Post.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Post.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Post.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:

@@ -1,6 +1,7 @@
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
-from dripdrop_utils import create_session
+from sqlalchemy_utils import create_session
+from utils import handle_exception
 from dripdrop_orm_objects import User
 
 # Functions in this file meant to be used elsewhere:
@@ -42,9 +43,9 @@ def createUser(username, email, password):
         return 409, error_message
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -69,9 +70,9 @@ def deleteUser(user_id):
             return 404, f'User with userID: {user_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -99,9 +100,9 @@ def getUserById(user_id):
             return 404, f'User with userID: {user_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -130,9 +131,9 @@ def getUserByUsername(username):
             return 404, f'User with username: {username} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -155,9 +156,9 @@ def getUsers():
         return 200, users_list
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -189,9 +190,9 @@ def updateUser(user_id, username, email, password):
             return 404, f'User with userID: {user_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -216,9 +217,9 @@ def signIn(email, password):
             return 401, 'Invalid email or password'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"User.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"User.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "User.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:

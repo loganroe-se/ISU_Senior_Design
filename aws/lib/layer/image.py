@@ -1,5 +1,6 @@
 from sqlalchemy import select
-from dripdrop_utils import create_session
+from sqlalchemy_utils import create_session
+from utils import handle_exception
 from dripdrop_orm_objects import Image, Post
 
 # Functions in this file meant to be used elsewhere:
@@ -37,9 +38,9 @@ def createImage(post_id, image_url):
         return 201, message
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Image.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Image.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Image.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -64,9 +65,9 @@ def deleteImage(image_id):
             return 404, f'Image with imageID: {image_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Image.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Image.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Image.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -94,9 +95,9 @@ def getImageByImageId(image_id):
             return 404, f'Image with imageID: {image_id} not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Image.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Image.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Image.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -126,9 +127,9 @@ def getImageByPostId(post_id):
             return 404, f'Image(s) with postID: {post_id} was/were not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Image.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Image.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Image.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -154,9 +155,9 @@ def getImages():
         return 200, images_data
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Image.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Image.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Image.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -190,9 +191,9 @@ def updateImage(image_id, post_id, image_url):
             return 404, f'Image with imageID: {image_id} was not found'
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Image.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Image.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Image.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
