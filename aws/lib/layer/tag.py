@@ -1,5 +1,6 @@
 from sqlalchemy import select
-from dripdrop_utils import create_session
+from sqlalchemy_utils import create_session
+from utils import handle_exception
 from dripdrop_orm_objects import Tag
 
 # Functions in this file meant to be used elsewhere:
@@ -31,9 +32,9 @@ def createTag(tag_val):
         return 201, f"Tag with tagID: {new_tag.tagID} was created successfully"
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Tag.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Tag.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -58,9 +59,9 @@ def deleteTag(tag_id):
             return 404, f"Tag with tagID: {tag_id} was not found"
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Tag.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Tag.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -88,9 +89,9 @@ def getTagById(tag_id):
             return 404, f"Tag with tagID: {tag_id} was not found"
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Tag.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Tag.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -115,9 +116,9 @@ def getTags():
         return 200, tags_data
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Tag.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Tag.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
@@ -144,9 +145,9 @@ def updateTag(tag_id, tag_val):
             return 404, f"Tag with tagID: {tag_id} was not found"
 
     except Exception as e:
-        code, msg = e.args
-        print(f"Tag.py Error - Code: {code}, Message: {msg}")
-        return int(code), f"Tag.py Error - Message: {msg}"
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Tag.py")
+        return code, msg
 
     finally:
         if 'session' in locals() and session:
