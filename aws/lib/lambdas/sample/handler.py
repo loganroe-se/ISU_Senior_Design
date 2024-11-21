@@ -2,8 +2,8 @@ import os
 import json
 import boto3
 from sqlalchemy import text
-
-from dripdrop_utils import create_sqlalchemy_engine
+from sqlalchemy_utils import create_sqlalchemy_engine
+from utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -28,10 +28,8 @@ def lambda_handler(event, context):
     creds = get_db_credentials()
     
     if not creds:
-        return {
-            'statusCode': 500,
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500,'Error retrieving database credentials')
+        
     
     try:
         # Initialize SQLAlchemy session
@@ -41,14 +39,8 @@ def lambda_handler(event, context):
         result = session.execute(text("SELECT 'Connected to Aurora MySQL via SQLAlchemy';")).fetchone()
         
         session.close()
-
-        return {
-            'statusCode': 200,
-            'body': json.dumps(f'Database Response: {result}')
-        }
+        return create_response(200,f'Database Response: {result}')
+    
     except Exception as e:
         print(f"Database connection error: {e}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps(f"Database connection error: {str(e)}")
-        }
+        return create_response(500,f"Database connection error: {str(e)}")

@@ -333,61 +333,6 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/userSignIn",
       "signIn"
     );
-    const createImageLambda = createLambda(
-      "CreateImageLambda",
-      "lib/lambdas/image/createImage",
-      "createImage"
-    );
-    const deleteImageLambda = createLambda(
-      "DeleteImageLambda",
-      "lib/lambdas/image/deleteImage",
-      "deleteImage"
-    );
-    const getImageByImageIdLambda = createLambda(
-      "GetImageByImageIdLambda",
-      "lib/lambdas/image/getImageByImageId",
-      "getImageByImageId"
-    );
-    const getImageByPostIdLambda = createLambda(
-      "GetImageByPostIdLambda",
-      "lib/lambdas/image/getImageByPostId",
-      "getImageByPostId"
-    );
-    const getImagesLambda = createLambda(
-      "GetImagesLambda",
-      "lib/lambdas/image/getImages",
-      "getImages"
-    );
-    const updateImageLambda = createLambda(
-      "UpdateImageLambda",
-      "lib/lambdas/image/updateImage",
-      "updateImage"
-    );
-    const createTagLambda = createLambda(
-      "CreateTagLambda",
-      "lib/lambdas/tag/createTag",
-      "createTag"
-    );
-    const deleteTagLambda = createLambda(
-      "DeleteTagLambda",
-      "lib/lambdas/tag/deleteTag",
-      "deleteTag"
-    );
-    const getTagByIdLambda = createLambda(
-      "GetTagByIdLambda",
-      "lib/lambdas/tag/getTagById",
-      "getTagById"
-    );
-    const getTagsLambda = createLambda(
-      "GetTagsLambda",
-      "lib/lambdas/tag/getTags",
-      "getTags"
-    );
-    const updateTagLambda = createLambda(
-      "UpdateTagLambda",
-      "lib/lambdas/tag/updateTag",
-      "updateTag"
-    );
     const manageDBLambda = createLambda(
       "ManageDBLambda",
       "lib/lambdas/db",
@@ -433,6 +378,12 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/follow/getFollowersById",
       "getFollowersById"
     );
+    // Testing lambda
+    const testFunctionsLambda = createLambda(
+      "TestFunctionsLambda",
+      "lib/lambdas/testFunctions",
+      "testFunctions"
+    );
 
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
@@ -454,94 +405,6 @@ export class ApiConstruct extends Construct {
     const users = api.root.addResource("users");
     const follows = api.root.addResource("follows");
     const posts = api.root.addResource("posts");
-    const images = api.root.addResource("images");
-    const tags = api.root.addResource("tags");
-
-    // --------------- IMAGE LAMBDAS ---------------
-    // POST /images - Create
-    images.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(createImageLambda),
-      {
-        operationName: "CreateImage",
-      }
-    );
-
-    // GET /images - Get All Images
-    images.addMethod("GET", new apigateway.LambdaIntegration(getImagesLambda), {
-      operationName: "GetImages",
-    });
-
-    // Define the /images/{id} resource
-    const image = images.addResource("{id}");
-
-    // DELETE /images/{id} - Delete Image
-    image.addMethod(
-      "DELETE",
-      new apigateway.LambdaIntegration(deleteImageLambda),
-      {
-        operationName: "DeleteImageLambda",
-      }
-    );
-
-    // GET /images/{id} - Get Image by Image ID
-    image.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getImageByImageIdLambda),
-      {
-        operationName: "GetImageByImageId",
-      }
-    );
-
-    // PUT /images/{id} - Update Image
-    image.addMethod(
-      "PUT",
-      new apigateway.LambdaIntegration(updateImageLambda),
-      {
-        operationName: "UpdateImage",
-      }
-    );
-
-    // GET /images/{id} - Get Image(s) by Post ID
-    images
-      .addResource("post-id")
-      .addResource("{id}")
-      .addMethod(
-        "GET",
-        new apigateway.LambdaIntegration(getImageByPostIdLambda),
-        {
-          operationName: "GetImageByPostId",
-        }
-      );
-
-    // --------------- TAG LAMBDAS ---------------
-    // POST /tags - Create
-    tags.addMethod("POST", new apigateway.LambdaIntegration(createTagLambda), {
-      operationName: "CreateTag",
-    });
-
-    // GET /tags - Get ALL Tags
-    tags.addMethod("GET", new apigateway.LambdaIntegration(getTagsLambda), {
-      operationName: "GetTags",
-    });
-
-    // Define the /tags/{id} resource
-    const tag = tags.addResource("{id}");
-
-    // DELETE /tags/{id} - Delte Tag
-    tag.addMethod("DELETE", new apigateway.LambdaIntegration(deleteTagLambda), {
-      operationName: "DeleteTagLambda",
-    });
-
-    // GET /tags/{id} - Get Tag by ID
-    tag.addMethod("GET", new apigateway.LambdaIntegration(getTagByIdLambda), {
-      operationName: "GetTagById",
-    });
-
-    // PUT /tags/{id} - Update Tag
-    tag.addMethod("PUT", new apigateway.LambdaIntegration(updateTagLambda), {
-      operationName: "UpdateTag",
-    });
 
     // --------------- POST LAMBDAS ---------------
     //POST /posts - Create

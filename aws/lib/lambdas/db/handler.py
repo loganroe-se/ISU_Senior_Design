@@ -1,9 +1,10 @@
 import os
 import json
 from sqlalchemy import inspect
-from dripdrop_utils import create_db_engine, get_connection_string, get_db_credentials
+from sqlalchemy_utils import create_db_engine, get_connection_string, get_db_credentials
 from dripdrop_orm_objects import Base
 from dripdrop_orm_objects import Post
+from utils import create_response
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
@@ -16,15 +17,12 @@ def manageDB(event, context):
     creds = get_db_credentials(DB_SECRET_ARN)
     
     if not creds:
-        return {
-            'statusCode': 500,
-            'body': json.dumps('Error retrieving database credentials')
-        }
+        return create_response(500, 'Error retrieving database credentials')
     
     try:
         # Initialize SQLAlchemy session
         conn_string = get_connection_string(creds['username'], creds['password'], DB_ENDPOINT, DB_PORT, DB_NAME)
-        engine = create_db_engine(conn_string);
+        engine = create_db_engine(conn_string)
         
         result = Base.metadata.create_all(engine)
 
@@ -32,13 +30,8 @@ def manageDB(event, context):
         inspector = inspect(engine)
         tables = inspector.get_table_names()
 
-        return {
-            'statusCode': 200,
-            'body': json.dumps(f'Tables in the Database: {tables}')
-        }
+        return create_response(200, f'Tables in the Database: {tables}')
+   
     except Exception as e:
         print(f"Database error: {e}")
-        return {
-            'statusCode': 500,
-            'body': json.dumps(f"Database error: {str(e)}")
-        }
+        return create_response(500, f"Database error: {str(e)}")

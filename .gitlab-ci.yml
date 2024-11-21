@@ -50,9 +50,10 @@ build website:
   rules:
     - if: $CI_COMMIT_REF_NAME
       changes:
-        paths:
-          - website/dripdrop/**/*
-        compare_to:  'refs/heads/master'
+        - website/dripdrop/**/*
+        # paths:
+        #   - website/dripdrop/**/*
+        # compare_to:  'refs/heads/master'
       
 
 
