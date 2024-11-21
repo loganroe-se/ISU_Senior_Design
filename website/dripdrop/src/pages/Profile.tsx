@@ -1,18 +1,36 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Box, Button, Paper, Avatar, IconButton, Divider } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {
+    Typography,
+    Box,
+    Button,
+    Paper,
+    Avatar,
+    IconButton,
+    Divider,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import { useNavigate } from 'react-router-dom';
+import PostCard from '../components/PostCard';
+
+interface Post {
+    postID: number;
+    userID: number;
+    caption: string;
+    createdDate: string;
+}
+
 
 const Profile = () => {
     const navigate = useNavigate();
-    // eslint-disable-next-line
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
+    const [posts, setPosts] = useState<Post[]>([]);
+    const userID = sessionStorage.getItem('userID');
+    console.log("Session UserID: " + sessionStorage.getItem('userID'));
 
     useEffect(() => {
+        // Fetch user details from sessionStorage
         const storedEmail = sessionStorage.getItem('email');
         const storedUsername = sessionStorage.getItem('username');
         const storedProfilePic = sessionStorage.getItem('profilePic');
@@ -20,19 +38,26 @@ const Profile = () => {
         if (storedEmail) setEmail(storedEmail);
         if (storedUsername) setUsername(storedUsername);
         if (storedProfilePic) setProfilePic(storedProfilePic);
-    }, []);
 
-    const theme = createTheme({
-        palette: {
-            mode: isDarkMode ? 'dark' : 'light',
-        },
-    });
+        // Fetch user posts
+        if (userID) {
+            fetch(`https://api.dripdropco.com/posts?${userID}`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Error fetching posts: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then((data: Post[]) => setPosts(data))
+                .catch((error) => console.error(error));
+        }
+    }, [userID]);
 
     const handleLogout = () => {
         sessionStorage.clear();
         const currentBaseUrl = window.location.origin;
         window.location.replace(currentBaseUrl);
-        console.log("User logged out");
+        console.log('User logged out');
     };
 
     const handleProfilePicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -55,10 +80,9 @@ const Profile = () => {
     };
 
     return (
-        <ThemeProvider theme={theme}>
+
             <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
-                <Box textAlign="center" mb={4}>
-                </Box>
+                <Box textAlign="center" mb={4}></Box>
 
                 {/* Profile Header */}
                 <Box display="flex" mb={2}>
@@ -90,24 +114,31 @@ const Profile = () => {
                         />
                     </IconButton>
 
-                        <Box>
-                            <Typography variant="h5">{username}</Typography>
-                            <Typography variant="body2" color="textSecondary">
-                                {email}
+                    <Box>
+                        <Typography variant="h5">{username}</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {email}
+                        </Typography>
+                        <Box display="flex" mt={1}>
+                            <Typography variant="body2" color="textSecondary" mr={2}>
+                                {posts.length} Posts
                             </Typography>
-                            <Box display="flex" mt={1}>
-                                <Typography variant="body2" color="textSecondary" mr={2}>
-                                    {13} Posts
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary" mr={2}>
-                                    {150} Followers
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    {120} Following
-                                </Typography>
-                            </Box>
+                            <Typography variant="body2" color="textSecondary" mr={2}>
+                                {150} Followers
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {120} Following
+                            </Typography>
                         </Box>
-                    <Box sx={{ display: "flex", gap: 3, flexDirection: 'column', ml: 'auto' }}>
+                    </Box>
+                    <Box
+                        sx={{
+                            display: 'flex',
+                            gap: 3,
+                            flexDirection: 'column',
+                            ml: 'auto',
+                        }}
+                    >
                         <Button
                             variant="contained"
                             onClick={navigateToEditProfile}
@@ -128,7 +159,7 @@ const Profile = () => {
 
                         <Button
                             variant="outlined"
-                            color="error"  // Set color to red for "Log Out" button
+                            color="error" // Set color to red for "Log Out" button
                             onClick={handleLogout}
                             sx={{
                                 padding: '0.5rem 1.5rem',
@@ -143,34 +174,32 @@ const Profile = () => {
                             Log Out
                         </Button>
                     </Box>
-
-
-                    </Box>
-
-
+                </Box>
 
                 {/* Divider */}
                 <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
 
-                {/* User's Posts Section */}
-                <Box mt={3}>
-                    <Typography variant="h6" gutterBottom>
-                        User's Posts
+            <Box mt={3}>
+                <Typography variant="h4" gutterBottom>
+                    Posts
+                </Typography>
+                {posts.length > 0 ? (
+                    posts.map((post) => (
+                        <PostCard
+                            key={post.postID}
+                            images={["https://picsum.photos/200"]}
+                            username={`User ${post.userID}`} // Replace with actual username if available
+                            caption={post.caption}
+                        />
+                    ))
+                ) : (
+                    <Typography variant="body2" color="textSecondary">
+                        No posts to display.
                     </Typography>
-                    {/* Example Posts */}
-                    <Box mb={2} p={2} sx={{ backgroundColor: 'grey.100', borderRadius: '8px' }}>
-                        <Typography variant="body1">
-                            Post 1: This is an example of a user's post.
-                        </Typography>
-                    </Box>
-                    <Box mb={2} p={2} sx={{ backgroundColor: 'grey.100', borderRadius: '8px' }}>
-                        <Typography variant="body1">
-                            Post 2: Another example post from the user.
-                        </Typography>
-                    </Box>
-                </Box>
+                )}
+            </Box>
+
             </Paper>
-        </ThemeProvider>
     );
 };
 
