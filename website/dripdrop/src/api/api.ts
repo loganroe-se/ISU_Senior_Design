@@ -1,13 +1,14 @@
-import { Post } from "../types";  // Ensure the Post type is correctly imported
+import { sendPost } from "../styles/types";  // Ensure the Post type is correctly imported
+import { retreivePost } from "../styles/types";  // Ensure the Post type is correctly imported
 
 // Fetch all posts
-export const fetchPosts = async (): Promise<Post[]> => {
+export const fetchPosts = async (): Promise<retreivePost[]> => {
   try {
     const response = await fetch("https://api.dripdropco.com/posts/");
     if (!response.ok) {
       throw new Error("Failed to fetch posts");
     }
-    const data: Post[] = await response.json();  // Cast the response to an array of posts
+    const data: retreivePost[] = await response.json();  // Cast the response to an array of posts
     return data;
   } catch (error) {
     if (error instanceof Error) {
@@ -34,7 +35,8 @@ export const fetchUserById = async (userID: number): Promise<string | null> => {
 };
 
 // Create a new post
-export const createPost = async (newPost: Post): Promise<Post> => {
+export const createPost = async (newPost: sendPost): Promise<sendPost> => {
+  console.log("Sending post data:", newPost);  // Log the data being sent
   try {
     const response = await fetch("https://api.dripdropco.com/posts/", {
       method: "POST",
@@ -48,7 +50,7 @@ export const createPost = async (newPost: Post): Promise<Post> => {
       throw new Error("Failed to create post");
     }
 
-    const createdPost: Post = await response.json();
+    const createdPost: sendPost = await response.json();
     return createdPost;  // Return the newly created post
   } catch (error) {
     console.error("Error creating post:", error);

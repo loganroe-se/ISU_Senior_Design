@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Container, Grid, CircularProgress, Typography } from "@mui/material";
 import PostCard from "./PostCard";
-import { Post } from "../types";
+import { retreivePost } from "../styles/types";
 import { fetchPosts, fetchUserById } from "../api/api";  // Import API functions
 
 const Feed = () => {
-  const [posts, setPosts] = useState<Post[]>([]);  // State for posts
+  const [posts, setPosts] = useState<retreivePost[]>([]);  // State for posts
   const [loading, setLoading] = useState<boolean>(true);  // State for loading
   const [error, setError] = useState<string | null>(null);  // State for error message
   const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({});  // State for storing usernames
@@ -79,7 +79,7 @@ const Feed = () => {
             return (
               <Grid item key={post.id} xs={12}>
                 <PostCard
-                  images={images.length > 0 ? [images[0].imageURL] : ["/default_image.jpg"]}
+                  images={["/default_image.jpg"]}
                   username={username}  // Pass username to PostCard
                   caption={post.caption}
                 />

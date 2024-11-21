@@ -16,8 +16,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useDropzone } from "react-dropzone";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { createPost } from "../api/api";  // Import API functions
-import { useContext } from "react";
-import { UserContext } from "../context/UserContext";  // Adjust to your context path
 
 
 const dropzoneStyle: React.CSSProperties = {
@@ -82,7 +80,11 @@ const PostModal: React.FC<PostModalProps> = ({ isOpen, onClose }) => {
     const [posts, setPosts] = useState<any[]>([]);  // Optional: Add specific types instead of `any`
     const [openSnackbar, setOpenSnackbar] = useState(false);
     const [error, setError] = useState<string | null>(null);  // Add state for error handling
-    const { userID } = useContext(UserContext); // Assuming `userID` is part of the context
+
+    const userID = Number(sessionStorage.getItem('id'));
+    const storedUsername = sessionStorage.getItem('username');
+    console.log(userID);
+    console.log(storedUsername);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
@@ -108,28 +110,27 @@ const PostModal: React.FC<PostModalProps> = ({ isOpen, onClose }) => {
         setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
     };
 
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-
-        // Create new post object with images
+    
+        // Create new post object with just the userID
         const newPost = {
-            userId,
-            caption: postDetails.caption,
-            clothesUrl: postDetails.clothesUrl,
-            images: selectedImages,  // Pass actual image files for upload
+            userID,  // This comes from localStorage (already converted to a number)
+            caption: postDetails.caption
         };
-
+    
         try {
             // Call createPost() to send the post data to the API
             const createdPost = await createPost(newPost);
-
+    
             // If post is created successfully, update the posts list
             setPosts([createdPost, ...posts]);
-
+    
             // Reset form after successful submission
             setPostDetails({ caption: "", clothesUrl: "" });
             setSelectedImages([]);
-
+    
             // Open success snackbar
             setOpenSnackbar(true);
         } catch (error) {
@@ -154,6 +155,23 @@ const PostModal: React.FC<PostModalProps> = ({ isOpen, onClose }) => {
                     </Typography>
 
                     <form onSubmit={handleSubmit}>
+                        {/* Drag-and-drop image upload */}
+                        <FormControl fullWidth>
+                            <div
+                                {...getRootProps()}
+                                style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}
+                            >
+                                <input {...getInputProps()} />
+                                <Typography variant="body1" sx={{ color: '#444' }}>
+                                    {isDragActive
+                                        ? 'Drop the image here...'
+                                        : selectedImages.length
+                                            ? `Selected Images: ${selectedImages.length}`
+                                            : 'Drag & drop an image, or click to select'}
+                                </Typography>
+                            </div>
+                        </FormControl>
+
                         {/* Caption input */}
                         <TextField
                             name="caption"
@@ -177,70 +195,6 @@ const PostModal: React.FC<PostModalProps> = ({ isOpen, onClose }) => {
                                 },
                             }}
                         />
-
-                        {/* Clothes URL input */}
-                        <TextField
-                            name="clothesUrl"
-                            label="Clothes URL"
-                            variant="outlined"
-                            fullWidth
-                            margin="normal"
-                            value={postDetails.clothesUrl}
-                            onChange={handleInputChange}
-                            required
-                            sx={{
-                                mb: 2,
-                                '& .MuiOutlinedInput-root': {
-                                    borderRadius: '12px',
-                                    '& fieldset': {
-                                        borderColor: '#ccc',
-                                    },
-                                    '&:hover fieldset': {
-                                        borderColor: '#2196f3',
-                                    },
-                                },
-                            }}
-                        />
-
-                        {/* Drag-and-drop image upload */}
-                        <FormControl fullWidth>
-                            <div
-                                {...getRootProps()}
-                                style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}
-                            >
-                                <input {...getInputProps()} />
-                                <Typography variant="body1" sx={{ color: '#444' }}>
-                                    {isDragActive
-                                        ? 'Drop the image here...'
-                                        : selectedImages.length
-                                            ? `Selected Images: ${selectedImages.length}`
-                                            : 'Drag & drop an image, or click to select'}
-                                </Typography>
-                            </div>
-                        </FormControl>
-
-                        {/* Image Previews */}
-                        <Box style={previewImageStyle}>
-                            {selectedImages.map((image, index) => {
-                                const imageUrl = URL.createObjectURL(image);
-                                return (
-                                    <Box key={index} style={imagePreviewContainer}>
-                                        <img
-                                            src={imageUrl}
-                                            alt={`Preview ${index}`}
-                                            style={imagePreviewStyle}
-                                        />
-                                        <IconButton
-                                            aria-label="delete"
-                                            onClick={() => removeImage(index)}
-                                            style={removeButtonStyle}
-                                        >
-                                            <DeleteIcon fontSize="small" />
-                                        </IconButton>
-                                    </Box>
-                                );
-                            })}
-                        </Box>
 
                         {/* Action Buttons */}
                         <DialogActions sx={{ justifyContent: 'flex-end', p: 2, ml: 2 }}>
