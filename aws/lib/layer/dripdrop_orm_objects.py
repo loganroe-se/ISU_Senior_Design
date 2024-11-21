@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -27,6 +27,8 @@ class Follow(Base):
     #Relationships
     follower = relationship("User", foreign_keys=[followerId], back_populates="following")
     followed = relationship("User", foreign_keys=[followedId], back_populates="followers")
+    # Handle duplicate entries
+    __table_args__ = (UniqueConstraint('followerId', 'followedId', name='unique_follower_followed'),)
 
 # Post table
 class Post(Base):
