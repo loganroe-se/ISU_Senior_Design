@@ -69,7 +69,7 @@ export class StaticSite extends Construct {
           httpStatus: 403,
           responseHttpStatus: 200,
           responsePagePath: "/",
-          ttl: Duration.minutes(30),
+          ttl: Duration.minutes(60),
         },
       ],
       defaultBehavior: {
