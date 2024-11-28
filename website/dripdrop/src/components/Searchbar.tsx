@@ -1,9 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, MenuItem, ListItemIcon, Avatar, TextField } from '@mui/material';
 import { Link } from 'react-router-dom';
-import Filter from './Filters'; // Assuming Filter component is imported
-import PostModal from './PostModal'; // Import the PostModal component
-
 
 interface SearchbarItemProps {
   profilePic: string;
@@ -54,14 +51,14 @@ const Searchbar = () => {
           }} />
         </Box>
         <Box>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe1" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe2" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe3" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe4" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe5" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe6" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe7" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe8" profilePic="" profileID=""/>
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe1" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe2" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe3" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe4" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe5" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe6" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe7" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe8" profilePic="" profileID="" />
         </Box>
       </Box>
     </Box>
