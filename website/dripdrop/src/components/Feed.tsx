@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Grid, CircularProgress, Typography } from "@mui/material";
+import { Container, Grid, CircularProgress, Typography, Box } from "@mui/material";
 import PostCard from "./PostCard";
 import { Post } from "../types";
 import { fetchPosts, fetchUserById } from "../api/api";  // Import API functions
@@ -51,10 +51,20 @@ const Feed = () => {
   if (loading || usernamesLoading) {
     return (
       <Container>
-        <CircularProgress />
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            height: "100vh",
+          }}
+        >
+          <CircularProgress />
+        </Box>
       </Container>
     );
   }
+
 
   // If there's an error, display an error message
   if (error) {
