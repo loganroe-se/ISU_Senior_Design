@@ -16,7 +16,7 @@ def createUser(event, context):
         if not username or not email or not password:
             return create_response(400, 'Missing required field')
         
-        # Call another function to create the post
+        # Call another function to create the user
         status_code, message = userPY.createUser(username, email, password)
 
         # Return message

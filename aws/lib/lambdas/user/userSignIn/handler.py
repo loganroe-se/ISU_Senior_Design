@@ -15,7 +15,7 @@ def signIn(event, context):
         if not email or not password:
              return create_response(400, 'Missing email or password')
 
-        # Call another function to get all posts
+        # Call signIn function
         status_code, message = userPY.signIn(email, password)
 
         # Return message
