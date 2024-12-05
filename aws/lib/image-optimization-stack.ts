@@ -217,7 +217,7 @@ export class ImageOptimizationStack extends Stack {
       functionAssociations: [
         {
           eventType: cloudfront.FunctionEventType.VIEWER_REQUEST,
-          function: urlRewriteFunction,
+          //function: urlRewriteFunction,
         },
       ],
     };
