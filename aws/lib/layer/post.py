@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from sqlalchemy.orm import joinedload 
 from image import save_image_to_db
 from sqlalchemy_utils import create_session
 from utils import handle_exception
@@ -31,13 +32,12 @@ def createPost(user_id, caption, images):
         # Create a new post
         new_post = Post(userID=user_id, caption=caption, createdDate=createdDate)
 
-        # Begin a new transaction
-        with session.begin():
-            # Add the post to the database
-            session.add(new_post)
+
+        session.add(new_post)
+        session.commit()
 
             # Call the function to save images to the database
-            save_image_to_db(session, new_post.postID, images)
+        save_image_to_db(session, new_post.postID, images)
 
         # Return success message after the transaction is committed
         return (
@@ -128,17 +128,16 @@ def getPostById(post_id):
 
 
 def getPosts():
-    # Try to get all posts
     try:
         # Create the session
         session = create_session()
 
-        # Fetch all the posts
+        # Fetch all posts with their related images
         posts_result = (
-            session.execute(select(Post)).scalars().all()
-        )  # Get a list of user objects
+            session.query(Post).options(joinedload(Post.images)).all()
+        )
 
-        # Create a list of post dictionaries directly
+        # Create a list of post dictionaries, including images
         posts_list = [
             {
                 "postID": post.postID,
@@ -149,6 +148,10 @@ def getPosts():
                     if isinstance(post.createdDate, (datetime, date))
                     else post.createdDate
                 ),
+                "images": [
+                    {"imageID": image.imageID, "imageURL": image.imageURL}
+                    for image in post.images
+                ],
             }
             for post in posts_result
         ]
@@ -157,14 +160,14 @@ def getPosts():
         return 200, posts_list
 
     except Exception as e:
-        # Call a helper to handle the exception
+        # Handle the exception
         code, msg = handle_exception(e, "Post.py")
         return code, msg
 
     finally:
+        # Ensure session is closed
         if "session" in locals() and session:
             session.close()
-
 
 def updatePost(post_id, caption, created_date):
     # Try to get all posts

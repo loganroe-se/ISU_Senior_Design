@@ -344,38 +344,17 @@ export class ApiConstruct extends Construct {
     );
 
     // Post Lambdas
-    const createPostLambda = createLambda(
-      "CreatePostLambda",
-      "lib/lambdas/post/createPost",
-      "createPost"
+    const postLambda = createLambda(
+      "PostLambda",
+      "lib/lambdas/post",
+      "handler"
     );
 
-    createPostLambda.addToRolePolicy(new iam.PolicyStatement({
+    postLambda.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       resources: ["arn:aws:s3:::imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc/*"],
       actions: ["s3:PutObject"]
     }))
-
-    const deletePostLambda = createLambda(
-      "DeletePostLambda",
-      "lib/lambdas/post/deletePost",
-      "deletePost"
-    );
-    const getPostsLambda = createLambda(
-      "GetPostsLambda",
-      "lib/lambdas/post/getPosts",
-      "getPosts"
-    );
-    const getPostByIdLambda = createLambda(
-      "GetPostByIdLambda",
-      "lib/lambdas/post/getPostById",
-      "getPostById"
-    );
-    const updatePostLambda = createLambda(
-      "UpdatePostLambda",
-      "lib/lambdas/post/updatePost",
-      "updatePost"
-    );
 
     // Follow Lambdas
     const followUserLambda = createLambda(
@@ -430,13 +409,13 @@ export class ApiConstruct extends Construct {
     // POST /posts - Create
     posts.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(createPostLambda),
+      new apigateway.LambdaIntegration(postLambda),
       {
         operationName: "CreatePost",
       }
     );
     // GET /posts - Get All Posts
-    posts.addMethod("GET", new apigateway.LambdaIntegration(getPostsLambda), {
+    posts.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
       operationName: "GetPosts",
     });
 
@@ -446,17 +425,17 @@ export class ApiConstruct extends Construct {
     // DELETE /posts/{id} - Delete Post
     post.addMethod(
       "DELETE",
-      new apigateway.LambdaIntegration(deletePostLambda),
+      new apigateway.LambdaIntegration(postLambda),
       {
         operationName: "DeletePost",
       }
     );
     // GET /posts/{id} - Get Post by ID
-    post.addMethod("GET", new apigateway.LambdaIntegration(getPostByIdLambda), {
+    post.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
       operationName: "GetPostById",
     });
     // PUT /posts/{id} - Update Post
-    post.addMethod("PUT", new apigateway.LambdaIntegration(updatePostLambda), {
+    post.addMethod("PUT", new apigateway.LambdaIntegration(postLambda), {
       operationName: "UpdatePost",
     });
 
