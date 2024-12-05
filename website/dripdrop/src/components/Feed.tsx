@@ -83,7 +83,7 @@ const Feed = () => {
       <Grid container spacing={2}>
         {Array.isArray(posts) && posts.length > 0 ? (
           posts.map((post, index) => {
-            const images = post.images || [];  // Default to empty array if images are undefined
+            //const images = post.images || [];  // Default to empty array if images are undefined
             const username = usernamesMap[index] || "Loading...";  // Get username for each post
 
             return (

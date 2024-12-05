@@ -35,35 +35,6 @@ const dropzoneActiveStyle: React.CSSProperties = {
     backgroundColor: "#e3f2fd",
 };
 
-const previewImageStyle: React.CSSProperties = {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "10px",
-    marginTop: "15px",
-};
-
-const imagePreviewContainer: React.CSSProperties = {
-    position: "relative",
-    display: "inline-block",
-};
-
-const imagePreviewStyle: React.CSSProperties = {
-    width: "120px",
-    height: "120px",
-    objectFit: "cover",
-    borderRadius: "10px",
-    boxShadow: "0px 2px 10px rgba(0, 0, 0, 0.1)",
-};
-
-const removeButtonStyle: React.CSSProperties = {
-    position: "absolute",
-    top: "-5px",
-    right: "-5px",
-    backgroundColor: "#fff",
-    borderRadius: "50%",
-    boxShadow: "0px 0px 5px rgba(0, 0, 0, 0.2)",
-    padding: "5px",
-};
 
 interface CreatePostModalProps {
     isOpen: boolean;
@@ -78,7 +49,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     const [selectedImages, setSelectedImages] = useState<File[]>([]);
     const [posts, setPosts] = useState<any[]>([]);  // Optional: Add specific types instead of `any`
     const [openSnackbar, setOpenSnackbar] = useState(false);
-    const [error, setError] = useState<string | null>(null);  // Add state for error handling
 
     const userID = Number(sessionStorage.getItem('id'));
     const storedUsername = sessionStorage.getItem('username');
@@ -104,10 +74,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         maxFiles: 3,  // Limit to 3 images for this case
     });
 
-    // Remove image
-    const removeImage = (index: number) => {
-        setSelectedImages((prevImages) => prevImages.filter((_, i) => i !== index));
-    };
 
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -135,7 +101,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         } catch (error) {
             // Handle error and set error message in the state
             console.error("Failed to create post:", error);
-            setError("Failed to create post");  // Set error message for the UI
         }
     };
 
