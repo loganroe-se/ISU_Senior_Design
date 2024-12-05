@@ -52,14 +52,14 @@ const Searchbar = () => {
           }} />
         </Box>
         <Box>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe1" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe2" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe3" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe4" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe5" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe6" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe7" profilePic="" profileID=""/>
-          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe8" profilePic="" profileID=""/>
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe1" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe2" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe3" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe4" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe5" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe6" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe7" profilePic="" profileID="" />
+          <SearchbarItem profileName="Bob" profileUsername="bobbyjoe8" profilePic="" profileID="" />
         </Box>
       </Box>
     </Box>

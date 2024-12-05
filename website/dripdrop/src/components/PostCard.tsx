@@ -27,7 +27,7 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption }) => {
       {/* Image section */}
       <CardMedia
         component="img"
-        image={images[0]}  // Use the first image from the images array
+        image={"https://picsum.photos/200"}  // Use the first image from the images array
         alt="Post image"
       />
       {/* Content of the post */}

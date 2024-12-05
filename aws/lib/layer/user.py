@@ -3,6 +3,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy_utils import create_session
 from utils import handle_exception
 from dripdrop_orm_objects import User
+from passlib.hash import bcrypt
 
 # Functions in this file meant to be used elsewhere:
 # createUser(username, email, password)
@@ -19,8 +20,11 @@ def createUser(username, email, password):
         # Create the session
         session = create_session()
 
+        # Hash the password
+        hashed_password = bcrypt.hash(password)
+
         # Create a new user
-        new_user = User(username=username, email=email, password=password)
+        new_user = User(username=username, email=email, password=hashed_password)
 
         # Add the user to the db
         session.add(new_user)
@@ -181,7 +185,9 @@ def updateUser(user_id, username, email, password):
             if email:
                 user.email = email
             if password:
-                user.password = password
+                # Hash the new password before saving
+                hashed_password = bcrypt.hash(password)
+                user.password = hashed_password
                 
             session.commit()
 
@@ -208,7 +214,7 @@ def signIn(email, password):
         # Query the user by email
         user = session.execute(select(User).where(User.email == email)).scalars().first()
 
-        if user and user.password == password:  # Check hashed password
+        if user and bcrypt.verify(password, user.password):  # Check hashed password
             return 200, {
                     'message': f'User with username: {user.username} was signed in successfully',
                     'id': user.userID

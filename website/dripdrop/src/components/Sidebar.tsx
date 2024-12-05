@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, MenuItem, ListItemIcon, Avatar } from '@mui/material';
 import { Link } from 'react-router-dom';
 import Filter from './Filters'; // Assuming Filter component is imported
-import PostModal from './PostModal'; // Import the PostModal component
+import CreatePostModal from './CreatePostModal'; // Import the CreatePostModal component
 
 
 interface SidebarItemProps {
@@ -15,7 +15,7 @@ interface SidebarItemProps {
 
 const Sidebar = () => {
   const [isFilterOpen, setFilterOpen] = useState(false); // State for drawer visibility
-  const [isPostModalOpen, setPostModalOpen] = useState(false); // State for modal visibility
+  const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false); // State for modal visibility
 
   return (
     <Box sx={{
@@ -55,7 +55,7 @@ const Sidebar = () => {
             iconClass="bi bi-plus-square"
             label="Post"
             link="#"
-            onClick={() => setPostModalOpen(true)} // Open the modal on click
+            onClick={() => setCreatePostModalOpen(true)} // Open the modal on click
           />
           <SidebarItem iconClass="bi bi-bookmarks" label="Lists" link="/lists" />
           <SidebarItem iconClass="bi bi-bell" label="Notifications" link="/notifications" />
@@ -94,7 +94,7 @@ const Sidebar = () => {
         </Box>
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
       </Box>
-      <PostModal isOpen={isPostModalOpen} onClose={() => setPostModalOpen(false)} />
+      <CreatePostModal isOpen={isCreatePostModalOpen} onClose={() => setCreatePostModalOpen(false)} />
     </Box>
   );
 };

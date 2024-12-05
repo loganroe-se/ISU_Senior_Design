@@ -65,12 +65,12 @@ const removeButtonStyle: React.CSSProperties = {
     padding: "5px",
 };
 
-interface PostModalProps {
+interface CreatePostModalProps {
     isOpen: boolean;
     onClose: () => void;
 }
 
-const PostModal: React.FC<PostModalProps> = ({ isOpen, onClose }) => {
+const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) => {
     const [postDetails, setPostDetails] = useState({
         caption: "",
         clothesUrl: "",
@@ -235,4 +235,4 @@ const PostModal: React.FC<PostModalProps> = ({ isOpen, onClose }) => {
     );
 };
 
-export default PostModal;
+export default CreatePostModal;

@@ -2,7 +2,7 @@ import json
 import follow as followPY
 from utils import create_response
 
-def followUser(event, context):
+def unfollowUser(event, context):    
     try:
         # Parse the data from event
         body = json.loads(event['body'])
@@ -15,12 +15,12 @@ def followUser(event, context):
         if not followerId or not followedId:
             return create_response(400, 'Missing required field')
         
-        # Call another function to create the post
-        status_code, message = followPY.createFollow(followerId, followedId)
+        # Call another function to remove the follow relationship
+        status_code, message = followPY.deleteFollow(followerId, followedId)
 
         # Return message
         return create_response(status_code, message)
     
     except Exception as e:
         print(f"Error: {e}")
-        return create_response(500, f"Error creating follow relationship: {str(e)}")
+        return create_response(500, f"Error unfollowing user: {str(e)}")

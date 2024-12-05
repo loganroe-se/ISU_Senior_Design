@@ -96,6 +96,16 @@ export class ApiConstruct extends Construct {
       "Connection for mysql databench"
     );
 
+    // Add a Gateway VPC Endpoint for S3
+    vpc.addGatewayEndpoint("S3GatewayEndpoint", {
+      service: ec2.GatewayVpcEndpointAwsService.S3,
+      subnets: [
+        {
+          subnetType: ec2.SubnetType.PRIVATE_WITH_EGRESS,
+        },
+      ],
+    });
+
     new ec2.InterfaceVpcEndpoint(this, "Secrets ManagerEndpoint", {
       vpc: vpc,
       service: ec2.InterfaceVpcEndpointAwsService.SECRETS_MANAGER,
@@ -135,9 +145,6 @@ export class ApiConstruct extends Construct {
         availabilityZones: ["us-east-1a", "us-east-1b"],
       }),
     });
-
-
-
 
     const databaseName = "dripdropdb";
     // Aurora MySQL Cluster
@@ -226,6 +233,8 @@ export class ApiConstruct extends Construct {
       }
     );
 
+
+
     // Attach the inline policy to the role
     ssmRole.attachInlinePolicy(ssmStartSessionPolicy);
 
@@ -297,7 +306,7 @@ export class ApiConstruct extends Construct {
       return l;
     };
 
-    // Create separate Lambda functions for each CRUD operation
+    // User Lambdas
     const createUserLambda = createLambda(
       "CreateUserLambda",
       "lib/lambdas/user/createUser",
@@ -333,51 +342,42 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/user/userSignIn",
       "signIn"
     );
-    const manageDBLambda = createLambda(
-      "ManageDBLambda",
-      "lib/lambdas/db",
-      "manageDB"
+
+    // Post Lambdas
+    const postLambda = createLambda(
+      "PostLambda",
+      "lib/lambdas/post",
+      "handler"
     );
-    const createPostLambda = createLambda(
-      "CreatePostLambda",
-      "lib/lambdas/post/createPost",
-      "createPost"
-    );
-    const deletePostLambda = createLambda(
-      "DeletePostLambda",
-      "lib/lambdas/post/deletePost",
-      "deletePost"
-    );
-    const getPostsLambda = createLambda(
-      "GetPostsLambda",
-      "lib/lambdas/post/getPosts",
-      "getPosts"
-    );
-    const getPostByIdLambda = createLambda(
-      "GetPostByIdLambda",
-      "lib/lambdas/post/getPostById",
-      "getPostById"
-    );
-    const updatePostLambda = createLambda(
-      "UpdatePostLambda",
-      "lib/lambdas/post/updatePost",
-      "updatePost"
-    );
+
+    postLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: ["arn:aws:s3:::imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc/*"],
+      actions: ["s3:PutObject"]
+    }))
+
+    // Follow Lambdas
     const followUserLambda = createLambda(
       "FollowUserLambda",
       "lib/lambdas/follow/followUser",
       "followUser"
     );
-    const getFollowingByIdLambda = createLambda(
-      "GetFollowingByIdLambda",
-      "lib/lambdas/follow/getFollowingById",
-      "getFollowingById"
+    const getFollowingLambda = createLambda(
+      "GetFollowing",
+      "lib/lambdas/follow/getFollowing",
+      "getFollowing"
     );
-    const getFollowersByIdLambda = createLambda(
-      "GetFollowersByIdLambda",
-      "lib/lambdas/follow/getFollowersById",
-      "getFollowersById"
+    const getFollowersLambda = createLambda(
+      "GetFollowersLambda",
+      "lib/lambdas/follow/getFollowers",
+      "getFollowers"
     );
+    const unfollowUserLambda = createLambda(
+      "UnfollowUserLambda",
+      "lib/lambdas/follow/unfollowUser",
+      "unfollowUser"
+    );
+
     // Testing lambda
     const testFunctionsLambda = createLambda(
       "TestFunctionsLambda",
@@ -401,22 +401,21 @@ export class ApiConstruct extends Construct {
       },
     });
 
-    // Define the /users resource
-    const users = api.root.addResource("users");
-    const follows = api.root.addResource("follows");
+    // -------------------------------- POST LAMBDAS -------------------------
+
+    // Define the /posts resource
     const posts = api.root.addResource("posts");
 
-    // --------------- POST LAMBDAS ---------------
-    //POST /posts - Create
+    // POST /posts - Create
     posts.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(createPostLambda),
+      new apigateway.LambdaIntegration(postLambda),
       {
         operationName: "CreatePost",
       }
     );
     // GET /posts - Get All Posts
-    posts.addMethod("GET", new apigateway.LambdaIntegration(getPostsLambda), {
+    posts.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
       operationName: "GetPosts",
     });
 
@@ -426,54 +425,25 @@ export class ApiConstruct extends Construct {
     // DELETE /posts/{id} - Delete Post
     post.addMethod(
       "DELETE",
-      new apigateway.LambdaIntegration(deletePostLambda),
+      new apigateway.LambdaIntegration(postLambda),
       {
         operationName: "DeletePost",
       }
     );
     // GET /posts/{id} - Get Post by ID
-    post.addMethod("GET", new apigateway.LambdaIntegration(getPostByIdLambda), {
+    post.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
       operationName: "GetPostById",
     });
     // PUT /posts/{id} - Update Post
-    post.addMethod("PUT", new apigateway.LambdaIntegration(updatePostLambda), {
+    post.addMethod("PUT", new apigateway.LambdaIntegration(postLambda), {
       operationName: "UpdatePost",
     });
 
-    // --------------- FOLLOW LAMBDAS ---------------
-    // POST /follows - Follow User
-    follows.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(followUserLambda),
-      {
-        operationName: "FollowUser",
-      }
-    );
+    // ---------------------------- USER LAMBDAS -------------------------------
 
-    // Define the /follows/{id} resource
-    const followUser = follows.addResource("{id}");
+    // Define the /users resource
+    const users = api.root.addResource("users");
 
-    // GET /follows/{id} - Get Following by ID
-    followUser.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getFollowingByIdLambda),
-      {
-        operationName: "GetFollowingById",
-      }
-    );
-
-    const userFollowers = followUser.addResource("followers");
-
-    // GET /follows/{id}/followers - Get Followers by ID
-    userFollowers.addMethod(
-      "GET",
-      new apigateway.LambdaIntegration(getFollowersByIdLambda),
-      {
-        operationName: "GetFollowersById",
-      }
-    );
-
-    // --------------- USER LAMBDAS ---------------
     // POST /users - Create User
     users.addMethod(
       "POST",
@@ -512,12 +482,16 @@ export class ApiConstruct extends Construct {
 
     // Define the /username/{username} resource
     const username = users.addResource("username");
-    const get_username = username.addResource("{username}")
+    const get_username = username.addResource("{username}");
 
     // GET /username/{username} - Get User by Username
-    get_username.addMethod("GET", new apigateway.LambdaIntegration(getUserByUsernameLambda), {
-      operationName: "GetUserByUsername",
-    });
+    get_username.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUserByUsernameLambda),
+      {
+        operationName: "GetUserByUsername",
+      }
+    );
 
     // Define the /users/signIn resource
     const signIn = users.addResource("signIn");
@@ -528,6 +502,54 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(userSignInLambda),
       {
         operationName: "UserSignIn",
+      }
+    );
+
+    // ----------------------------- FOLLOW LAMBDAS -----------------------------
+
+    // Define the /follow resource
+    const follow = api.root.addResource("follow");
+
+    // POST /follow - Follow a user, create follow relationship
+    follow.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(followUserLambda),
+      {
+        operationName: "FollowUser",
+      }
+    );
+
+    // DELETE /follow - Unfollow user, delete follow relationship
+    follow.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(unfollowUserLambda),
+      {
+        operationName: "UnfollowUser",
+      }
+    );
+
+    // Define the /follow/{id} resource to pass a user id
+    const followId = follow.addResource("{id}");
+    // Define the /follow/{id}/followers resource to get all followers for a user
+    const followers = followId.addResource("followers");
+    // Define the /follow/{id}/following resource to get following list for a user
+    const following = followId.addResource("following");
+
+    // GET /follow/{id}/followers - Get Followers for given user id
+    followers.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFollowersLambda),
+      {
+        operationName: "GetFollowers",
+      }
+    );
+
+    // GET /follows/{id}/followers - Get Followers by ID
+    following.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFollowingLambda),
+      {
+        operationName: "GetFollowing",
       }
     );
 

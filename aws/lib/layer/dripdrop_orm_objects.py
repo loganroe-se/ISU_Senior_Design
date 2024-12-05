@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -11,18 +11,21 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
-    #Establish relationship with post
+    # Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
-    follows = relationship("Follow", order_by="Follow.followID", back_populates="userRel")
+    following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
+    followers = relationship("Follow", foreign_keys="Follow.followedId", back_populates="followed", cascade="all, delete")
 
 # Following table
 class Follow(Base):
     __tablename__ = 'follows'
-    followID = Column(Integer, primary_key=True)
-    followerID = Column(Integer, ForeignKey('users.userID'))
-    followedID = Column(Integer, nullable=False)
-    #Establish relationship with follow
-    userRel = relationship("User", order_by="User.userID", back_populates="follows")
+    # This is the account doing the following
+    followerId = Column(Integer, ForeignKey('users.userID'), primary_key=True)
+    # This is the account being followed
+    followedId = Column(Integer, ForeignKey('users.userID'), primary_key=True)
+    # Relationships
+    follower = relationship("User", foreign_keys=[followerId], back_populates="following")
+    followed = relationship("User", foreign_keys=[followedId], back_populates="followers")
 
 # Post table
 class Post(Base):

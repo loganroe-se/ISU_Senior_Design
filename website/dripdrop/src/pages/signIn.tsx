@@ -23,7 +23,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
-    const [showSignUpSuccess, setShowSignUpSuccess] = useState(false); 
+    const [showSignUpSuccess, setShowSignUpSuccess] = useState(false);
 
     const handleSignIn = async () => {
         if (!email || !password) {
@@ -41,7 +41,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                 const data = await response.json();
                 console.log("Fetched user data:", data);
 
-                const userExists = data.some((user: { email: string, username: string }) => user.email === email);
+                const userExists = data.some((user: { id: string, email: string, username: string }) => user.email === email);
                 if (userExists) {
                     const user = data.find((user: { email: string }) => user.email === email);
                     if (user) {

@@ -1,16 +1,37 @@
 import React, { useState, useEffect } from 'react';
-import { Typography, Box, Button, Paper, Avatar, IconButton, Divider } from '@mui/material';
-import { createTheme, ThemeProvider } from '@mui/material/styles';
+import {
+    Typography,
+    Box,
+    Paper,
+    Avatar,
+    IconButton,
+    Divider,
+    ImageList,
+    ImageListItem,
+    CircularProgress,
+} from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
-import { useNavigate } from 'react-router-dom';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import CommentIcon from '@mui/icons-material/Comment';
+import ViewPostModal from '../components/ViewPostModal'; // Import the new component
+
+interface Post {
+    postID: number;
+    userID: number;
+    caption: string;
+    createdDate: string;
+}
 
 const Profile = () => {
-    const navigate = useNavigate();
-    // eslint-disable-next-line
-    const [isDarkMode, setIsDarkMode] = useState(false);
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
+    const [posts, setPosts] = useState<Post[]>([]);
+    const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+    const [hoveredPost, setHoveredPost] = useState<number | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    const userID = sessionStorage.getItem('userID');
 
     useEffect(() => {
         const storedEmail = sessionStorage.getItem('email');
@@ -20,57 +41,55 @@ const Profile = () => {
         if (storedEmail) setEmail(storedEmail);
         if (storedUsername) setUsername(storedUsername);
         if (storedProfilePic) setProfilePic(storedProfilePic);
-    }, []);
 
-    const theme = createTheme({
-        palette: {
-            mode: isDarkMode ? 'dark' : 'light',
-        },
-    });
+        if (userID) {
+            fetch(`https://api.dripdropco.com/posts?${userID}`)
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error(`Error fetching posts: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then((data: Post[]) => {
+                    setPosts(data);
+                    setLoading(false);
+                })
+                .catch((error) => {
+                    console.error(error);
+                    setLoading(false);
+                });
+        }
+    }, [userID]);
 
-    const handleLogout = () => {
-        sessionStorage.clear();
-        const currentBaseUrl = window.location.origin;
-        window.location.replace(currentBaseUrl);
-        console.log("User logged out");
+    const handlePostClick = (post: Post) => {
+        setSelectedPost(post);
     };
 
+    const closePostModal = () => {
+        setSelectedPost(null);
+    };
     const handleProfilePicChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const imageUrl = reader.result;
-                if (typeof imageUrl === 'string') {
-                    setProfilePic(imageUrl);
-                    sessionStorage.setItem('profilePic', imageUrl);
-                }
-            };
-            reader.readAsDataURL(file);
+            const fileUrl = URL.createObjectURL(file);
+            setProfilePic(fileUrl);
         }
     };
 
-    const navigateToEditProfile = () => {
-        navigate('/editProfile');
-    };
 
     return (
-        <ThemeProvider theme={theme}>
-            <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
-                <Box textAlign="center" mb={4}>
-                </Box>
-
-                {/* Profile Header */}
+        <Box
+            id="feed"
+            sx={{
+                maxHeight: '95vh',
+                overflow: 'scroll',
+                padding: '32px',
+            }}
+        >
+            <Paper sx={{ padding: '32px' }}>
                 <Box display="flex" mb={2}>
-                    <IconButton
-                        component="label"
-                        sx={{ width: 100, height: 100, mr: 3 }}
-                    >
-                        <Avatar
-                            alt="Profile Picture"
-                            src={profilePic}
-                            sx={{ width: 100, height: 100 }}
-                        />
+                    <IconButton component="label" sx={{ width: 100, height: 100, mr: 3 }}>
+                        <Avatar alt="Profile Picture" src={profilePic} sx={{ width: 100, height: 100 }} />
                         <EditIcon
                             sx={{
                                 position: 'absolute',
@@ -82,95 +101,92 @@ const Profile = () => {
                                 color: 'gray',
                             }}
                         />
-                        <input
-                            type="file"
-                            accept="image/*"
-                            hidden
-                            onChange={handleProfilePicChange}
-                        />
+                        <input type="file" accept="image/*" hidden onChange={handleProfilePicChange} />
                     </IconButton>
-
-                        <Box>
-                            <Typography variant="h5">{username}</Typography>
-                            <Typography variant="body2" color="textSecondary">
-                                {email}
+                    <Box>
+                        <Typography variant="h5">{username}</Typography>
+                        <Typography variant="body2" color="textSecondary">
+                            {email}
+                        </Typography>
+                        <Box display="flex" mt={1}>
+                            <Typography variant="body2" color="textSecondary" mr={2}>
+                                {posts.length} Posts
                             </Typography>
-                            <Box display="flex" mt={1}>
-                                <Typography variant="body2" color="textSecondary" mr={2}>
-                                    {13} Posts
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary" mr={2}>
-                                    {150} Followers
-                                </Typography>
-                                <Typography variant="body2" color="textSecondary">
-                                    {120} Following
-                                </Typography>
-                            </Box>
+                            <Typography variant="body2" color="textSecondary" mr={2}>
+                                {150} Followers
+                            </Typography>
+                            <Typography variant="body2" color="textSecondary">
+                                {120} Following
+                            </Typography>
                         </Box>
-                    <Box sx={{ display: "flex", gap: 3, flexDirection: 'column', ml: 'auto' }}>
-                        <Button
-                            variant="contained"
-                            onClick={navigateToEditProfile}
-                            sx={{
-                                backgroundColor: 'white',
-                                color: 'grey',
-                                padding: '0.5rem 1.5rem',
-                                borderRadius: '20px',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                '&:hover': {
-                                    backgroundColor: '#f0f0f0', // Lighter gray on hover
-                                },
-                                border: '1px solid grey', // Add a border to make it more defined
-                            }}
-                        >
-                            Edit Profile
-                        </Button>
-
-                        <Button
-                            variant="outlined"
-                            color="error"  // Set color to red for "Log Out" button
-                            onClick={handleLogout}
-                            sx={{
-                                padding: '0.5rem 1.5rem',
-                                borderRadius: '20px',
-                                borderColor: 'error.main', // Make the border red as well
-                                '&:hover': {
-                                    borderColor: 'darkred', // Darker red on hover
-                                    backgroundColor: 'lightcoral', // Light red background on hover
-                                },
-                            }}
-                        >
-                            Log Out
-                        </Button>
-                    </Box>
-
-
-                    </Box>
-
-
-
-                {/* Divider */}
-                <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
-
-                {/* User's Posts Section */}
-                <Box mt={3}>
-                    <Typography variant="h6" gutterBottom>
-                        User's Posts
-                    </Typography>
-                    {/* Example Posts */}
-                    <Box mb={2} p={2} sx={{ backgroundColor: 'grey.100', borderRadius: '8px' }}>
-                        <Typography variant="body1">
-                            Post 1: This is an example of a user's post.
-                        </Typography>
-                    </Box>
-                    <Box mb={2} p={2} sx={{ backgroundColor: 'grey.100', borderRadius: '8px' }}>
-                        <Typography variant="body1">
-                            Post 2: Another example post from the user.
-                        </Typography>
                     </Box>
                 </Box>
+
+                <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
+
+                <Box mt={3}>
+                    <Typography variant="h4" gutterBottom>
+                        Posts
+                    </Typography>
+                    {loading ? (
+                        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
+                            <CircularProgress />
+                        </Box>
+                    ) : posts.length > 0 ? (
+                        <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
+                            {posts.map((post) => (
+                                <ImageListItem
+                                    key={post.postID}
+                                    onMouseEnter={() => setHoveredPost(post.postID)}
+                                    onMouseLeave={() => setHoveredPost(null)}
+                                    onClick={() => handlePostClick(post)}
+                                    sx={{ cursor: 'pointer', position: 'relative' }}
+                                >
+                                    <img
+                                        src={`https://picsum.photos/200?random=${post.postID}`}
+                                        alt={post.caption}
+                                        loading="lazy"
+                                    />
+                                    {hoveredPost === post.postID && (
+                                        <Box
+                                            sx={{
+                                                position: 'absolute',
+                                                top: 0,
+                                                left: 0,
+                                                width: '100%',
+                                                height: '100%',
+                                                backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                                display: 'flex',
+                                                justifyContent: 'center',
+                                                alignItems: 'center',
+                                                color: 'white',
+                                            }}
+                                        >
+                                            <Box display="flex" gap={2}>
+                                                <Box display="flex" alignItems="center" gap={0.5}>
+                                                    <FavoriteIcon />
+                                                    <Typography>{Math.floor(Math.random() * 500)}</Typography>
+                                                </Box>
+                                                <Box display="flex" alignItems="center" gap={0.5}>
+                                                    <CommentIcon />
+                                                    <Typography>{Math.floor(Math.random() * 100)}</Typography>
+                                                </Box>
+                                            </Box>
+                                        </Box>
+                                    )}
+                                </ImageListItem>
+                            ))}
+                        </ImageList>
+                    ) : (
+                        <Typography variant="body2" color="textSecondary">
+                            No posts to display.
+                        </Typography>
+                    )}
+                </Box>
+
+                <ViewPostModal selectedPost={selectedPost} onClose={closePostModal} />
             </Paper>
-        </ThemeProvider>
+        </Box>
     );
 };
 
