@@ -2,27 +2,38 @@ from sqlalchemy import select
 from sqlalchemy_utils import create_session
 from utils import handle_exception
 from dripdrop_orm_objects import Image, Post
+import base64
+import boto3
+import uuid
 
-# Functions in this file meant to be used elsewhere:
-# createImage(post_id, image_url)
-# deleteImage(image_id)
-# getImageByImageId(image_id)
-# getImageByPostId(post_id)
-# getImages()
-# updateImage(image_id, post_id, image_url)
+# S3 configuration
+S3_BUCKET = ""
+S3_REGION = ""
 
-def createImage(post_id, image_url):
-    # Try to create the image
+
+s3_client = boto3.client("s3", region_name=S3_REGION)
+
+def save_image_to_db(post_id, base64_image):
     try:
-        # Create the session
+        # Connect to the database
         session = create_session()
 
-        # Ensure that the post_id exists
+        decoded_image = base64.b64decode(base64_image)
+
+        image_id = str(uuid.uuid4())
+        s3_key = f"images/{image_id}.jpg"
+
+        # Upload the image to S3
+        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=decoded_image)
+
+        # Generate the S3 URL or ID
+        s3_image_id = f"s3://{S3_BUCKET}/{s3_key}"
+
         if post_id and not session.execute(select(Post).where(Post.postID == post_id)).scalars().first():
             raise Exception("404", f'Post with postID: {post_id} does not exist')
 
         # Create a new image
-        new_image = Image(postID=post_id, imageURL=image_url)
+        new_image = Image(postID=post_id, imageURL=s3_image_id)
 
         # Add the image to the db
         session.add(new_image)
@@ -41,160 +52,3 @@ def createImage(post_id, image_url):
         # Call a helper to handle the exception
         code, msg = handle_exception(e, "Image.py")
         return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
-
-
-def deleteImage(image_id):
-    # Try to delete the image
-    try:
-        # Create the session
-        session = create_session()
-
-        # Fetch the image
-        image = session.execute(select(Image).where(Image.imageID == image_id)).scalars().first()
-
-        if image:
-            session.delete(image)
-            session.commit()
-
-            return 200, f'Image with imageID: {image_id} was deleted successfully'
-        else:
-            return 404, f'Image with imageID: {image_id} was not found'
-
-    except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Image.py")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
-
-
-def getImageByImageId(image_id):
-    # Try to get the image
-    try:
-        # Create the session
-        session = create_session()
-
-        # Fetch the image
-        image = session.execute(select(Image).where(Image.imageID == image_id)).scalars().first()
-
-        if image:
-            # Convert image to dictionary or JSON-friendly format
-            image_data = {
-                'imageID': image.imageID,
-                'postID': image.postID,
-                'imageURL': image.imageURL
-            }
-            return 200, image_data
-        else:
-            return 404, f'Image with imageID: {image_id} not found'
-
-    except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Image.py")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
-
-
-def getImageByPostId(post_id):
-    # Try to get the image
-    try:
-        # Create the session
-        session = create_session()
-
-        # Fetch all images with the requested post ID
-        images = session.execute(select(Image).where(Image.postID == post_id)).scalars().all()
-
-        if images:
-            # Convert images to dictionary or JSON-friendly format
-            images_data = [{
-                'imageID': image.imageID,
-                'postID': image.postID,
-                'imageURL': image.imageURL
-            } for image in images]
-        
-            # Return message
-            return 200, images_data
-        else:
-            return 404, f'Image(s) with postID: {post_id} was/were not found'
-
-    except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Image.py")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
-
-
-def getImages():
-    # Try to get all images
-    try:
-        # Create the session
-        session = create_session()
-
-        # Fetch all images
-        images = session.execute(select(Image)).scalars().all()  # Get a list of image objects
-
-        images_data = [{
-            'imageID': image.imageID,
-            'postID': image.postID,
-            'imageURL': image.imageURL
-        } for image in images]
-        
-        # Return message
-        return 200, images_data
-
-    except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Image.py")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
-
-
-def updateImage(image_id, post_id, image_url):
-    # Try to update the image
-    try:
-        # Create the session
-        session = create_session()
-
-        # Get the image
-        image = session.execute(select(Image).where(Image.imageID == image_id)).scalars().first()
-
-        if image:
-            # Ensure that the post_id exists
-            if post_id and not session.execute(select(Post).where(Post.postID == post_id)).scalars().first():
-                raise Exception("404", f'Post with postID: {post_id} does not exist')
-
-            # Update image information
-            if post_id:
-                image.postID = post_id
-            if image_url:
-                image.imageURL = image_url
-                
-            session.commit()
-
-            return 200, f'Image with imageID: {image_id} was updated successfully'
-        else:
-            return 404, f'Image with imageID: {image_id} was not found'
-
-    except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Image.py")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
