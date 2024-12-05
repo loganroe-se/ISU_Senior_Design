@@ -7,48 +7,50 @@ import boto3
 import uuid
 
 # S3 configuration
-S3_BUCKET = ""
-S3_REGION = ""
+S3_BUCKET = "imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc"
+S3_REGION = "us-east-1"
 
 
 s3_client = boto3.client("s3", region_name=S3_REGION)
 
-def save_image_to_db(post_id, base64_image):
+
+def save_image_to_db(session, post_id, images):
     try:
-        # Connect to the database
-        session = create_session()
+        # Begin a transaction
+        with session.begin():
+            for base64_image in images:
+                # Decode the image from Base64
+                decoded_image = base64.b64decode(base64_image)
 
-        decoded_image = base64.b64decode(base64_image)
+                # Generate a unique ID for the image
+                image_id = str(uuid.uuid4())
+                s3_key = f"images/{image_id}.jpg"
 
-        image_id = str(uuid.uuid4())
-        s3_key = f"images/{image_id}.jpg"
+                # Upload the image to S3
+                s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=decoded_image)
 
-        # Upload the image to S3
-        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=decoded_image)
+                # Generate the S3 URL or ID
+                s3_image_id = f"s3://{S3_BUCKET}/{s3_key}"
 
-        # Generate the S3 URL or ID
-        s3_image_id = f"s3://{S3_BUCKET}/{s3_key}"
+                # Ensure the post exists
+                if (
+                    post_id
+                    and not session.execute(select(Post).where(Post.postID == post_id))
+                    .scalars()
+                    .first()
+                ):
+                    raise Exception("404", f"Post with postID: {post_id} does not exist")
 
-        if post_id and not session.execute(select(Post).where(Post.postID == post_id)).scalars().first():
-            raise Exception("404", f'Post with postID: {post_id} does not exist')
+                # Create a new image record
+                new_image = Image(postID=post_id, imageURL=s3_image_id)
 
-        # Create a new image
-        new_image = Image(postID=post_id, imageURL=s3_image_id)
+                # Add the image to the database
+                session.add(new_image)
 
-        # Add the image to the db
-        session.add(new_image)
-        session.commit()
-
-        # Construct the return message
-        if post_id:
-            message = f"Image with imageID: {new_image.imageID} and postID: {post_id} was created successfully"
-        else:
-            message = f"Image with imageID: {new_image.imageID} was created successfully"
-
-        # Return message
-        return 201, message
+        # Return success message
+        return 201, "Images successfully saved to db"
 
     except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Image.py")
-        return code, msg
+        # Handle the exception and print/log it
+        print(f"Error occurred: {e}")
+        raise  # Re-raise the exception for upstream handling

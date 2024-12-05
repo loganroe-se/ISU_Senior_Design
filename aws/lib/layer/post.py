@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from image import save_image_to_db
 from sqlalchemy_utils import create_session
 from utils import handle_exception
 from dripdrop_orm_objects import Post, User
@@ -11,7 +12,8 @@ from datetime import datetime, date
 # getPosts()
 # updatePost(post_id, caption, created_date)
 
-def createPost(user_id, caption):
+
+def createPost(user_id, caption, images):
     # Try to create the post
     try:
         # Create the session
@@ -22,27 +24,35 @@ def createPost(user_id, caption):
 
         if not user_exists:
             raise Exception("409", f"User with userID: {user_id} does not exist")
-        
+
         # Auto-fill createdDate with current time
         createdDate = date.today()
 
         # Create a new post
         new_post = Post(userID=user_id, caption=caption, createdDate=createdDate)
 
-        # Add the post to the databse
-        session.add(new_post)
-        session.commit()
+        # Begin a new transaction
+        with session.begin():
+            # Add the post to the database
+            session.add(new_post)
 
-        # Return message
-        return 201, f"Post with postID: {new_post.postID} by user with userID: {user_id} was created successfully"
+            # Call the function to save images to the database
+            save_image_to_db(session, new_post.postID, images)
+
+        # Return success message after the transaction is committed
+        return (
+            201,
+            f"Post with postID: {new_post.postID} by user with userID: {user_id} was created successfully",
+        )
 
     except Exception as e:
-        # Call a helper to handle the exception
+        # Handle the exception
         code, msg = handle_exception(e, "Post.py")
         return code, msg
 
     finally:
-        if 'session' in locals() and session:
+        # Ensure session is closed
+        if "session" in locals() and session:
             session.close()
 
 
@@ -53,15 +63,19 @@ def deletePost(post_id):
         session = create_session()
 
         # Fetch posts that matches the id
-        post = session.execute(select(Post).where(Post.postID == post_id)).scalars().first()
-        
+        post = (
+            session.execute(select(Post).where(Post.postID == post_id))
+            .scalars()
+            .first()
+        )
+
         if post:
             session.delete(post)
             session.commit()
 
-            return 200, f'Post with postID: {post_id} was deleted successfully'
+            return 200, f"Post with postID: {post_id} was deleted successfully"
         else:
-            return 404, f'Post with postID: {post_id} was not found'
+            return 404, f"Post with postID: {post_id} was not found"
 
     except Exception as e:
         # Call a helper to handle the exception
@@ -69,7 +83,7 @@ def deletePost(post_id):
         return code, msg
 
     finally:
-        if 'session' in locals() and session:
+        if "session" in locals() and session:
             session.close()
 
 
@@ -80,21 +94,28 @@ def getPostById(post_id):
         session = create_session()
 
         # Fetch post that matches id
-        post = session.execute(select(Post).where(Post.postID == post_id)).scalars().first()
+        post = (
+            session.execute(select(Post).where(Post.postID == post_id))
+            .scalars()
+            .first()
+        )
 
         if post:
             # Convert post to dictionary or JSON-friendly format
             post_data = {
-                'postID' : post.postID,
-                'userID': post.userID,
-                'caption': post.caption,
-                'createdDate': (post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
-                else post.createdDate)
+                "postID": post.postID,
+                "userID": post.userID,
+                "caption": post.caption,
+                "createdDate": (
+                    post.createdDate.isoformat()
+                    if isinstance(post.createdDate, (datetime, date))
+                    else post.createdDate
+                ),
             }
 
             return 200, post_data
         else:
-            return 404, f'Post with postID: {post_id} was not found'
+            return 404, f"Post with postID: {post_id} was not found"
 
     except Exception as e:
         # Call a helper to handle the exception
@@ -102,7 +123,7 @@ def getPostById(post_id):
         return code, msg
 
     finally:
-        if 'session' in locals() and session:
+        if "session" in locals() and session:
             session.close()
 
 
@@ -113,13 +134,25 @@ def getPosts():
         session = create_session()
 
         # Fetch all the posts
-        posts_result = session.execute(select(Post)).scalars().all()  # Get a list of user objects
+        posts_result = (
+            session.execute(select(Post)).scalars().all()
+        )  # Get a list of user objects
 
         # Create a list of post dictionaries directly
-        posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate': (
-            post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
-            else post.createdDate)} for post in posts_result]
-        
+        posts_list = [
+            {
+                "postID": post.postID,
+                "userID": post.userID,
+                "caption": post.caption,
+                "createdDate": (
+                    post.createdDate.isoformat()
+                    if isinstance(post.createdDate, (datetime, date))
+                    else post.createdDate
+                ),
+            }
+            for post in posts_result
+        ]
+
         # Return message
         return 200, posts_list
 
@@ -129,7 +162,7 @@ def getPosts():
         return code, msg
 
     finally:
-        if 'session' in locals() and session:
+        if "session" in locals() and session:
             session.close()
 
 
@@ -140,7 +173,11 @@ def updatePost(post_id, caption, created_date):
         session = create_session()
 
         # Fetch the post
-        post = session.execute(select(Post).where(Post.postID == post_id)).scalars().first()
+        post = (
+            session.execute(select(Post).where(Post.postID == post_id))
+            .scalars()
+            .first()
+        )
 
         if post:
             # Update post information
@@ -151,9 +188,9 @@ def updatePost(post_id, caption, created_date):
 
             session.commit()
 
-            return 200, f'Post with postID: {post_id} was updated successfully'
+            return 200, f"Post with postID: {post_id} was updated successfully"
         else:
-            return 404, f'Post with postID: {post_id} was not found'
+            return 404, f"Post with postID: {post_id} was not found"
 
     except Exception as e:
         # Call a helper to handle the exception
@@ -161,8 +198,9 @@ def updatePost(post_id, caption, created_date):
         return code, msg
 
     finally:
-        if 'session' in locals() and session:
+        if "session" in locals() and session:
             session.close()
+
 
 def getPostsByUserId(user_id):
     try:
@@ -170,17 +208,29 @@ def getPostsByUserId(user_id):
         session = create_session()
 
         # Fetch all posts that match the userID
-        posts_result = session.execute(select(Post).where(Post.userID == user_id)).scalars().all()
+        posts_result = (
+            session.execute(select(Post).where(Post.userID == user_id)).scalars().all()
+        )
 
         if posts_result:
             # Create a list of post dictionaries directly
-            posts_list = [{'postID': post.postID, 'userID': post.userID, 'caption': post.caption, 'createdDate': (
-                post.createdDate.isoformat() if isinstance(post.createdDate, (datetime, date))
-                else post.createdDate)} for post in posts_result]
+            posts_list = [
+                {
+                    "postID": post.postID,
+                    "userID": post.userID,
+                    "caption": post.caption,
+                    "createdDate": (
+                        post.createdDate.isoformat()
+                        if isinstance(post.createdDate, (datetime, date))
+                        else post.createdDate
+                    ),
+                }
+                for post in posts_result
+            ]
 
             return 200, posts_list
         else:
-            return 404, f'No posts found for userID: {user_id}'
+            return 404, f"No posts found for userID: {user_id}"
 
     except Exception as e:
         # Call a helper to handle the exception
@@ -188,5 +238,5 @@ def getPostsByUserId(user_id):
         return code, msg
 
     finally:
-        if 'session' in locals() and session:
+        if "session" in locals() and session:
             session.close()

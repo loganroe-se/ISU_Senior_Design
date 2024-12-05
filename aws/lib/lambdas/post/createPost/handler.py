@@ -10,6 +10,7 @@ def createPost(event, context):
         # Get all body attributes
         userID = body.get('userID')
         caption = body.get('caption')
+        images = body.get('images')
 
         # Check for missing, required values
         if not userID:
@@ -20,7 +21,7 @@ def createPost(event, context):
             caption = ""
         
         # Call another function to create the post
-        status_code, message = postPY.createPost(userID, caption)
+        status_code, message = postPY.createPost(userID, caption, images)
 
         # Return message
         return create_response(status_code, message)
