@@ -74,15 +74,40 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         maxFiles: 3,  // Limit to 3 images for this case
     });
 
-
-
+    function convertImageToHex(imageFile: Blob): Promise<string> {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            
+            reader.onload = function(event) {
+                // Type assertion to tell TypeScript event.target is definitely a FileReader
+                const arrayBuffer = (event.target as FileReader).result;
+                if (arrayBuffer instanceof ArrayBuffer) {
+                    const byteArray = new Uint8Array(arrayBuffer);
+                    let hexString = '';
+                    for (let i = 0; i < byteArray.length; i++) {
+                        hexString += byteArray[i].toString(16).padStart(2, '0');
+                    }
+                    resolve(hexString);
+                } else {
+                    reject('File reading failed: result is not an ArrayBuffer.');
+                }
+            };
+            
+            reader.onerror = function(error) {
+                reject('Error reading image file: ' + error);
+            };
+            
+            reader.readAsArrayBuffer(imageFile); // Read as binary data
+        });
+    }
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
     
         // Create new post object with just the userID
         const newPost = {
             userID,  // This comes from localStorage (already converted to a number)
-            caption: postDetails.caption
+            caption: postDetails.caption,
+            images: selectedImages.map(image => convertImageToHex(image))
         };
     
         try {
@@ -199,5 +224,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         </Dialog>
     );
 };
+
+
 
 export default CreatePostModal;

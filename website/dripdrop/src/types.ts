@@ -1,6 +1,7 @@
 export interface sendPost {
     userID: number; // Added userID to associate with user data
     caption: string;
+    images?: string[];
   }
 
 
