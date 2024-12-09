@@ -24,6 +24,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [showSignUpSuccess, setShowSignUpSuccess] = useState(false);
+    const [width, setWidth] = useState(window.innerWidth);
 
     const handleSignIn = async () => {
         if (!email || !password) {
@@ -91,51 +92,60 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     User created successfully! You can now sign in.
                 </Alert>
             </Snackbar>
-            <Box sx={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                height: 'fit-content', width: '12rem', padding: '0 3rem', bgcolor: '#FAFAFA', borderRadius: '20px'
-            }}>
-                <img src={'/images/logo.svg'} alt="logo" style={{ width: '50px' }} />
-                {isSigningUp ? (
-                    <SignUp
-                        onSignUp={onSignIn}
-                        setIsSigningUp={setIsSigningUp}
-                        onSuccessfulSignUp={() => setShowSignUpSuccess(true)} // Call on successful sign-up
-                    />
-                ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                        <Typography variant="h4" gutterBottom sx={{ color: '#0073FF', fontSize: '64px' }}>dripdrop</Typography>
-                        {error && (
-                            <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
-                        )}
-                        <TextField label="Email" variant="outlined" value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2, width: '80%' }} />
-                        <TextField label="Password" type={showPassword ? 'text' : 'password'} variant="outlined" value={password} onChange={(e) => setPassword(e.target.value)} sx={{ mb: 2, width: '80%' }}
-                            InputProps={{
-                                endAdornment: (
-                                    <InputAdornment position="end">
-                                        <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
-                                            {showPassword ? <VisibilityOff /> : <Visibility />}
-                                        </IconButton>
-                                    </InputAdornment>
-                                ),
-                            }}
+            { width > 400 ? 
+                <Box sx={{
+                    display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+                    height: 'fit-content', width: '12rem', padding: '0 3rem', bgcolor: '#FAFAFA', borderRadius: '20px'
+                }}>
+                    <img src={'/images/logo.svg'} alt="logo" style={{ width: '50px' }} />
+                    {isSigningUp ? (
+                        <SignUp
+                            onSignUp={onSignIn}
+                            setIsSigningUp={setIsSigningUp}
+                            onSuccessfulSignUp={() => setShowSignUpSuccess(true)} // Call on successful sign-up
                         />
-                        {loading ? (
-                            <CircularProgress sx={{ mb: 2 }} />
-                        ) : (
-                            <>
-                                <Button onClick={handleSignIn} sx={{ mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', width: '50%', fontSize: '20px', fontWeight: 600, padding: '0.8rem 1.5rem', '&:hover': { bgcolor: '#005BB5' } }}>
-                                    Login
-                                </Button>
-                                <Button onClick={handleAutoLogin} sx={{ color: '#0073FF' }}>Auto Login with Test Account</Button>
-                            </>
-                        )}
-                        <Button onClick={() => setIsSigningUp(true)} sx={{ background: "none", color: "#AFAFAF", fontSize: '.75rem' }}>
-                            Or sign up <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem", fontSize: '.75rem' }}>here</Typography>
-                        </Button>
+                    ) : (
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                            <Typography variant="h4" gutterBottom sx={{ color: '#0073FF', fontSize: '64px' }}>dripdrop</Typography>
+                            {error && (
+                                <Typography color="error" sx={{ mb: 2 }}>{error}</Typography>
+                            )}
+                            <TextField label="Email" variant="outlined" value={email} onChange={(e) => setEmail(e.target.value)} sx={{ mb: 2, width: '80%' }} />
+                            <TextField label="Password" type={showPassword ? 'text' : 'password'} variant="outlined" value={password} onChange={(e) => setPassword(e.target.value)} sx={{ mb: 2, width: '80%' }}
+                                InputProps={{
+                                    endAdornment: (
+                                        <InputAdornment position="end">
+                                            <IconButton aria-label="toggle password visibility" onClick={handleClickShowPassword} edge="end">
+                                                {showPassword ? <VisibilityOff /> : <Visibility />}
+                                            </IconButton>
+                                        </InputAdornment>
+                                    ),
+                                }}
+                            />
+                            {loading ? (
+                                <CircularProgress sx={{ mb: 2 }} />
+                            ) : (
+                                <>
+                                    <Button onClick={handleSignIn} sx={{ mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', width: '50%', fontSize: '20px', fontWeight: 600, padding: '0.8rem 1.5rem', '&:hover': { bgcolor: '#005BB5' } }}>
+                                        Login
+                                    </Button>
+                                    <Button onClick={handleAutoLogin} sx={{ color: '#0073FF' }}>Auto Login with Test Account</Button>
+                                </>
+                            )}
+                            <Button onClick={() => setIsSigningUp(true)} sx={{ background: "none", color: "#AFAFAF", fontSize: '.75rem' }}>
+                                Or sign up <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem", fontSize: '.75rem' }}>here</Typography>
+                            </Button>
+                        </Box>
+                    )}
+                </Box>
+                :
+                <Box sx={{ width: '100vw' }}>
+                    <Box sx={{ width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '2rem'}}>
+                        <img src={'/images/logo.svg'} alt="logo" style={{ width: '8rem' }} />
                     </Box>
-                )}
-            </Box>
+                    <Typography variant="h4" sx={{ color: '#FFFFFF', fontSize: '1.5rem', textAlign: 'center' }}>Mobile app coming soon</Typography>
+                </Box>
+            }
         </Box>
     );
 };
