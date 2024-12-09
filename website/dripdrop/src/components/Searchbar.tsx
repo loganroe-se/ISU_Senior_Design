@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Box, Typography, MenuItem, ListItemIcon, Avatar, TextField } from '@mui/material';
 import { Link } from 'react-router-dom';
 
+
 interface SearchbarItemProps {
   profilePic: string;
   profileName: string;
