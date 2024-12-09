@@ -5,6 +5,8 @@ typings
 python/
 __pycache__/
 runs/
+classify/
+seg_dataset/
 
 # OSX
 #
