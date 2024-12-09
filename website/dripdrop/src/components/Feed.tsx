@@ -83,13 +83,13 @@ const Feed = () => {
       <Grid container spacing={2}>
         {Array.isArray(posts) && posts.length > 0 ? (
           posts.map((post, index) => {
-            //const images = post.images || [];  // Default to empty array if images are undefined
+            const imageURL = post.images.length > 0 && post.images[0].imageURL ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png` : "/default_image.png";
             const username = usernamesMap[index] || "Loading...";  // Get username for each post
 
             return (
               <Grid item key={post.id} xs={12}>
                 <PostCard
-                  images={["/default_image.jpg"]}
+                  images={imageURL}
                   username={username}  // Pass username to PostCard
                   caption={post.caption}
                 />
