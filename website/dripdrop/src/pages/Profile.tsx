@@ -14,6 +14,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
+import { useLocation } from 'react-router-dom';
 
 interface Post {
     postID: number;
@@ -21,7 +22,6 @@ interface Post {
     caption: string;
     createdDate: string;
 }
-import { useNavigate, useLocation } from 'react-router-dom';
 
 const Profile = () => {
     const [email, setEmail] = useState('');
@@ -79,7 +79,7 @@ const Profile = () => {
                     setLoading(false);
                 });
         }
-    }, [userID]);
+    }, [userID,username]);
 
     const handlePostClick = (post: Post) => {
         setSelectedPost(post);
