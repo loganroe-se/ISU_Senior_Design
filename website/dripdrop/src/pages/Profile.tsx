@@ -21,6 +21,7 @@ interface Post {
     caption: string;
     createdDate: string;
 }
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const Profile = () => {
     const [email, setEmail] = useState('');
@@ -31,16 +32,35 @@ const Profile = () => {
     const [hoveredPost, setHoveredPost] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
 
-    const userID = sessionStorage.getItem('userID');
+    let userID = sessionStorage.getItem('userID');
+    let location=useLocation();
+
+    const getUser = async () => {
+        const response = await fetch('https://api.dripdropco.com/users/'+userID);
+        const data = await response.json();
+
+        setEmail(data.email);
+        setUsername(data.username);
+    }
+
+    try {
+        userID=location.state.uID;
+        getUser();
+    }
+    catch {
+        
+    }
 
     useEffect(() => {
         const storedEmail = sessionStorage.getItem('email');
         const storedUsername = sessionStorage.getItem('username');
         const storedProfilePic = sessionStorage.getItem('profilePic');
 
-        if (storedEmail) setEmail(storedEmail);
-        if (storedUsername) setUsername(storedUsername);
-        if (storedProfilePic) setProfilePic(storedProfilePic);
+        if(username==='') {
+            if (storedEmail) setEmail(storedEmail);
+            if (storedUsername) setUsername(storedUsername);
+            if (storedProfilePic) setProfilePic(storedProfilePic);
+        }
 
         if (userID) {
             fetch(`https://api.dripdropco.com/posts?${userID}`)

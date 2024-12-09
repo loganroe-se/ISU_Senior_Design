@@ -13,16 +13,25 @@ interface SidebarItemProps {
   onClick?: () => void;
 }
 
-const Sidebar = () => {
+interface SidebarProps {
+  showSearch: boolean;
+  setShowSearch: (newValue: boolean) => void;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
   const [isFilterOpen, setFilterOpen] = useState(false); // State for drawer visibility
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false); // State for modal visibility
+
+  const linkProps = {
+    uID: sessionStorage.getItem("id"),
+  }
 
   return (
     <Box sx={{
       height: '100vh',
       display: 'flex',
       alignItems: 'center',
-      padding: '0px .5rem'
+      paddingLeft: '.5rem'
     }}>
       <Box>
         <Box
@@ -50,7 +59,9 @@ const Sidebar = () => {
 
         <Box sx={{ display: 'grid', alignItems: 'center', padding: '1rem 0', border: '1px solid #DFDFDF', height: '75vh' }}>
           <SidebarItem iconClass="bi bi-house-door" label="Home" link="/" />
-          <SidebarItem iconClass="bi bi-search" label="Search" link="/search" />
+          <SidebarItem iconClass="bi bi-search" label="Search" link="#" onClick={() => {
+            setShowSearch(!showSearch);
+          }} />
           <SidebarItem
             iconClass="bi bi-plus-square"
             label="Post"
@@ -76,6 +87,7 @@ const Sidebar = () => {
           <MenuItem
             component={Link}
             to="/profile" // Link to the user's profile
+            state={linkProps}
             sx={{
               display: 'flex',
               alignItems: 'center',
