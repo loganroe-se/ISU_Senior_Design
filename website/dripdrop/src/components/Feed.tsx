@@ -1,17 +1,27 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Container, Grid, CircularProgress, Typography, Box } from "@mui/material";
 import PostCard from "./PostCard";
+import { fetchPosts, fetchUserById, fetchFollowing } from "../api/api";  // Import API functions
 import { retreivePost } from "../types";
-import { fetchPosts, fetchUserById } from "../api/api";  // Import API functions
 
 const Feed = () => {
   const [posts, setPosts] = useState<retreivePost[]>([]);  // State for posts
+
+  interface Following {
+    userID: number;
+    username: string;
+    email: string;
+  }
+
   const [loading, setLoading] = useState<boolean>(true);  // State for loading
   const [error, setError] = useState<string | null>(null);  // State for error message
   const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({});  // State for storing usernames
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true);  // Loading state for usernames
+  const [followingList, setFollowingList] = useState<Following[]>([]);
 
   useEffect(() => {
+    let storedID = Number(sessionStorage.getItem('userID'));
+
     const loadPostsAndUsernames = async () => {
       try {
         // Fetch posts from the API
@@ -22,6 +32,11 @@ const Feed = () => {
         const usernamesData = await Promise.all(
           postsData.map((post) => fetchUserById(post.userID))
         );
+
+        if(followingList.length === 0) {
+          setFollowingList(await fetchFollowing(storedID));
+          console.log(followingList);
+        }
 
         // Create a mapping of post IDs to usernames
         const usernamesMap: { [key: string]: string } = {};
@@ -45,7 +60,7 @@ const Feed = () => {
     };
 
     loadPostsAndUsernames();  // Call the function to fetch posts and usernames
-  }, []);  // Empty dependency array ensures this runs only once when the component mounts
+  }, [followingList]);  // Empty dependency array ensures this runs only once when the component mounts
 
   // If we're loading, show a loading spinner
   if (loading || usernamesLoading) {
@@ -77,6 +92,16 @@ const Feed = () => {
     );
   }
 
+  const checkFollowable = function (list: Following[], username: string) {
+    for(let i=0; i<list.length; i++) {
+      if(list[i].username === username || username === sessionStorage.getItem('username')) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
   // Render the posts
   return (
     <Container>
@@ -86,11 +111,14 @@ const Feed = () => {
             const imageURL = post.images.length > 0 && post.images[0].imageURL ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png` : "/default_image.png";
             const username = usernamesMap[index] || "Loading...";  // Get username for each post
 
+            let following = checkFollowable(followingList,username);
+
             return (
               <Grid item key={post.id} xs={12}>
                 <PostCard
                   images={imageURL}
                   username={username}  // Pass username to PostCard
+                  following={following}
                   caption={post.caption}
                 />
               </Grid>
