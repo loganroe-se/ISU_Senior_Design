@@ -129,7 +129,7 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp, onSuccessfulS
                 <Button
                     onClick={handleSignUp}
                     sx={{
-                        mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', width: '50%', fontSize: '20px',
+                        mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', fontSize: '1.5rem',
                         fontFamily: 'Roboto, sans-serif', fontWeight: 600, padding: '0.8rem 1.5rem',
                         '&:hover': { bgcolor: '#005BB5', boxShadow: '0px 4px 12px rgba(0, 115, 255, 0.3)' }
                     }}
@@ -137,8 +137,8 @@ const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp, onSuccessfulS
                     Sign Up
                 </Button>
             )}
-            <Button onClick={() => setIsSigningUp(false)} sx={{ background: "none", color: "#AFAFAF" }}>
-                Have an account? <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem" }}>Sign in here</Typography>
+            <Button onClick={() => setIsSigningUp(false)} sx={{ background: "none", color: "#AFAFAF", display: 'flex', fontSize: '.75rem' }}>
+                Have an account? <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem", fontSize: '.75rem' }}>Sign in here</Typography>
             </Button>
 
             {/* Snackbar for success message */}

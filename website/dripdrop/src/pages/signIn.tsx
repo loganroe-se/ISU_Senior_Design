@@ -92,7 +92,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
             </Snackbar>
             <Box sx={{
                 display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                height: '70vh', width: '25vw', padding: '0 3rem', bgcolor: '#FAFAFA', borderRadius: '20px'
+                height: 'fit-content', width: '12rem', padding: '0 3rem', bgcolor: '#FAFAFA', borderRadius: '20px'
             }}>
                 <img src={'/images/logo.svg'} alt="logo" style={{ width: '50px' }} />
                 {isSigningUp ? (
@@ -126,11 +126,11 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                                 <Button onClick={handleSignIn} sx={{ mb: 2, bgcolor: '#0073FF', color: 'white', borderRadius: '40px', width: '50%', fontSize: '20px', fontWeight: 600, padding: '0.8rem 1.5rem', '&:hover': { bgcolor: '#005BB5' } }}>
                                     Login
                                 </Button>
-                                <Button onClick={handleAutoLogin} sx={{ mb: 2, color: '#0073FF' }}>Auto Login with Test Account</Button>
+                                <Button onClick={handleAutoLogin} sx={{ color: '#0073FF' }}>Auto Login with Test Account</Button>
                             </>
                         )}
-                        <Button onClick={() => setIsSigningUp(true)} sx={{ background: "none", color: "#AFAFAF" }}>
-                            Or sign up <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem" }}>here</Typography>
+                        <Button onClick={() => setIsSigningUp(true)} sx={{ background: "none", color: "#AFAFAF", fontSize: '.75rem' }}>
+                            Or sign up <Typography sx={{ textDecoration: "underline", color: "#9D9D9D", marginLeft: ".2rem", fontSize: '.75rem' }}>here</Typography>
                         </Button>
                     </Box>
                 )}
