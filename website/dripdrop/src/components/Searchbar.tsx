@@ -5,7 +5,6 @@ import { v4 as uuidv4 } from 'uuid';
 
 interface SearchbarItemProps {
   profilePic: string;
-  profileName: string;
   profileUsername: string;
   profileID: string;
   setShowSearchBar: (newValue: boolean) => void;
@@ -74,7 +73,8 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
         <Box>
           {
             results.length > 0 ? results.map((user) => {
-                return <SearchbarItem profileName="Bob" profileUsername={user.username} profilePic="" profileID={user.id} key={uuidv4()} setShowSearchBar={setShowSearchBar}/>
+
+                return <SearchbarItem profileUsername={user.username} profilePic="" profileID={user.id} key={uuidv4()} setShowSearchBar={setShowSearchBar}/>
               }) : <Typography sx={{
                 width: '90%',
                 marginLeft: '5%'
@@ -86,7 +86,7 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
   );
 };
 
-const SearchbarItem: React.FC<SearchbarItemProps> = ({ profilePic, profileName, profileUsername, profileID, setShowSearchBar, onClick }) => {
+const SearchbarItem: React.FC<SearchbarItemProps> = ({ profilePic, profileUsername, profileID, setShowSearchBar, onClick }) => {
   const linkProps = {
     uID: profileID,
   }
@@ -112,7 +112,6 @@ const SearchbarItem: React.FC<SearchbarItemProps> = ({ profilePic, profileName, 
       </ListItemIcon>
       <Box>
         <Typography sx={{ fontSize: '1rem', fontWeight: 'bold', margin: 0, lineHeight: '1.5rem' }}>{profileUsername}</Typography>
-        <Typography sx={{ fontSize: '.75rem', margin: 0 }}>{profileName}</Typography>
       </Box>
     </MenuItem>
   );

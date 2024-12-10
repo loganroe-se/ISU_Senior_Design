@@ -53,8 +53,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
   const userID = Number(sessionStorage.getItem("id"));
   const storedUsername = sessionStorage.getItem("username");
-  console.log(userID);
-  console.log(storedUsername);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -63,7 +61,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
   const onDrop = (acceptedFiles: File[]) => {
     acceptedFiles.forEach((file) => {
-      const reader = new FileReader();
+      const reader = new FileReader(); 
   
       reader.onloadend = () => {
         // Extract the Base64 string without the metadata (data:image/png;base64,)

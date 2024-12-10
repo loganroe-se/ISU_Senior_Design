@@ -108,7 +108,10 @@ const Feed = () => {
       <Grid container spacing={2}>
         {Array.isArray(posts) && posts.length > 0 ? (
           posts.map((post, index) => {
-            const imageURL = post.images.length > 0 && post.images[0].imageURL ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png` : "/default_image.png";
+            const imageURL = Array.isArray(post.images) && post.images.length > 0 && post.images[0].imageURL
+              ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+              : "/default_image.png";
+
             const username = usernamesMap[index] || "Loading...";  // Get username for each post
 
             let following = checkFollowable(followingList,username);
