@@ -12,6 +12,7 @@ from datetime import datetime, date
 # getPostById(post_id)
 # getPosts()
 # updatePost(post_id, caption, created_date)
+# getPostsByUserId(user_id)
 
 
 def createPost(user_id, caption, images):
