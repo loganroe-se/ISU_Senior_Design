@@ -9,12 +9,16 @@ import {
     ImageList,
     ImageListItem,
     CircularProgress,
+    Button
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
 import { useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+
+
 
 interface Post {
     postID: number;
@@ -31,6 +35,8 @@ const Profile = () => {
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [hoveredPost, setHoveredPost] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const navigate = useNavigate();
 
     let userID = sessionStorage.getItem('userID');
     let location=useLocation();
@@ -50,6 +56,10 @@ const Profile = () => {
     catch {
         
     }
+    const navigateToEditProfile = () => {
+        navigate('/editProfile');
+    };
+
 
     useEffect(() => {
         const storedEmail = sessionStorage.getItem('email');
@@ -95,6 +105,12 @@ const Profile = () => {
             setProfilePic(fileUrl);
         }
     };
+    const handleLogout = () => {
+        sessionStorage.clear();
+        const currentBaseUrl = window.location.origin;
+        window.location.replace(currentBaseUrl);
+    };
+
 
 
     return (
@@ -140,6 +156,43 @@ const Profile = () => {
                             </Typography>
                         </Box>
                     </Box>
+                    <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column', ml: 'auto' }}>
+                        <Button
+                            variant="contained"
+                            onClick={navigateToEditProfile}
+                            sx={{
+                                backgroundColor: 'white',
+                                color: 'grey',
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '20px',
+                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                '&:hover': {
+                                    backgroundColor: '#f0f0f0',
+                                },
+                                border: '1px solid grey',
+                            }}
+                        >
+                            Edit Profile
+                        </Button>
+
+                        <Button
+                            variant="outlined"
+                            color="error"
+                            onClick={handleLogout}
+                            sx={{
+                                padding: '0.5rem 1.5rem',
+                                borderRadius: '20px',
+                                borderColor: 'error.main',
+                                '&:hover': {
+                                    borderColor: 'darkred',
+                                    backgroundColor: 'lightcoral',
+                                },
+                            }}
+                        >
+                            Log Out
+                        </Button>
+                    </Box>
+
                 </Box>
 
                 <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
