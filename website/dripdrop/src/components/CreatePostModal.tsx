@@ -52,7 +52,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const [openSnackbar, setOpenSnackbar] = useState(false);
 
   const userID = Number(sessionStorage.getItem("id"));
-  const storedUsername = sessionStorage.getItem("username");
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
