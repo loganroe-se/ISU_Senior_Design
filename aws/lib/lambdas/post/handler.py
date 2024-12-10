@@ -2,7 +2,7 @@ import json
 import post as postPY
 from utils import create_response
 
-def handler(event):
+def handler(event, context):
     try:
         # Determine the HTTP method and resource path
         http_method = event.get('httpMethod')
