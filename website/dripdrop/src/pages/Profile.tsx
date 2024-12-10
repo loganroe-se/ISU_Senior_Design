@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
     Typography,
     Box,
@@ -43,13 +43,18 @@ const Profile = () => {
     let userID = sessionStorage.getItem('userID');
     let location=useLocation();
 
-    const getUser = async () => {
-        const response = await fetch('https://api.dripdropco.com/users/'+userID);
-        const data = await response.json();
-
-        setEmail(data.email);
-        setUsername(data.username);
-    }
+    // Define functions with useCallback for stable references
+    const getUser = useCallback(async () => {
+        if (!userID) return;
+        try {
+            const response = await fetch(`https://api.dripdropco.com/users/${userID}`);
+            const data = await response.json();
+            setEmail(data.email);
+            setUsername(data.username);
+        } catch (error) {
+            console.error('Error fetching user:', error);
+        }
+    }, [userID]);
 
     try {
         userID=location.state.uID;
@@ -93,13 +98,6 @@ const Profile = () => {
         }
     }, [userID,username]);
 
-    useEffect(() => {
-        if (userID) {
-            getUser();
-            getFollowersAndFollowing();
-        }
-    }, [userID]);
-
     const handlePostClick = (post: Post) => {
         setSelectedPost(post);
     };
@@ -122,19 +120,27 @@ const Profile = () => {
 
 
     // Fetch followers and following
-    const getFollowersAndFollowing = async () => {
+    const getFollowersAndFollowing = useCallback(async () => {
+        if (!userID) return;
         try {
             const followersResponse = await fetch(`https://api.dripdropco.com/follow/${userID}/followers`);
             const followersData = await followersResponse.json();
-            setFollowers(followersData.length); // Assuming the response is an array of followers
+            setFollowers(followersData.length);
 
             const followingResponse = await fetch(`https://api.dripdropco.com/follow/${userID}/following`);
             const followingData = await followingResponse.json();
-            setFollowing(followingData.length); // Assuming the response is an array of following
+            setFollowing(followingData.length);
         } catch (error) {
             console.error('Error fetching followers or following:', error);
         }
-    };
+    }, [userID]);
+
+    useEffect(() => {
+        if (userID) {
+            getUser();
+            getFollowersAndFollowing();
+        }
+    }, [userID, getUser, getFollowersAndFollowing]);
 
 
     return (
