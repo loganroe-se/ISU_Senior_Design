@@ -143,7 +143,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     <Box sx={{ width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '2rem'}}>
                         <img src={'/images/logo.svg'} alt="logo" style={{ width: '8rem' }} />
                     </Box>
-                    <Typography variant="h4" sx={{ color: '#FFFFFF', fontSize: '1.5rem', textAlign: 'center' }}>Mobile app coming soon</Typography>
+                    <Typography variant="h4" sx={{ color: '#0073FF', fontSize: '1.5rem', textAlign: 'center' }}>Mobile app coming soon</Typography>
                 </Box>
             }
         </Box>
