@@ -21,6 +21,7 @@ export default function Home() {
           justifyContent: 'center',
           flexGrow: 1,
           display: 'flex',
+          alignItems: 'center'
         }}
       >
         <Feed /> {/* Include the Feed component */}
