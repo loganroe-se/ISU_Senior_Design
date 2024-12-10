@@ -10,7 +10,7 @@ export default function Home() {
       id="feed"
       sx={{
         display: 'flex',
-        maxHeight: '95vh',
+        maxHeight: 'auto',
         overflow: 'scroll',
       }}
     >
