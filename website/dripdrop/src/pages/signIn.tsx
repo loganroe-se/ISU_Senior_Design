@@ -24,7 +24,9 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     const [error, setError] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [showSignUpSuccess, setShowSignUpSuccess] = useState(false);
-    const [width, setWidth] = useState(window.innerWidth);
+
+    const isWideScreen = window.innerWidth > 400;
+
 
     const handleSignIn = async () => {
         if (!email || !password) {
@@ -92,7 +94,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                     User created successfully! You can now sign in.
                 </Alert>
             </Snackbar>
-            { width > 400 ? 
+            { isWideScreen ? 
                 <Box sx={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
                     height: 'fit-content', padding: '3rem 8rem', borderRadius: '20px', backgroundColor: 'white', boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
