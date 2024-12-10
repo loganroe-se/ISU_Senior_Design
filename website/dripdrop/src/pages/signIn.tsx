@@ -42,7 +42,6 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Fetched user data:", data);
 
                 const userExists = data.some((user: { id: string, email: string, username: string }) => user.email === email);
                 if (userExists) {

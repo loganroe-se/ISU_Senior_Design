@@ -35,6 +35,8 @@ const Profile = () => {
     const [selectedPost, setSelectedPost] = useState<Post | null>(null);
     const [hoveredPost, setHoveredPost] = useState<number | null>(null);
     const [loading, setLoading] = useState(true);
+    const [followers, setFollowers] = useState<number>(0);
+    const [following, setFollowing] = useState<number>(0);
 
     const navigate = useNavigate();
 
@@ -91,6 +93,13 @@ const Profile = () => {
         }
     }, [userID,username]);
 
+    useEffect(() => {
+        if (userID) {
+            getUser();
+            getFollowersAndFollowing();
+        }
+    }, [userID]);
+
     const handlePostClick = (post: Post) => {
         setSelectedPost(post);
     };
@@ -111,6 +120,21 @@ const Profile = () => {
         window.location.replace(currentBaseUrl);
     };
 
+
+    // Fetch followers and following
+    const getFollowersAndFollowing = async () => {
+        try {
+            const followersResponse = await fetch(`https://api.dripdropco.com/follow/${userID}/followers`);
+            const followersData = await followersResponse.json();
+            setFollowers(followersData.length); // Assuming the response is an array of followers
+
+            const followingResponse = await fetch(`https://api.dripdropco.com/follow/${userID}/following`);
+            const followingData = await followingResponse.json();
+            setFollowing(followingData.length); // Assuming the response is an array of following
+        } catch (error) {
+            console.error('Error fetching followers or following:', error);
+        }
+    };
 
 
     return (
@@ -149,10 +173,10 @@ const Profile = () => {
                                 {posts.length} Posts
                             </Typography>
                             <Typography variant="body2" color="textSecondary" mr={2}>
-                                {150} Followers
+                                {followers} Followers
                             </Typography>
                             <Typography variant="body2" color="textSecondary">
-                                {120} Following
+                                {following} Following
                             </Typography>
                         </Box>
                     </Box>
