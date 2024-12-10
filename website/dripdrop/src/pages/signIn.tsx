@@ -51,7 +51,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
                         sessionStorage.setItem("email", user.email);
                         sessionStorage.setItem("id", user.id);
                         sessionStorage.setItem("password", password);
-                        sessionStorage.setItem("id", user.id);
+
                     }
 
                     onSignIn(email, password);
@@ -85,7 +85,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
     return (
         <Box sx={{
             display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            height: '100vh', bgcolor: '#185197'
+            height: '100vh', bgcolor: '#f5f7fe'
         }}>
             <Snackbar open={showSignUpSuccess} autoHideDuration={6000} onClose={() => setShowSignUpSuccess(false)}>
                 <Alert onClose={() => setShowSignUpSuccess(false)} severity="success" sx={{ width: '100%' }}>
@@ -95,7 +95,7 @@ const SignIn: React.FC<SignInProps> = ({ onSignIn }) => {
             { width > 400 ? 
                 <Box sx={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-                    height: 'fit-content', width: '12rem', padding: '0 3rem', bgcolor: '#FAFAFA', borderRadius: '20px'
+                    height: 'fit-content', padding: '3rem 8rem', borderRadius: '20px', backgroundColor: 'white', boxShadow: '0px 4px 10px rgba(0, 0, 0, 0.1)'
                 }}>
                     <img src={'/images/logo.svg'} alt="logo" style={{ width: '50px' }} />
                     {isSigningUp ? (
