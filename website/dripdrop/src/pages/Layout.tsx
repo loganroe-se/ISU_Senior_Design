@@ -16,6 +16,7 @@ export default function Home() {
   const [searchResults, setSearchResults] = useState<User[]>([]);
   const [filteredSearchResults, setFilteredSearchResults] = useState<User[]>([]);
   const [showSearch, setShowSearch] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
 
   interface User {
     username: string;
@@ -27,6 +28,8 @@ export default function Home() {
     const performSearch = async () => {
       if (search !== "") {
         try {
+          setIsLoading(true); // Set loading to true when starting the search
+
           if (!hasSearched || search.length < lastSearch.length || !search.includes(lastSearch)) {
             const response = await fetch('https://api.dripdropco.com/users');
             const data = await response.json();
@@ -55,14 +58,18 @@ export default function Home() {
             });
             setFilteredSearchResults(results);
           }
+
+          setIsLoading(false); // Set loading to false after search completes
         } catch (error) {
           console.error('Error fetching user data:', error);
+          setIsLoading(false); // Set loading to false on error
         }
       } else {
         setSearchResults([]);
         setFilteredSearchResults([]);
         setHasSearched(false);
         setLastSearch('');
+        setIsLoading(false); // Stop loading when no search term
       }
     };
 
@@ -76,7 +83,6 @@ export default function Home() {
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       <CssBaseline />
-      {/* Sidebar */}
       <Box sx={{
         height: '100vh',
         display: 'flex',
@@ -87,34 +93,35 @@ export default function Home() {
         <Sidebar showSearch={showSearch} setShowSearch={setShowSearch} />
       </Box>
 
-      {/* Main content area */}
       <Box sx={{
         display: 'flex',
-        flexDirection: 'column',
+        flexDirection: 'row',
         alignItems: 'flex-start',
-        flexGrow: 1, // Ensure it takes the remaining space
-        paddingLeft: '240px', // Adjust based on sidebar width
+        flexGrow: 1,
+        paddingLeft: '267px',
       }}>
         {/* Conditionally render Searchbar */}
         {showSearch && (
           <Box sx={{ p: 2 }}>
-            <Searchbar value={search} setValue={setSearch} results={filteredSearchResults} setShowSearchBar={setShowSearch} />
+            <Searchbar
+              value={search}
+              setValue={setSearch}
+              results={filteredSearchResults}
+              setShowSearchBar={setShowSearch}
+              isLoading={isLoading}  // Pass loading state
+            />
           </Box>
         )}
 
-        {/* Content Container */}
-        <Container
-          component="main"
-          sx={{
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'flex-start',
-            flexGrow: 1, // Shrinks when search bar is shown
-            minHeight: showSearch ? 'calc(100vh - 60px)' : '100vh', // Shrinks the height when search is visible
-            p: 1.5,
-            transition: 'min-height 0.3s ease',
-          }}
-        >
+        <Container component="main" sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'flex-start',
+          flexGrow: 1,
+          minHeight: showSearch ? 'calc(100vh - 60px)' : '100vh',
+          p: 1.5,
+          transition: 'min-height 0.3s ease',
+        }}>
           <Routes>
             <Route path="/" element={<Navigate to="/home" />} />
             <Route path="/home" element={<HomePage />} />
