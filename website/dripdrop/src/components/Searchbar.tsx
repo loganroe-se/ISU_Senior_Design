@@ -31,25 +31,11 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
 
   return (
     <Box sx={{
-      height: '100vh',
       display: 'flex',
       alignItems: 'center',
       padding: '0px .5rem'
     }}>
-      <Box
-        sx={{
-          height: '95vh',
-          width: '30vw',
-          border: '1px solid #dfdfdf',
-          borderRadius: '10px'
-        }}
-      >
-        <Box sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '10%'
-        }}>
+
           <TextField id="outlined-basic" placeholder="Search..." variant="outlined" value={value} onChange={
             handleChange
           } sx={{
@@ -69,7 +55,7 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
               },
             },
           }} />
-        </Box>
+
         <Box>
           {
             results.length > 0 ? results.map((user) => {
@@ -82,7 +68,6 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
           }
         </Box>
       </Box>
-    </Box>
   );
 };
 

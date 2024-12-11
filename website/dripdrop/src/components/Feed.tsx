@@ -42,7 +42,6 @@ const Feed = () => {
 
   if (loading || usernamesLoading) {
     return (
-      <Container>
         <Box
           sx={{
             display: "flex",
@@ -53,7 +52,7 @@ const Feed = () => {
         >
           <CircularProgress />
         </Box>
-      </Container>
+
     );
   }
 
@@ -68,7 +67,7 @@ const Feed = () => {
   }
 
   return (
-    <Container>
+
       <Box
         sx={{
           marginTop: "2rem", // Adds spacing from the top
@@ -113,7 +112,7 @@ const Feed = () => {
           )}
         </Grid>
       </Box>
-    </Container>
+
   );
 };
 

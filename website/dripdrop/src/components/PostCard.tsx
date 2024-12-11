@@ -46,7 +46,14 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption }) => {
   
 
   return (
-    <Card sx={{ maxWidth: '16rem', marginBottom: '16px' }}>
+    <Card
+      sx={{
+        width: '40%',
+        marginBottom: '16px',
+        boxShadow: 3,
+        borderRadius: '12px',
+      }}
+    >
       {/* Image section */}
       <CardMedia
         component="img"

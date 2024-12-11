@@ -37,6 +37,8 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [followers, setFollowers] = useState<number>(0);
     const [following, setFollowing] = useState<number>(0);
+    const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>({});
+
 
     const navigate = useNavigate();
 
@@ -118,6 +120,20 @@ const Profile = () => {
         window.location.replace(currentBaseUrl);
     };
 
+    // Function to initialize random stats for posts
+    useEffect(() => {
+        if (posts.length > 0 && Object.keys(postStats).length === 0) {
+            const stats = posts.reduce((acc, post) => {
+                acc[post.postID] = {
+                    likes: Math.floor(Math.random() * 500), // Random likes
+                    comments: Math.floor(Math.random() * 100), // Random comments
+                };
+                return acc;
+            }, {} as Record<number, { likes: number; comments: number }>);
+            setPostStats(stats);
+        }
+    }, [posts, postStats]);
+
 
     // Fetch followers and following
     const getFollowersAndFollowing = useCallback(async () => {
@@ -144,15 +160,7 @@ const Profile = () => {
 
 
     return (
-        <Box
-            id="feed"
-            sx={{
-                maxHeight: '95vh',
-                overflow: 'scroll',
-                padding: '32px',
-            }}
-        >
-            <Paper sx={{ padding: '32px' }}>
+            <Paper>
                 <Box display="flex" mb={2}>
                     <IconButton component="label" sx={{ width: 100, height: 100, mr: 3 }}>
                         <Avatar alt="Profile Picture" src={profilePic} sx={{ width: 100, height: 100 }} />
@@ -268,11 +276,11 @@ const Profile = () => {
                                             <Box display="flex" gap={2}>
                                                 <Box display="flex" alignItems="center" gap={0.5}>
                                                     <FavoriteIcon />
-                                                    <Typography>{Math.floor(Math.random() * 500)}</Typography>
+                                                    <Typography>{postStats[post.postID]?.likes || 0}</Typography>
                                                 </Box>
                                                 <Box display="flex" alignItems="center" gap={0.5}>
                                                     <CommentIcon />
-                                                    <Typography>{Math.floor(Math.random() * 100)}</Typography>
+                                                    <Typography>{postStats[post.postID]?.comments || 0}</Typography>
                                                 </Box>
                                             </Box>
                                         </Box>
@@ -289,7 +297,7 @@ const Profile = () => {
 
                 <ViewPostModal selectedPost={selectedPost} onClose={closePostModal} />
             </Paper>
-        </Box>
+
     );
 };
 

@@ -27,12 +27,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
   }
 
   return (
-    <Box sx={{
-      height: '100vh',
-      display: 'flex',
-      alignItems: 'center',
-      paddingLeft: '.5rem'
-    }}>
+<>
       <Box>
         <Box
           sx={{
@@ -107,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
       </Box>
       <CreatePostModal isOpen={isCreatePostModalOpen} onClose={() => setCreatePostModalOpen(false)} />
-    </Box>
+    </>
   );
 };
 
