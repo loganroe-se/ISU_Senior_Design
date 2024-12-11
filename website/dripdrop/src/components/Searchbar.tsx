@@ -58,7 +58,7 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
   };
 
   return (
-    <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', padding: '0px .5rem' }}>
+    <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', padding: '.5em', position:'fixed' }}>
       <Box
         ref={searchRef}  // Assign ref to the search bar container
         sx={{

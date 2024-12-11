@@ -102,7 +102,7 @@ export default function Home() {
       }}>
         {/* Conditionally render Searchbar */}
         {showSearch && (
-          <Box sx={{ p: 2 }}>
+          <Box paddingX={2}>
             <Searchbar
               value={search}
               setValue={setSearch}
