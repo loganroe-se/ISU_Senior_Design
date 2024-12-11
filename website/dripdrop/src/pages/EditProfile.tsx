@@ -60,7 +60,7 @@ const EditProfile = () => {
     };
 
     return (
-        <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
+        <Paper sx={{ minHeight: '100vh', padding: '32px', width:'1' }}>
             <Box display="flex" alignItems="center" mb={4}>
                 <IconButton onClick={handleBack} aria-label="Back">
                     <ArrowBackIcon />

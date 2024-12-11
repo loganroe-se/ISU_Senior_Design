@@ -99,7 +99,7 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
           />
           {/* Clear Search Button */}
           {value && (
-            <IconButton onClick={handleClearSearch} sx={{ position: 'absolute', right: '6%', top: '3%' }}>
+            <IconButton onClick={handleClearSearch} sx={{ position: 'absolute', right: '6%', top: '2.75%' }}>
               <ClearIcon />
             </IconButton>
           )}

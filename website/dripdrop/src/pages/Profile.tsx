@@ -161,7 +161,7 @@ const Profile = () => {
 
     return (
 
-        <Paper sx={{p:'1em', m: '1em' }}>
+        <Paper sx={{ p: '1em', m: '1em', width:'1' }}>
 
             <Box display="flex" mb={2}>
                 <IconButton component="label" sx={{ width: 100, height: 100, mr: 3 }}>
