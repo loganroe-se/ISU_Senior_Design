@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Box, Typography, MenuItem, ListItemIcon, Avatar } from '@mui/material';
-import { Link } from 'react-router-dom';
 import Filter from './Filters'; // Assuming Filter component is imported
 import CreatePostModal from './CreatePostModal'; // Import the CreatePostModal component
+import { NavLink } from 'react-router';
 
 interface SidebarProps {
   showSearch: boolean;
@@ -67,7 +67,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
           {sidebarItems.map(({ iconClass, label, link, onClick }, index) => (
             <MenuItem
               key={index}
-              component={Link}
+              component={NavLink}
               to={link}
               onClick={onClick}
               sx={{
@@ -105,7 +105,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
           }}
         >
           <MenuItem
-            component={Link}
+            component={NavLink}
             to="/profile"
             state={{ uID: userId }}
             sx={{ display: 'flex', alignItems: 'center', width: '100%' }}

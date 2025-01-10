@@ -15,9 +15,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
-import { useLocation } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
-
+import { useLocation, useNavigate } from 'react-router';
 
 
 interface Post {

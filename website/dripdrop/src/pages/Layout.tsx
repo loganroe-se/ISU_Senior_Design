@@ -1,15 +1,15 @@
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Profile from './Profile';
-import HomePage from './Home';
 import Sidebar from '../components/Sidebar';
-import EditProfile from './EditProfile';
 import Searchbar from '../components/Searchbar';
 import { useEffect, useState } from 'react';
 
-export default function Home() {
+type Props = {
+  children: string | JSX.Element | JSX.Element[];
+};
+
+export default function Home({ children }: Props) {
   const [lastSearch, setLastSearch] = useState('');
   const [search, setSearch] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -122,12 +122,7 @@ export default function Home() {
           p: 1.5,
           transition: 'min-height 0.3s ease',
         }}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/editProfile" element={<EditProfile />} />
-          </Routes>
+          {children}
         </Container>
       </Box>
     </Box>
