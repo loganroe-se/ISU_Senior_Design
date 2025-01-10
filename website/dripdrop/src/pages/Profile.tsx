@@ -16,6 +16,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
 import { useUserContext } from '../Auth/UserContext';
+import { useNavigate } from 'react-router';
 
 interface Post {
   postID: number;
