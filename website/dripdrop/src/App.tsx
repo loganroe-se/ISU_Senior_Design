@@ -1,12 +1,12 @@
-import Box from "@mui/material/Box";
-import { UserProvider } from "./Auth/UserContext";
-import { BrowserRouter, Route, Routes, Outlet } from "react-router";
-import HomePage from "./pages/Layout";
-import ProtectedRoute from "./Auth/ProtectedRoute";
-import SignIn from "./pages/signIn";
-import Profile from "./pages/Profile";
-import Feed from "./components/Feed"; // Assuming Feed is a component, not an icon
-import EditProfile from "./pages/EditProfile";
+import React from 'react';
+import Box from '@mui/material/Box';
+import { UserProvider } from './Auth/UserContext';
+import { BrowserRouter, Route, Routes, Outlet } from 'react-router';
+import HomePage from './pages/Layout';
+import ProtectedRoute from './Auth/ProtectedRoute';
+import Profile from './pages/Profile';
+import Feed from './components/Feed'; // Assuming Feed is a component, not an icon
+import EditProfile from './pages/EditProfile';
 
 // Layout Component for Shared UI
 const Layout = () => (
@@ -19,11 +19,10 @@ const Layout = () => (
 );
 
 function App() {
-  const test = "hi";
   return (
     <Box
       sx={{
-        margin: "0px !important",
+        margin: '0px !important',
       }}
     >
       <UserProvider>

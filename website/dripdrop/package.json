@@ -33,12 +33,9 @@
     "build": "npm run clean && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
+    "lint:staged": "lint-staged --allow-empty",
+    "type-check": "tsc --noEmit",
     "prepare": "cd ../.. && husky && husky install website/dripdrop/.husky"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,css,scss,md}": [
@@ -65,12 +62,16 @@
     ]
   },
   "devDependencies": {
+    "@eslint/js": "^9.17.0",
     "@types/react-dropzone": "^5.1.0",
     "eslint": "^8.57.1",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.37.3",
+    "globals": "^15.14.0",
     "husky": "^8.0.0",
     "lint-staged": "^15.3.0",
-    "prettier": "^3.4.2"
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.19.1"
   }
 }
