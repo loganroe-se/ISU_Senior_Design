@@ -216,7 +216,7 @@ def signIn(email, password):
 
         if user and bcrypt.verify(password, user.password):  # Check hashed password
             return 200, {
-                    'message': f'User with username: {user.username} was signed in successfully',
+                    'username': user.username,
                     'id': user.userID
                 }
         else:

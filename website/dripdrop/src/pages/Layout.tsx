@@ -1,15 +1,16 @@
+import React from 'react';
 import Box from '@mui/material/Box';
 import CssBaseline from '@mui/material/CssBaseline';
 import Container from '@mui/material/Container';
-import { Routes, Route, Navigate } from 'react-router-dom';
-import Profile from './Profile';
-import HomePage from './Home';
 import Sidebar from '../components/Sidebar';
-import EditProfile from './EditProfile';
 import Searchbar from '../components/Searchbar';
 import { useEffect, useState } from 'react';
 
-export default function Home() {
+type Props = {
+  children: string | JSX.Element | JSX.Element[];
+};
+
+export default function Home({ children }: Props) {
   const [lastSearch, setLastSearch] = useState('');
   const [search, setSearch] = useState('');
   const [hasSearched, setHasSearched] = useState(false);
@@ -26,7 +27,7 @@ export default function Home() {
 
   useEffect(() => {
     const performSearch = async () => {
-      if (search !== "") {
+      if (search !== '') {
         try {
           setIsLoading(true); // Set loading to true when starting the search
 
@@ -34,8 +35,8 @@ export default function Home() {
             const response = await fetch('https://api.dripdropco.com/users');
             const data = await response.json();
 
-            let totalResults: User[] = [];
-            let results: User[] = [];
+            const totalResults: User[] = [];
+            const results: User[] = [];
 
             data.forEach((user: User) => {
               totalResults.push(user);
@@ -50,7 +51,7 @@ export default function Home() {
             setHasSearched(true);
             setLastSearch(search);
           } else {
-            let results: User[] = [];
+            const results: User[] = [];
             searchResults.forEach((result) => {
               if (result.username.toLowerCase().includes(search.toLowerCase())) {
                 results.push(result);
@@ -83,23 +84,27 @@ export default function Home() {
   return (
     <Box sx={{ display: 'flex', height: '100vh' }}>
       <CssBaseline />
-      <Box sx={{
-        height: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        paddingLeft: '.5rem',
-        position: 'fixed',
-      }}>
+      <Box
+        sx={{
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          paddingLeft: '.5rem',
+          position: 'fixed',
+        }}
+      >
         <Sidebar showSearch={showSearch} setShowSearch={setShowSearch} />
       </Box>
 
-      <Box sx={{
-        display: 'flex',
-        flexDirection: 'row',
-        alignItems: 'flex-start',
-        flexGrow: 1,
-        paddingLeft: '267px',
-      }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'flex-start',
+          flexGrow: 1,
+          paddingLeft: '267px',
+        }}
+      >
         {/* Conditionally render Searchbar */}
         {showSearch && (
           <Box paddingX={2}>
@@ -108,26 +113,24 @@ export default function Home() {
               setValue={setSearch}
               results={filteredSearchResults}
               setShowSearchBar={setShowSearch}
-              isLoading={isLoading}  // Pass loading state
+              isLoading={isLoading} // Pass loading state
             />
           </Box>
         )}
 
-        <Container component="main" sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'flex-start',
-          flexGrow: 1,
-          minHeight: showSearch ? 'calc(100vh - 60px)' : '100vh',
-          p: 1.5,
-          transition: 'min-height 0.3s ease',
-        }}>
-          <Routes>
-            <Route path="/" element={<Navigate to="/home" />} />
-            <Route path="/home" element={<HomePage />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/editProfile" element={<EditProfile />} />
-          </Routes>
+        <Container
+          component="main"
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'flex-start',
+            flexGrow: 1,
+            minHeight: showSearch ? 'calc(100vh - 60px)' : '100vh',
+            p: 1.5,
+            transition: 'min-height 0.3s ease',
+          }}
+        >
+          {children}
         </Container>
       </Box>
     </Box>

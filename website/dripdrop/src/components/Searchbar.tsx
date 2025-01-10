@@ -1,6 +1,15 @@
-import { Box, Typography, MenuItem, ListItemIcon, Avatar, TextField, CircularProgress, IconButton } from '@mui/material';
+import {
+  Box,
+  Typography,
+  MenuItem,
+  ListItemIcon,
+  Avatar,
+  TextField,
+  CircularProgress,
+  IconButton,
+} from '@mui/material';
 import { v4 as uuidv4 } from 'uuid';
-import { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
 
 interface SearchbarItemProps {
@@ -24,7 +33,13 @@ interface SearchbarProps {
   isLoading: boolean;
 }
 
-const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShowSearchBar, isLoading }) => {
+const Searchbar: React.FC<SearchbarProps> = ({
+  value,
+  setValue,
+  results,
+  setShowSearchBar,
+  isLoading,
+}) => {
   const [isAnimating, setIsAnimating] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
 
@@ -59,75 +74,103 @@ const Searchbar: React.FC<SearchbarProps> = ({ value, setValue, results, setShow
 
   return (
     <>
-
-      <Box sx={{ height: '100vh', display: 'flex', alignItems: 'center', padding: '.5em', position: 'fixed', zIndex: 999, bgcolor:'white' }}>
       <Box
-        ref={searchRef}  // Assign ref to the search bar container
         sx={{
-          height: '95vh',
-          width: '20vw',
-          border: '1px solid #dfdfdf',
-          borderRadius: '10px',
-          position: 'relative',
-          transition: 'transform 0.3s ease-out, opacity 0.3s ease-out', // Add transition for both transform and opacity
-          transform: isAnimating ? 'translateX(-100%)' : 'translateX(0)',  // Slide to the left
-          opacity: isAnimating ? 0 : 1,  // Fade out
+          height: '100vh',
+          display: 'flex',
+          alignItems: 'center',
+          padding: '.5em',
+          position: 'fixed',
+          zIndex: 999,
+          bgcolor: 'white',
         }}
       >
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '10%' }}>
-          <TextField
-            id="outlined-basic"
-            placeholder="Search..."
-            variant="outlined"
-            value={value}
-            onChange={handleChange}
-            sx={{
-              width: '90%',
-              backgroundColor: '#f0f0f0',
-              borderRadius: '4px',
-              '& .MuiOutlinedInput-root': {
-                '& fieldset': {
-                  borderColor: 'gray',
+        <Box
+          ref={searchRef} // Assign ref to the search bar container
+          sx={{
+            height: '95vh',
+            width: '20vw',
+            border: '1px solid #dfdfdf',
+            borderRadius: '10px',
+            position: 'relative',
+            transition: 'transform 0.3s ease-out, opacity 0.3s ease-out', // Add transition for both transform and opacity
+            transform: isAnimating ? 'translateX(-100%)' : 'translateX(0)', // Slide to the left
+            opacity: isAnimating ? 0 : 1, // Fade out
+          }}
+        >
+          <Box
+            sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '10%' }}
+          >
+            <TextField
+              id="outlined-basic"
+              placeholder="Search..."
+              variant="outlined"
+              value={value}
+              onChange={handleChange}
+              sx={{
+                width: '90%',
+                backgroundColor: '#f0f0f0',
+                borderRadius: '4px',
+                '& .MuiOutlinedInput-root': {
+                  '& fieldset': {
+                    borderColor: 'gray',
+                  },
+                  '&:hover fieldset': {
+                    borderColor: 'gray',
+                  },
+                  '&.Mui-focused fieldset': {
+                    borderColor: 'gray',
+                    boxShadow: 'none',
+                  },
                 },
-                '&:hover fieldset': {
-                  borderColor: 'gray',
-                },
-                '&.Mui-focused fieldset': {
-                  borderColor: 'gray',
-                  boxShadow: 'none',
-                },
-              },
-            }}
-          />
-          {/* Clear Search Button */}
-          {value && (
-            <IconButton onClick={handleClearSearch} sx={{ position: 'absolute', right: '6%', top: '2.75%' }}>
-              <ClearIcon />
-            </IconButton>
-          )}
-        </Box>
-
-        {/* Show CircularProgress when loading */}
-        {isLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <Box>
-            {results.length > 0 ? results.map((user) => {
-              return <SearchbarItem profileUsername={user.username} profilePic="" profileID={user.id} key={uuidv4()} setShowSearchBar={setShowSearchBar} />;
-            }) : (
-              <Typography sx={{ width: '90%', marginLeft: '5%' }}>No results found</Typography>
+              }}
+            />
+            {/* Clear Search Button */}
+            {value && (
+              <IconButton
+                onClick={handleClearSearch}
+                sx={{ position: 'absolute', right: '6%', top: '2.75%' }}
+              >
+                <ClearIcon />
+              </IconButton>
             )}
           </Box>
-        )}
+
+          {/* Show CircularProgress when loading */}
+          {isLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', padding: '1rem' }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <Box>
+              {results.length > 0 ? (
+                results.map((user) => {
+                  return (
+                    <SearchbarItem
+                      profileUsername={user.username}
+                      profilePic=""
+                      profileID={user.id}
+                      key={uuidv4()}
+                      setShowSearchBar={setShowSearchBar}
+                    />
+                  );
+                })
+              ) : (
+                <Typography sx={{ width: '90%', marginLeft: '5%' }}>No results found</Typography>
+              )}
+            </Box>
+          )}
+        </Box>
       </Box>
-    </Box>
     </>
   );
 };
 
-const SearchbarItem: React.FC<SearchbarItemProps> = ({ profilePic, profileUsername, profileID, setShowSearchBar }) => {
+const SearchbarItem: React.FC<SearchbarItemProps> = ({
+  profilePic,
+  profileUsername,
+  setShowSearchBar,
+}) => {
   const hideSearchBar = () => {
     setShowSearchBar(false);
   };
