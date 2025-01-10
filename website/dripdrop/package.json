@@ -33,7 +33,7 @@
     "build": "npm run clean && react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "prepare": "cd ../.. && husky website/dripdrop/.husky"
+    "prepare": "cd ../.. && husky && husky install website/dripdrop/.husky"
   },
   "husky": {
     "hooks": {
