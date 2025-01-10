@@ -6,6 +6,7 @@ import ProtectedRoute from "./Auth/ProtectedRoute";
 import SignIn from "./pages/signIn";
 import Profile from "./pages/Profile";
 import Feed from "./components/Feed"; // Assuming Feed is a component, not an icon
+import EditProfile from "./pages/EditProfile";
 
 // Layout Component for Shared UI
 const Layout = () => (
@@ -18,6 +19,7 @@ const Layout = () => (
 );
 
 function App() {
+  const test = "hi";
   return (
     <Box
       sx={{
@@ -27,11 +29,8 @@ function App() {
       <UserProvider>
         <BrowserRouter>
           <Routes>
-            {/* Public Route */}
-            <Route index element={<SignIn />} />
-            {/* Protected Routes */}
             <Route
-              path="home"
+              path="/"
               element={
                 <ProtectedRoute>
                   <Layout />
@@ -40,6 +39,7 @@ function App() {
             >
               <Route index element={<Feed />} /> {/* Default child route */}
               <Route path="profile" element={<Profile />} />
+              <Route path="editprofile" element={<EditProfile />} />
             </Route>
           </Routes>
         </BrowserRouter>

@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
 import { Card, CardMedia, CardContent, Typography, CardActions, IconButton, Box } from '@mui/material';
 import { fetchUserByUsername } from '../api/api';
 import { User } from '../types';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
+import { NavLink } from 'react-router';
 
 interface PostCardProps {
   images: string;  // Expect an array of image URLs
@@ -63,9 +63,9 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption }) => {
       {/* Content of the post */}
       <CardContent>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
-          <Link to={{ pathname: '/profile'}} state={linkProps} style={{ textDecoration: 'none', color: 'black' }}>
+          <NavLink to={{ pathname: '/profile'}} state={linkProps} style={{ textDecoration: 'none', color: 'black' }}>
             {username} {/* Display the username */}
-          </Link>
+          </NavLink>
         </Box>
 
         <Typography variant="body2" color="text.secondary">

@@ -11,13 +11,12 @@ import CircularProgress from '@mui/material/CircularProgress';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 
 interface SignUpProps {
-    onSignUp: (email: string, password: string) => void;
     setIsSigningUp: (isSigningUp: boolean) => void;
     onSuccessfulSignUp: () => void; // New prop to indicate successful sign-up
 }
 
 
-const SignUp: React.FC<SignUpProps> = ({ onSignUp, setIsSigningUp, onSuccessfulSignUp }) => {
+const SignUp: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignUp }) => {
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');

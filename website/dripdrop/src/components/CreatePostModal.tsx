@@ -15,6 +15,7 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import { useDropzone } from "react-dropzone";
 import { createPost } from "../api/api"; // Import API functions
+import { useUserContext } from "../Auth/UserContext";
 
 const dropzoneStyle: React.CSSProperties = {
   border: "2px dashed #cccccc",
@@ -48,10 +49,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     clothesUrl: "",
   });
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [posts, setPosts] = useState<any[]>([]); // Optional: Add specific types instead of `any`
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const { user } = useUserContext();
 
-  const userID = Number(sessionStorage.getItem("id"));
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -78,6 +78,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
       reader.readAsDataURL(file);
     });
   };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
@@ -90,9 +91,10 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const id = Number(user?.id)
     // Create new post object with just the userID
     const newPost = {
-      userID, // This comes from localStorage (already converted to a number)
+      userID: id,
       caption: postDetails.caption,
       images: selectedImages
     };
@@ -100,9 +102,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
     try {
       // Call createPost() to send the post data to the API
       const createdPost = await createPost(newPost);
-
-      // If post is created successfully, update the posts list
-      setPosts([createdPost, ...posts]);
 
       // Reset form after successful submission
       setPostDetails({ caption: "", clothesUrl: "" });

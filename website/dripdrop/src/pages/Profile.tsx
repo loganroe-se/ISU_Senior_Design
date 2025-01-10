@@ -16,6 +16,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
 import { useLocation, useNavigate } from 'react-router';
+import { useUserContext } from '../Auth/UserContext';
 
 
 interface Post {
@@ -26,6 +27,7 @@ interface Post {
 }
 
 const Profile = () => {
+    const {user} = useUserContext()
     const [email, setEmail] = useState('');
     const [username, setUsername] = useState('');
     const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
@@ -37,50 +39,30 @@ const Profile = () => {
     const [following, setFollowing] = useState<number>(0);
     const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>({});
 
-
     const navigate = useNavigate();
-
-    let userID = sessionStorage.getItem('userID');
-    let location = useLocation();
 
     // Define functions with useCallback for stable references
     const getUser = useCallback(async () => {
-        if (!userID) return;
+        if (!user) return;
         try {
-            const response = await fetch(`https://api.dripdropco.com/users/${userID}`);
+            const response = await fetch(`https://api.dripdropco.com/users/${user.id}`);
             const data = await response.json();
             setEmail(data.email);
             setUsername(data.username);
         } catch (error) {
             console.error('Error fetching user:', error);
         }
-    }, [userID]);
+    }, [user]);
 
-    try {
-        userID = location.state.uID;
-        getUser();
-    }
-    catch {
 
-    }
     const navigateToEditProfile = () => {
         navigate('/editProfile');
     };
 
 
     useEffect(() => {
-        const storedEmail = sessionStorage.getItem('email');
-        const storedUsername = sessionStorage.getItem('username');
-        const storedProfilePic = sessionStorage.getItem('profilePic');
-
-        if (username === '') {
-            if (storedEmail) setEmail(storedEmail);
-            if (storedUsername) setUsername(storedUsername);
-            if (storedProfilePic) setProfilePic(storedProfilePic);
-        }
-
-        if (userID) {
-            fetch(`https://api.dripdropco.com/posts?${userID}`)
+        if (user) {
+            fetch(`https://api.dripdropco.com/posts?${user.id}`)
                 .then((response) => {
                     if (!response.ok) {
                         throw new Error(`Error fetching posts: ${response.statusText}`);
@@ -96,7 +78,7 @@ const Profile = () => {
                     setLoading(false);
                 });
         }
-    }, [userID, username]);
+    }, [user, username]);
 
     const handlePostClick = (post: Post) => {
         setSelectedPost(post);
@@ -135,26 +117,26 @@ const Profile = () => {
 
     // Fetch followers and following
     const getFollowersAndFollowing = useCallback(async () => {
-        if (!userID) return;
+        if (!user) return;
         try {
-            const followersResponse = await fetch(`https://api.dripdropco.com/follow/${userID}/followers`);
+            const followersResponse = await fetch(`https://api.dripdropco.com/follow/${user.id}/followers`);
             const followersData = await followersResponse.json();
             setFollowers(followersData.length);
 
-            const followingResponse = await fetch(`https://api.dripdropco.com/follow/${userID}/following`);
+            const followingResponse = await fetch(`https://api.dripdropco.com/follow/${user.id}/following`);
             const followingData = await followingResponse.json();
             setFollowing(followingData.length);
         } catch (error) {
             console.error('Error fetching followers or following:', error);
         }
-    }, [userID]);
+    }, [user]);
 
     useEffect(() => {
-        if (userID) {
+        if (user) {
             getUser();
             getFollowersAndFollowing();
         }
-    }, [userID, getUser, getFollowersAndFollowing]);
+    }, [user]);
 
 
     return (
