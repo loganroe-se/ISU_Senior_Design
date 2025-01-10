@@ -141,7 +141,7 @@ const Profile = () => {
       getUser();
       getFollowersAndFollowing();
     }
-  }, [user]);
+  }, [user, getUser, getFollowersAndFollowing]);
 
   return (
     <Paper sx={{ p: '1em', m: '1em', width: '1' }}>
