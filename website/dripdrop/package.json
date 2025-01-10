@@ -31,8 +31,9 @@
     "start": "react-scripts start",
     "clean": "rm -rf build",
     "build": "npm run clean && react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --watchAll=false --passWithNoTests",
     "eject": "react-scripts eject",
+    "lint": "eslint ./src --fix",
     "lint:staged": "lint-staged --allow-empty",
     "type-check": "tsc --noEmit",
     "prepare": "cd ../.. && husky && husky install website/dripdrop/.husky"
