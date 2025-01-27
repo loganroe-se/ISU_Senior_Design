@@ -18,18 +18,24 @@ import ViewPostModal from '../components/ViewPostModal'; // Import the new compo
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate } from 'react-router';
 
+interface Image {
+  imageID: number;
+  imageURL: string;
+}
+
 interface Post {
   postID: number;
   userID: number;
   caption: string;
   createdDate: string;
+  images: Image[];
 }
 
 const Profile = () => {
   const { user } = useUserContext();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
-  const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
+  const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg'); //TODO
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
@@ -69,6 +75,7 @@ const Profile = () => {
           return response.json();
         })
         .then((data: Post[]) => {
+          console.log(data);
           setPosts(data);
           setLoading(false);
         })
@@ -237,10 +244,13 @@ const Profile = () => {
                 sx={{ cursor: 'pointer', position: 'relative' }}
               >
                 <img
-                  src={`https://picsum.photos/200?random=${post.postID}`}
+                  src={(post.images[0] ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+                    : './DripDrop.png')}
+
                   alt={post.caption}
                   loading="lazy"
                 />
+                ?
                 {hoveredPost === post.postID && (
                   <Box
                     sx={{
@@ -268,7 +278,9 @@ const Profile = () => {
                     </Box>
                   </Box>
                 )}
+
               </ImageListItem>
+
             ))}
           </ImageList>
         ) : (

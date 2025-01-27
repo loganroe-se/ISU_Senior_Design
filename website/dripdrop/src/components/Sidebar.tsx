@@ -101,16 +101,15 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
             height: '10vh',
             display: 'flex',
             alignItems: 'center',
-            paddingLeft: '2rem',
           }}
         >
           <MenuItem
             component={NavLink}
             to="/profile"
             state={{ uID: user?.id }}
-            sx={{ display: 'flex', alignItems: 'center', width: '100%' }}
+            sx={{ display: 'flex', alignItems: 'center', width: '100%', paddingLeft: '1.9rem', }}
           >
-            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1rem' }}>
+            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '2rem' }}>
               <Avatar sx={{ height: '3rem', width: '3rem' }} />
             </ListItemIcon>
             <Box>
