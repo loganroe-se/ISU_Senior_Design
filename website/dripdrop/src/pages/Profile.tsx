@@ -17,19 +17,7 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate } from 'react-router';
-
-interface Image {
-  imageID: number;
-  imageURL: string;
-}
-
-interface Post {
-  postID: number;
-  userID: number;
-  caption: string;
-  createdDate: string;
-  images: Image[];
-}
+import { Post } from '../types'
 
 const Profile = () => {
   const { user } = useUserContext();
@@ -110,7 +98,7 @@ const Profile = () => {
     if (posts.length > 0 && Object.keys(postStats).length === 0) {
       const stats = posts.reduce(
         (acc, post) => {
-          acc[post.postID] = {
+          acc[post.id] = {
             likes: Math.floor(Math.random() * 500), // Random likes
             comments: Math.floor(Math.random() * 100), // Random comments
           };
@@ -236,8 +224,8 @@ const Profile = () => {
           <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
             {posts.map((post) => (
               <ImageListItem
-                key={post.postID}
-                onMouseEnter={() => setHoveredPost(post.postID)}
+                key={post.id}
+                onMouseEnter={() => setHoveredPost(post.id)}
                 onMouseLeave={() => setHoveredPost(null)}
                 onClick={() => handlePostClick(post)}
                 sx={{ cursor: 'pointer', position: 'relative' }}
@@ -250,7 +238,7 @@ const Profile = () => {
                   loading="lazy"
                 />
                 ?
-                {hoveredPost === post.postID && (
+                {hoveredPost === post.id && (
                   <Box
                     sx={{
                       position: 'absolute',
@@ -268,11 +256,11 @@ const Profile = () => {
                     <Box display="flex" gap={2}>
                       <Box display="flex" alignItems="center" gap={0.5}>
                         <FavoriteIcon />
-                        <Typography>{postStats[post.postID]?.likes || 0}</Typography>
+                        <Typography>{postStats[post.id]?.likes || 0}</Typography>
                       </Box>
                       <Box display="flex" alignItems="center" gap={0.5}>
                         <CommentIcon />
-                        <Typography>{postStats[post.postID]?.comments || 0}</Typography>
+                        <Typography>{postStats[post.id]?.comments || 0}</Typography>
                       </Box>
                     </Box>
                   </Box>

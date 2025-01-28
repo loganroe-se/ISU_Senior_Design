@@ -26,7 +26,7 @@ const Feed = () => {
         const usernamesMap: { [key: number]: string } = {};
         postsData.forEach((post, index) => {
           const username = usernamesData[index] || 'Unknown User';
-          usernamesMap[post.id] = username; // Use postID as key
+          usernamesMap[post.id] = username; // Use the post's as key
         });
 
         setUsernamesMap(usernamesMap);

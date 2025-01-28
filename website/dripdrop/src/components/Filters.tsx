@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Filters } from '../types'
 import Box from '@mui/material/Box';
 import Typography from '@mui/material/Typography';
 import Checkbox from '@mui/material/Checkbox';
@@ -12,13 +13,6 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import Slider from '@mui/material/Slider';
 import TextField from '@mui/material/TextField';
 import Drawer from '@mui/material/Drawer';
-
-type Filters = {
-    color: { black: boolean; white: boolean; red: boolean };
-    brand: { nike: boolean; adidas: boolean; gucci: boolean };
-    price: { min: number; max: number };
-    occasion: { casual: boolean; formal: boolean; sport: boolean };
-};
 
 interface FilterProps {
     isFilterOpen: boolean;

@@ -1,15 +1,7 @@
 import React from 'react';
 import { Box, Modal, Typography, Divider, TextField, Button } from '@mui/material';
+import { ViewPostModalProps } from '../types'
 
-interface ViewPostModalProps {
-    selectedPost: {
-        postID: number;
-        userID: number;
-        caption: string;
-        createdDate: string;
-    } | null;
-    onClose: () => void;
-}
 
 const mockComments = [
     { username: 'User1', text: 'Great post!' },

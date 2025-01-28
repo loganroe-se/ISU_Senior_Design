@@ -11,18 +11,13 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import React, { useRef, useEffect, useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
+import { User } from '../types'
 
 interface SearchbarItemProps {
   profilePic: string;
   profileUsername: string;
-  profileID: string;
+  profileID: number;
   setShowSearchBar: (newValue: boolean) => void;
-}
-
-interface User {
-  username: string;
-  email: string;
-  id: string;
 }
 
 interface SearchbarProps {

@@ -1,12 +1,7 @@
 import React from 'react';
 import { Box, Typography, Avatar } from '@mui/material';
+import { User } from '../types'
 
-type User = {
-    id: number;
-    name: string;
-    info: string;
-    profilePicUrl?: string; // Add profile picture URL
-};
 
 type UserProfileProps = {
     user: User;
@@ -26,7 +21,7 @@ const  UserProfile: React.FC<UserProfileProps> = ({ user }) => {
             {/* Circular Profile Picture */}
             <Avatar 
                 src={user.profilePicUrl} 
-                alt={user.name} 
+                alt={user.username} 
                 sx={{
                     width: { xs: 48, sm: 64, md: 80 },  
                     height: { xs: 48, sm: 64, md: 80 },
@@ -34,13 +29,10 @@ const  UserProfile: React.FC<UserProfileProps> = ({ user }) => {
                 }}
             />
             
-            {/* User Name and Info */}
+            {/* User Name */}
             <Box>
                 <Typography variant="h6" sx={{ fontWeight: 'bold' }}>
-                    {user.name}
-                </Typography>
-                <Typography variant="body2" color="textSecondary">
-                    {user.info}
+                    {user.username}
                 </Typography>
             </Box>
         </Box>
