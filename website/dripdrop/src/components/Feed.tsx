@@ -3,12 +3,14 @@ import { Container, Grid, CircularProgress, Typography, Box } from '@mui/materia
 import PostCard from './PostCard';
 import { fetchPosts, fetchUserById } from '../api/api'; // Import API functions
 import { retreivePost } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+
 
 const Feed = () => {
   const [posts, setPosts] = useState<retreivePost[]>([]); // State for posts
   const [loading, setLoading] = useState<boolean>(true); // State for loading
   const [error, setError] = useState<string | null>(null); // State for error message
-  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
+  const [usernamesMap, setUsernamesMap] = useState<{ [key: number]: string }>({}); // State for storing usernames
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
 
   useEffect(() => {
@@ -21,10 +23,10 @@ const Feed = () => {
           postsData.map((post) => fetchUserById(post.userID))
         );
 
-        const usernamesMap: { [key: string]: string } = {};
+        const usernamesMap: { [key: number]: string } = {};
         postsData.forEach((post, index) => {
           const username = usernamesData[index] || 'Unknown User';
-          usernamesMap[index] = username;
+          usernamesMap[post.id] = username; // Use postID as key
         });
 
         setUsernamesMap(usernamesMap);
@@ -76,16 +78,16 @@ const Feed = () => {
     >
       <Grid container spacing={3} justifyContent="center">
         {Array.isArray(posts) && posts.length > 0 ? (
-          posts.map((post, index) => {
+          posts.map((post) => {
             const imageURL =
               Array.isArray(post.images) && post.images.length > 0 && post.images[0].imageURL
                 ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
                 : 'default_image.png';
 
-            const username = usernamesMap[index] || 'Loading...';
+            const username = usernamesMap[post.id] || 'Loading...';
 
             return (
-              <Grid item key={post.id} xs={12}>
+              <Grid item key={uuidv4()} xs={12}>
                 <Box
                   sx={{
                     display: 'flex',

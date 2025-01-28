@@ -75,7 +75,6 @@ const Profile = () => {
           return response.json();
         })
         .then((data: Post[]) => {
-          console.log(data);
           setPosts(data);
           setLoading(false);
         })
