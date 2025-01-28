@@ -35,7 +35,7 @@ const Profile = () => {
   const { user } = useUserContext();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
-  const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg'); //TODO
+  const [profilePic, setProfilePic] = useState('/path/to/default-profile-pic.jpg');
   const [posts, setPosts] = useState<Post[]>([]);
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
