@@ -245,7 +245,7 @@ const Profile = () => {
               >
                 <img
                   src={(post.images[0] ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                    : './DripDrop.png')}
+                    : 'default_image.png')}
 
                   alt={post.caption}
                   loading="lazy"

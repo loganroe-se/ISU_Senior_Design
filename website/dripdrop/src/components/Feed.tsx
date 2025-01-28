@@ -80,7 +80,7 @@ const Feed = () => {
             const imageURL =
               Array.isArray(post.images) && post.images.length > 0 && post.images[0].imageURL
                 ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                : '/default_image.png';
+                : 'default_image.png';
 
             const username = usernamesMap[index] || 'Loading...';
 
