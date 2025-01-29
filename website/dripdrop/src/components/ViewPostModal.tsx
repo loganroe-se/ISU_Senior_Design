@@ -7,6 +7,7 @@ interface ViewPostModalProps {
         userID: number;
         caption: string;
         createdDate: string;
+        images: { imageID: number; imageURL: string }[]; // Added images field
     } | null;
     onClose: () => void;
 }
@@ -49,13 +50,15 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
                             }}
                         >
                             <img
-                                src={`https://picsum.photos/800/600?random`}
-                                alt="Post"
+                                src={selectedPost.images[0] ? `https://cdn.dripdropco.com/${selectedPost.images[0].imageURL}?format=png`
+                                    : 'default_image.png'}
                                 style={{
                                     maxWidth: '100%',
                                     maxHeight: '100%',
                                     objectFit: 'cover',
                                 }}
+                                alt={selectedPost.caption}
+                                loading="lazy"
                             />
                         </Box>
 
