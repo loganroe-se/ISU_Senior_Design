@@ -3,6 +3,7 @@ import { Container, Grid, CircularProgress, Typography, Box } from '@mui/materia
 import PostCard from './PostCard';
 import { fetchPosts, fetchUserById } from '../api/api'; // Import API functions
 import { retreivePost } from '../types';
+import { v4 as uuidv4 } from 'uuid';
 
 const Feed = () => {
   const [posts, setPosts] = useState<retreivePost[]>([]); // State for posts
@@ -85,7 +86,7 @@ const Feed = () => {
             const username = usernamesMap[index] || 'Loading...';
 
             return (
-              <Grid item key={post.id} xs={12}>
+              <Grid item key={uuidv4()} xs={12}>
                 <Box
                   sx={{
                     display: 'flex',
