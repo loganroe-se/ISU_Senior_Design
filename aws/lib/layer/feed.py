@@ -1,7 +1,6 @@
 from sqlalchemy_utils import create_session
 from utils import handle_exception
-from dripdrop_orm_objects import Post, HasSeen
-import follow as followPY
+from dripdrop_orm_objects import User, Post, HasSeen
 
 # Functions in this file meant to be used elsewhere:
 # getFeed(userID, limit: int = 20) -- Default limit of 20
@@ -12,10 +11,9 @@ def getFeed(userID, limit: int = 20):
     try:
         # Create the session
         session = create_session()
-
         
         # Get the list of users followed by the user
-        status, followed_users = followPY.getFollowing(userID)
+        status, followed_users = getFollowing(userID)
         if status != 200:
             return 500, "Error retrieving followed users"
         
@@ -74,6 +72,42 @@ def getNonFollowedPosts(userID: int, session, followed_user_ids, limit):
         .all()
 
     return non_followed_posts
+
+# Helper -- Get the list of people following a given user ID
+def getFollowing(user_id):
+    # Try to get list of all users who user_id follows
+    try:
+        # Create the session
+        session = create_session()
+
+        # Fetch the user by ID
+        user = session.query(User).filter(User.userID == user_id).one_or_none()
+
+        # If user does not exist, return 404
+        if not user:
+            return 404, f"User with ID {user_id} does not exist."
+
+        # Get all users that the current user is following
+        following = [
+            {
+                "userID": follow.followed.userID,
+                "username": follow.followed.username,
+                "email": follow.followed.email,
+            }
+            for follow in user.following
+        ]
+
+        # Return the list of following users
+        return 200, following
+
+    except Exception as e:
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "follow.py")
+        return code, msg
+
+    finally:
+        if 'session' in locals() and session:
+            session.close()
 
 
 # # Helper -- Get the unseen list of posts from followed users
