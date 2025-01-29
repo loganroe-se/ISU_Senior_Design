@@ -11,6 +11,7 @@ import {
   TextField,
   FormControl,
   Snackbar,
+  SnackbarContent,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDropzone } from 'react-dropzone';
@@ -47,6 +48,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   });
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
   const [openSnackbar, setOpenSnackbar] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const { user } = useUserContext();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -87,8 +90,15 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (selectedImages.length === 0) {
+      // Show an error message if no images are selected
+      setSnackbarMessage('Please select at least one image!');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
     const id = Number(user?.id);
-    // Create new post object with just the userID
     const newPost = {
       userID: id,
       caption: postDetails.caption,
@@ -104,6 +114,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       setSelectedImages([]);
 
       // Open success snackbar
+      setSnackbarMessage('Post created successfully!');
+      setSnackbarSeverity('success');
       setOpenSnackbar(true);
     } catch (error) {
       // Handle error and set error message in the state
@@ -207,7 +219,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
         </Box>
       </DialogContent>
 
-      {/* Snackbar for success message */}
+      {/* Snackbar for success or error message */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={2000}
@@ -215,10 +227,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
           setOpenSnackbar(false);
           onClose();
         }}
-        message="Post created successfully!"
         anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         sx={{ bottom: 80 }}
-      />
+      >
+        <SnackbarContent
+          message={snackbarMessage}
+          sx={{
+            backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336',
+            color: 'white',
+            borderRadius: '8px',
+            padding: '10px 20px',
+          }}
+        />
+      </Snackbar>
     </Dialog>
   );
 };
