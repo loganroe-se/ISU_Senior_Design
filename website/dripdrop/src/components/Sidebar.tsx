@@ -11,7 +11,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
-  const {user} = useUserContext();
+  const { user } = useUserContext();
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
 

@@ -12,8 +12,8 @@ export default function Home() {
         overflow: 'scroll',
         scrollbarWidth: 'none'
       }}
-    >    
- 
+    >
+
       <Container
         component="main"
         sx={{
