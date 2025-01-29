@@ -359,23 +359,23 @@ export class ApiConstruct extends Construct {
     // Follow Lambdas
     const followUserLambda = createLambda(
       "FollowUserLambda",
-      "lib/lambdas/follow/followUser",
-      "followUser"
+      "lib/lambdas/api-endpoints/follow/follow-user",
+      "handler"
     );
     const getFollowingLambda = createLambda(
       "GetFollowing",
-      "lib/lambdas/follow/getFollowing",
-      "getFollowing"
+      "lib/lambdas/api-endpoints/follow/get-following",
+      "handler"
     );
     const getFollowersLambda = createLambda(
       "GetFollowersLambda",
-      "lib/lambdas/follow/getFollowers",
-      "getFollowers"
+      "lib/lambdas/api-endpoints/follow/get-followers",
+      "handler"
     );
     const unfollowUserLambda = createLambda(
       "UnfollowUserLambda",
-      "lib/lambdas/follow/unfollowUser",
-      "unfollowUser"
+      "lib/lambdas/api-endpoints/follow/unfollow-user",
+      "handler"
     );
 
     // Testing lambda
@@ -401,7 +401,7 @@ export class ApiConstruct extends Construct {
       },
     });
 
-    // -------------------------------- POST LAMBDAS -------------------------
+    // -------------------------------- POST ENDPOINTS -------------------------
 
     // Define the /posts resource
     const posts = api.root.addResource("posts");
@@ -439,7 +439,7 @@ export class ApiConstruct extends Construct {
       operationName: "UpdatePost",
     });
 
-    // ---------------------------- USER LAMBDAS -------------------------------
+    // ---------------------------- USER ENDPOINTS -------------------------------
 
     // Define the /users resource
     const users = api.root.addResource("users");
@@ -505,7 +505,7 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    // ----------------------------- FOLLOW LAMBDAS -----------------------------
+    // ----------------------------- FOLLOW ENDPOINTS -----------------------------
 
     // Define the /follow resource
     const follow = api.root.addResource("follow");
