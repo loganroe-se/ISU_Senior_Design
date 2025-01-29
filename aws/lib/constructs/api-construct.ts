@@ -309,38 +309,38 @@ export class ApiConstruct extends Construct {
     // User Lambdas
     const createUserLambda = createLambda(
       "CreateUserLambda",
-      "lib/lambdas/user/createUser",
-      "createUser"
-    );
-    const getUsersLambda = createLambda(
-      "GetUsersLambda",
-      "lib/lambdas/user/getUsers",
-      "getUsers"
-    );
-    const getUserByIdLambda = createLambda(
-      "GetUserByIdLambda",
-      "lib/lambdas/user/getUserById",
-      "getUserById"
-    );
-    const updateUserLambda = createLambda(
-      "UpdateUserLambda",
-      "lib/lambdas/user/updateUser",
-      "updateUser"
+      "lib/lambdas/api-endpoints/create-user",
+      "handler"
     );
     const deleteUserLambda = createLambda(
       "DeleteUserLambda",
-      "lib/lambdas/user/deleteUser",
-      "deleteUser"
+      "lib/lambdas/api-endpoints/delete-user",
+      "handler"
+    );
+    const getUserByIdLambda = createLambda(
+      "GetUserByIdLambda",
+      "lib/lambdas/api-endpoints/get-user-by-id",
+      "handler"
     );
     const getUserByUsernameLambda = createLambda(
       "GetUserByUsernameLambda",
-      "lib/lambdas/user/getUserByUsername",
-      "getUserByUsername"
+      "lib/lambdas/api-endpoints/get-user-by-username",
+      "handler"
+    );
+    const getUsersLambda = createLambda(
+      "GetUsersLambda",
+      "lib/lambdas/api-endpoints/get-users",
+      "handler"
+    );
+    const updateUserLambda = createLambda(
+      "UpdateUserLambda",
+      "lib/lambdas/api-endpoints/update-user",
+      "handler"
     );
     const userSignInLambda = createLambda(
       "UserSignInLambda",
-      "lib/lambdas/user/userSignIn",
-      "signIn"
+      "lib/lambdas/api-endpoints/user-sign-in",
+      "handler"
     );
 
     // Post Lambdas

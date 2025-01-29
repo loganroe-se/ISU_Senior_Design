@@ -1,10 +1,9 @@
 import json
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy_utils import create_session
-from utils import handle_exception
+from utils import handle_exception, create_response
 from dripdrop_orm_objects import User
 from passlib.hash import bcrypt
-from utils import create_response
 
 def handler(event, context):
     try:
