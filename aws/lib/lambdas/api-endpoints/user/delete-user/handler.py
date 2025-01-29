@@ -13,7 +13,7 @@ def handler(event, context):
             return create_response(400, 'Missing user ID')
         
         # Call another function to delete the post
-        status_code, message = userPY.deleteUser(user_id)
+        status_code, message = deleteUser(user_id)
 
         # Return message
         return create_response(status_code, message)

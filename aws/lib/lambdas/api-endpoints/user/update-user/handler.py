@@ -1,9 +1,9 @@
 import json
 from utils import create_response, handle_exception
 from sqlalchemy import select
-from sqlalchemy.exc import IntegrityError
 from sqlalchemy_utils import create_session
 from dripdrop_orm_objects import User
+from passlib.hash import bcrypt
 
 def handler(event, context):
     try:
