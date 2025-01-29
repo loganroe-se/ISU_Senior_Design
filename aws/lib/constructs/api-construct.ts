@@ -381,8 +381,8 @@ export class ApiConstruct extends Construct {
     // Testing lambda
     const testFunctionsLambda = createLambda(
       "TestFunctionsLambda",
-      "lib/lambdas/testFunctions",
-      "testFunctions"
+      "lib/lambdas/test-functions",
+      "handler"
     );
 
     // API Gateway setup with custom domain

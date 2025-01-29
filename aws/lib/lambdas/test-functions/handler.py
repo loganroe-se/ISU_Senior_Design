@@ -34,7 +34,7 @@ import json
 # import <fileName> as <fileName>PY
 from utils import create_response
 
-def testFunctions(event, context):
+def handler(event, context):
     try:
         # **TODO** -- This may not be needed for blanket calls, such as get ALL, however, it doesn't necessarily hurt to leave in during testing
         # Parse the data from event
