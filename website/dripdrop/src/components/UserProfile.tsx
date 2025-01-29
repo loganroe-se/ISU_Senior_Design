@@ -12,7 +12,7 @@ type UserProfileProps = {
     user: User;
 };
 
-const UserProfile: React.FC<UserProfileProps> = ({ user }) => {
+const  UserProfile: React.FC<UserProfileProps> = ({ user }) => {
     return (
         <Box sx={{ 
             display: 'flex', 

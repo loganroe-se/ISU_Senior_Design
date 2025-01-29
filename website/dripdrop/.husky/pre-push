@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+cd website/dripdrop
+
+npm run type-check 
+npm run lint
+npm run test
+
+export CI=true
+npm run build
+

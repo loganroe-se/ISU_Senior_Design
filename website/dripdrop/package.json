@@ -15,12 +15,13 @@
     "@types/node": "^16.18.112",
     "@types/react": "^18.3.11",
     "@types/react-dom": "^18.3.0",
+    "axios": "^1.7.9",
     "bootstrap-icons": "^1.11.3",
     "dropzone": "^6.0.0-beta.2",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-dropzone": "^14.2.9",
-    "react-router-dom": "^6.26.2",
+    "react-router": "^7.0.2",
     "react-scripts": "5.0.1",
     "typescript": "^4.9.5",
     "uuid": "^11.0.3",
@@ -30,8 +31,18 @@
     "start": "react-scripts start",
     "clean": "rm -rf build",
     "build": "npm run clean && react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "test": "react-scripts test --watchAll=false --passWithNoTests",
+    "eject": "react-scripts eject",
+    "lint": "eslint ./src --fix",
+    "lint:staged": "lint-staged --allow-empty",
+    "type-check": "tsc --noEmit",
+    "prepare": "cd ../.. && husky && husky install website/dripdrop/.husky"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx,json,css,scss,md}": [
+      "prettier --write",
+      "eslint --fix"
+    ]
   },
   "eslintConfig": {
     "extends": [
@@ -52,6 +63,16 @@
     ]
   },
   "devDependencies": {
-    "@types/react-dropzone": "^5.1.0"
+    "@eslint/js": "^9.17.0",
+    "@types/react-dropzone": "^5.1.0",
+    "eslint": "^8.57.1",
+    "eslint-config-prettier": "^9.1.0",
+    "eslint-plugin-prettier": "^5.2.1",
+    "eslint-plugin-react": "^7.37.3",
+    "globals": "^15.14.0",
+    "husky": "^8.0.0",
+    "lint-staged": "^15.3.0",
+    "prettier": "^3.4.2",
+    "typescript-eslint": "^8.19.1"
   }
 }

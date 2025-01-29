@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogActions,
@@ -11,27 +11,29 @@ import {
   TextField,
   FormControl,
   Snackbar,
-} from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { useDropzone } from "react-dropzone";
-import { createPost } from "../api/api"; // Import API functions
+  SnackbarContent,
+} from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
+import { useDropzone } from 'react-dropzone';
+import { createPost } from '../api/api'; // Import API functions
+import { useUserContext } from '../Auth/UserContext';
 
 const dropzoneStyle: React.CSSProperties = {
-  border: "2px dashed #cccccc",
-  borderRadius: "12px",
-  padding: "40px",
-  textAlign: "center",
-  cursor: "pointer",
-  marginTop: "20px",
-  marginBottom: "20px",
-  transition: "border-color 0.3s ease, background-color 0.3s ease",
-  backgroundColor: "#f7f7f7",
+  border: '2px dashed #cccccc',
+  borderRadius: '12px',
+  padding: '40px',
+  textAlign: 'center',
+  cursor: 'pointer',
+  marginTop: '20px',
+  marginBottom: '20px',
+  transition: 'border-color 0.3s ease, background-color 0.3s ease',
+  backgroundColor: '#f7f7f7',
 };
 
 const dropzoneActiveStyle: React.CSSProperties = {
   ...dropzoneStyle,
-  borderColor: "#2196f3",
-  backgroundColor: "#e3f2fd",
+  borderColor: '#2196f3',
+  backgroundColor: '#e3f2fd',
 };
 
 interface CreatePostModalProps {
@@ -39,22 +41,16 @@ interface CreatePostModalProps {
   onClose: () => void;
 }
 
-const CreatePostModal: React.FC<CreatePostModalProps> = ({
-  isOpen,
-  onClose,
-}) => {
+const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) => {
   const [postDetails, setPostDetails] = useState({
-    caption: "",
-    clothesUrl: "",
+    caption: '',
+    clothesUrl: '',
   });
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [posts, setPosts] = useState<any[]>([]); // Optional: Add specific types instead of `any`
   const [openSnackbar, setOpenSnackbar] = useState(false);
-
-  const userID = Number(sessionStorage.getItem("id"));
-  const storedUsername = sessionStorage.getItem("username");
-  console.log(userID);
-  console.log(storedUsername);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const { user } = useUserContext();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -64,28 +60,29 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const onDrop = (acceptedFiles: File[]) => {
     acceptedFiles.forEach((file) => {
       const reader = new FileReader();
-  
+
       reader.onloadend = () => {
         // Extract the Base64 string without the metadata (data:image/png;base64,)
         const base64String = reader.result as string;
-        const base64Data = base64String.split(',')[1];  // Split and get only the part after the comma
-  
+        const base64Data = base64String.split(',')[1]; // Split and get only the part after the comma
+
         // After the file is read, set the Base64 string into state without the header
         setSelectedImages((prevImages) => [
           ...prevImages,
-          base64Data,  // Only store the Base64 data
+          base64Data, // Only store the Base64 data
         ]);
       };
-  
+
       // Read the file as Data URL (Base64)
       reader.readAsDataURL(file);
     });
   };
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      "image/jpeg": [".jpg", ".jpeg"],
-      "image/png": [".png"],
+      'image/jpeg': ['.jpg', '.jpeg'],
+      'image/png': ['.png'],
     },
     maxFiles: 3, // Limit to 3 images for this case
   });
@@ -93,45 +90,46 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Create new post object with just the userID
+    if (selectedImages.length === 0) {
+      // Show an error message if no images are selected
+      setSnackbarMessage('Please select at least one image!');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
+    const id = Number(user?.id);
     const newPost = {
-      userID, // This comes from localStorage (already converted to a number)
+      userID: id,
       caption: postDetails.caption,
-      images: selectedImages
+      images: selectedImages,
     };
 
     try {
       // Call createPost() to send the post data to the API
-      const createdPost = await createPost(newPost);
-
-      // If post is created successfully, update the posts list
-      setPosts([createdPost, ...posts]);
+      await createPost(newPost);
 
       // Reset form after successful submission
-      setPostDetails({ caption: "", clothesUrl: "" });
+      setPostDetails({ caption: '', clothesUrl: '' });
       setSelectedImages([]);
 
       // Open success snackbar
+      setSnackbarMessage('Post created successfully!');
+      setSnackbarSeverity('success');
       setOpenSnackbar(true);
     } catch (error) {
       // Handle error and set error message in the state
-      console.error("Failed to create post:", error);
+      console.error('Failed to create post:', error);
     }
   };
 
   return (
-    <Dialog
-      open={isOpen}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      sx={{ borderRadius: 2 }}
-    >
+    <Dialog open={isOpen} onClose={onClose} maxWidth="md" fullWidth sx={{ borderRadius: 2 }}>
       <DialogTitle
         sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
         }}
       >
         <IconButton edge="end" color="inherit" onClick={onClose}>
@@ -141,19 +139,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
 
       <DialogContent
         sx={{
-          display: "flex",
-          justifyContent: "center",
-          alignItems: "center",
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
           p: 2,
         }}
       >
-        <Box sx={{ width: "100%", maxWidth: 600 }}>
+        <Box sx={{ width: '100%', maxWidth: 600 }}>
           <Typography
             variant="h4"
             component="h1"
             gutterBottom
             align="center"
-            sx={{ color: "#333", fontWeight: 700 }}
+            sx={{ color: '#333', fontWeight: 700 }}
           >
             Create New Post
           </Typography>
@@ -161,17 +159,14 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
           <form onSubmit={handleSubmit}>
             {/* Drag-and-drop image upload */}
             <FormControl fullWidth>
-              <div
-                {...getRootProps()}
-                style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}
-              >
+              <div {...getRootProps()} style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}>
                 <input {...getInputProps()} />
-                <Typography variant="body1" sx={{ color: "#444" }}>
+                <Typography variant="body1" sx={{ color: '#444' }}>
                   {isDragActive
-                    ? "Drop the image here..."
+                    ? 'Drop the image here...'
                     : selectedImages.length
-                    ? `Selected Images: ${selectedImages.length}`
-                    : "Drag & drop an image, or click to select"}
+                      ? `Selected Images: ${selectedImages.length}`
+                      : 'Drag & drop an image, or click to select'}
                 </Typography>
               </div>
             </FormControl>
@@ -188,20 +183,20 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
               required
               sx={{
                 mb: 2,
-                "& .MuiOutlinedInput-root": {
-                  borderRadius: "12px",
-                  "& fieldset": {
-                    borderColor: "#ccc",
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '& fieldset': {
+                    borderColor: '#ccc',
                   },
-                  "&:hover fieldset": {
-                    borderColor: "#2196f3",
+                  '&:hover fieldset': {
+                    borderColor: '#2196f3',
                   },
                 },
               }}
             />
 
             {/* Action Buttons */}
-            <DialogActions sx={{ justifyContent: "flex-end", p: 2, ml: 2 }}>
+            <DialogActions sx={{ justifyContent: 'flex-end', p: 2, ml: 2 }}>
               <Button onClick={onClose} color="error" sx={{ px: 4 }}>
                 Cancel
               </Button>
@@ -210,9 +205,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
                 variant="contained"
                 color="primary"
                 sx={{
-                  bgcolor: "#2196f3",
-                  "&:hover": {
-                    bgcolor: "#1976d2",
+                  bgcolor: '#2196f3',
+                  '&:hover': {
+                    bgcolor: '#1976d2',
                   },
                   marginLeft: 3, // Adjusted to the right
                 }}
@@ -224,7 +219,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
         </Box>
       </DialogContent>
 
-      {/* Snackbar for success message */}
+      {/* Snackbar for success or error message */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={2000}
@@ -232,10 +227,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({
           setOpenSnackbar(false);
           onClose();
         }}
-        message="Post created successfully!"
-        anchorOrigin={{ vertical: "bottom", horizontal: "right" }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
         sx={{ bottom: 80 }}
-      />
+      >
+        <SnackbarContent
+          message={snackbarMessage}
+          sx={{
+            backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336',
+            color: 'white',
+            borderRadius: '8px',
+            padding: '10px 20px',
+          }}
+        />
+      </Snackbar>
     </Dialog>
   );
 };
