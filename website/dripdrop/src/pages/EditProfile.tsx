@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Button, TextField, Typography, Paper, IconButton, CircularProgress, Tabs, Tab } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { useNavigate } from 'react-router-dom';
 import UpdatePassword from '../components/UpdatePassword';
+import { useNavigate } from 'react-router';
 
 const EditProfile = () => {
     const [username, setUsername] = useState('');
@@ -60,7 +60,7 @@ const EditProfile = () => {
     };
 
     return (
-        <Paper sx={{ minHeight: '100vh', padding: '32px' }}>
+        <Paper sx={{ minHeight: '100vh', padding: '32px', width:'1' }}>
             <Box display="flex" alignItems="center" mb={4}>
                 <IconButton onClick={handleBack} aria-label="Back">
                     <ArrowBackIcon />

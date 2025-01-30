@@ -1,5 +1,6 @@
-import React from 'react';
-import { Box, Modal, Typography, Divider, TextField, Button } from '@mui/material';
+import React, { useState, useEffect } from 'react';
+import { Box, Modal, Typography, Divider, TextField, Button, IconButton } from '@mui/material';
+import { ArrowForward, ArrowBack } from '@mui/icons-material';
 
 interface ViewPostModalProps {
     selectedPost: {
@@ -7,17 +8,42 @@ interface ViewPostModalProps {
         userID: number;
         caption: string;
         createdDate: string;
+        images: { imageID: number; imageURL: string }[];
     } | null;
     onClose: () => void;
 }
 
-const mockComments = [
-    { username: 'User1', text: 'Great post!' },
-    { username: 'User2', text: 'Nice picture!' },
-    { username: 'User3', text: 'Love this!' },
-];
-
 const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) => {
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+    // Fallback default image URL
+    const defaultImageURL = "default_image.png";
+
+    // Make sure selectedPost exists and handle cases where it doesn't
+    const imagesToDisplay = selectedPost?.images?.length ? selectedPost.images : [{ imageID: 0, imageURL: defaultImageURL }];
+
+    // Reset image index when selectedPost changes (e.g., when modal closes and opens with a new post)
+    useEffect(() => {
+        setCurrentImageIndex(0);
+    }, [selectedPost]);
+
+    const nextImage = () => {
+        if (currentImageIndex < imagesToDisplay.length - 1) {
+            setCurrentImageIndex(currentImageIndex + 1);
+        }
+    };
+
+    const prevImage = () => {
+        if (currentImageIndex > 0) {
+            setCurrentImageIndex(currentImageIndex - 1);
+        }
+    };
+
+    // Handle the scenario where the post might not be available anymore (selectedPost is null)
+    if (!selectedPost) {
+        return null;
+    }
+
     return (
         <Modal open={!!selectedPost} onClose={onClose}>
             <Box
@@ -35,83 +61,95 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
                     boxShadow: 24,
                 }}
             >
-                {selectedPost && (
-                    <>
-                        {/* Left Side: Image */}
-                        <Box
-                            sx={{
-                                flex: 2,
-                                display: 'flex',
-                                justifyContent: 'center',
-                                alignItems: 'center',
-                                overflow: 'hidden',
-                                backgroundColor: '#f5f5f5',
-                            }}
-                        >
-                            <img
-                                src={`https://picsum.photos/800/600?random`}
-                                alt="Post"
-                                style={{
-                                    maxWidth: '100%',
-                                    maxHeight: '100%',
-                                    objectFit: 'cover',
+                {/* Left Side: Image Display */}
+                <Box
+                    sx={{
+                        flex: 2,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        overflow: 'hidden',
+                        backgroundColor: '#f5f5f5',
+                        position: 'relative',
+                    }}
+                >
+                    {imagesToDisplay.length > 1 && (
+                        <>
+                            <IconButton
+                                sx={{
+                                    position: 'absolute',
+                                    left: 0,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    zIndex: 1,
                                 }}
-                            />
-                        </Box>
+                                onClick={prevImage}
+                                disabled={currentImageIndex === 0}
+                            >
+                                <ArrowBack />
+                            </IconButton>
 
-                        {/* Right Side: Post Details and Comments */}
-                        <Box sx={{ flex: 1, padding: 3, overflowY: 'auto' }}>
-                            {/* Post Details */}
-                            <Typography variant="h6" gutterBottom>
-                                Post Details
-                            </Typography>
-                            <Typography variant="body1" gutterBottom>
-                                <strong>Caption:</strong> {selectedPost.caption}
-                            </Typography>
-                            <Typography variant="body2" color="textSecondary" gutterBottom>
-                                <strong>Created Date:</strong> {selectedPost.createdDate}
-                            </Typography>
+                            <IconButton
+                                sx={{
+                                    position: 'absolute',
+                                    right: 0,
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    zIndex: 1,
+                                }}
+                                onClick={nextImage}
+                                disabled={currentImageIndex === imagesToDisplay.length - 1}
+                            >
+                                <ArrowForward />
+                            </IconButton>
+                        </>
+                    )}
 
-                            <Divider sx={{ my: 2 }} />
+                    <img
+                        src={imagesToDisplay[currentImageIndex].imageURL === defaultImageURL
+                            ? defaultImageURL
+                            : `https://cdn.dripdropco.com/${imagesToDisplay[currentImageIndex].imageURL}?format=png`}
+                        alt={selectedPost?.caption || "Default image"}
+                        style={{
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'contain',
+                            borderRadius: '8px',
+                        }}
+                    />
+                </Box>
 
-                            {/* Comments Section */}
-                            <Typography variant="h6" gutterBottom>
-                                Comments
-                            </Typography>
-                            <Box sx={{ maxHeight: '50%', overflowY: 'auto', mb: 2 }}>
-                                {mockComments.map((comment, index) => (
-                                    <Box
-                                        key={index}
-                                        sx={{
-                                            marginBottom: 2,
-                                            padding: 1,
-                                            backgroundColor: '#f9f9f9',
-                                            borderRadius: 1,
-                                        }}
-                                    >
-                                        <Typography variant="body2" color="textPrimary">
-                                            <strong>{comment.username}</strong>
-                                        </Typography>
-                                        <Typography variant="body2">{comment.text}</Typography>
-                                    </Box>
-                                ))}
-                            </Box>
+                {/* Right Side: Post Details and Comments */}
+                <Box sx={{ flex: 1, padding: 3, overflowY: 'auto' }}>
+                    <Typography variant="h6" gutterBottom>
+                        Post Details
+                    </Typography>
+                    <Typography variant="body1" gutterBottom>
+                        <strong>Caption:</strong> {selectedPost?.caption}
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary" gutterBottom>
+                        <strong>Created Date:</strong> {selectedPost?.createdDate}
+                    </Typography>
 
-                            {/* Add Comment Section */}
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                                <TextField
-                                    variant="outlined"
-                                    size="small"
-                                    placeholder="Add a comment..."
-                                    fullWidth
-                                />
-                                <Button variant="contained" size="small" sx={{ alignSelf: 'flex-end' }}>
-                                    Post
-                                </Button>
-                            </Box>
-                        </Box>
-                    </>
-                )}
+                    <Divider sx={{ my: 2 }} />
+
+                    <Typography variant="h6" gutterBottom>
+                        Comments
+                    </Typography>
+                    <Box sx={{ maxHeight: '50%', overflowY: 'auto', mb: 2 }}></Box>
+
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        <TextField
+                            variant="outlined"
+                            size="small"
+                            placeholder="Add a comment..."
+                            fullWidth
+                        />
+                        <Button variant="contained" size="small" sx={{ alignSelf: 'flex-end' }}>
+                            Post
+                        </Button>
+                    </Box>
+                </Box>
             </Box>
         </Modal>
     );
