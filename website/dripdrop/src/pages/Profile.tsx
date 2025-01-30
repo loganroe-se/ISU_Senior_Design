@@ -37,6 +37,7 @@ const Profile = () => {
     const [loading, setLoading] = useState(true);
     const [followers, setFollowers] = useState<number>(0);
     const [following, setFollowing] = useState<number>(0);
+    const [isUser, setIsUser] = useState(false);
 
     const navigate = useNavigate();
 
@@ -51,6 +52,8 @@ const Profile = () => {
             const data = await response.json();
             setEmail(data.email);
             setUsername(data.username);
+
+            console.log(data.username);
         } catch (error) {
             console.error('Error fetching user:', error);
         }
@@ -96,7 +99,9 @@ const Profile = () => {
                     setLoading(false);
                 });
         }
-    }, [userID,username]);
+
+        setIsUser(Number(userID) === Number(sessionStorage.getItem('userID')));
+    }, [userID,username,location]);
 
     const handlePostClick = (post: Post) => {
         setSelectedPost(post);
@@ -186,43 +191,44 @@ const Profile = () => {
                             </Typography>
                         </Box>
                     </Box>
-                    <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column', ml: 'auto' }}>
-                        <Button
-                            variant="contained"
-                            onClick={navigateToEditProfile}
-                            sx={{
-                                backgroundColor: 'white',
-                                color: 'grey',
-                                padding: '0.5rem 1.5rem',
-                                borderRadius: '20px',
-                                boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
-                                '&:hover': {
-                                    backgroundColor: '#f0f0f0',
-                                },
-                                border: '1px solid grey',
-                            }}
-                        >
-                            Edit Profile
-                        </Button>
+                    {
+                        isUser && <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column', ml: 'auto' }}>
+                            <Button
+                                variant="contained"
+                                onClick={navigateToEditProfile}
+                                sx={{
+                                    backgroundColor: 'white',
+                                    color: 'grey',
+                                    padding: '0.5rem 1.5rem',
+                                    borderRadius: '20px',
+                                    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                                    '&:hover': {
+                                        backgroundColor: '#f0f0f0',
+                                    },
+                                    border: '1px solid grey',
+                                }}
+                            >
+                                Edit Profile
+                            </Button>
 
-                        <Button
-                            variant="outlined"
-                            color="error"
-                            onClick={handleLogout}
-                            sx={{
-                                padding: '0.5rem 1.5rem',
-                                borderRadius: '20px',
-                                borderColor: 'error.main',
-                                '&:hover': {
-                                    borderColor: 'darkred',
-                                    backgroundColor: 'lightcoral',
-                                },
-                            }}
-                        >
-                            Log Out
-                        </Button>
-                    </Box>
-
+                            <Button
+                                variant="outlined"
+                                color="error"
+                                onClick={handleLogout}
+                                sx={{
+                                    padding: '0.5rem 1.5rem',
+                                    borderRadius: '20px',
+                                    borderColor: 'error.main',
+                                    '&:hover': {
+                                        borderColor: 'darkred',
+                                        backgroundColor: 'lightcoral',
+                                    },
+                                }}
+                            >
+                                Log Out
+                            </Button>
+                        </Box>
+                    }
                 </Box>
 
                 <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
