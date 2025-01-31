@@ -12,6 +12,7 @@ import {
   FormControl,
   Snackbar,
   SnackbarContent,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDropzone } from 'react-dropzone';
@@ -53,6 +54,7 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
+  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const { user } = useUserContext();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -95,12 +97,21 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    if (!user) {
+      setSnackbarMessage('You must be logged in to create a post!');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+      return;
+    }
+
     if (selectedImages.length === 0) {
       setSnackbarMessage('Please select at least one image!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
+
+    setIsLoading(true); // Set loading to true before submitting the post
 
     const id = Number(user?.id);
     const newPost = {
@@ -118,6 +129,11 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       setOpenSnackbar(true);
     } catch (error) {
       console.error('Failed to create post:', error);
+      setSnackbarMessage('Failed to create post!');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoading(false); // Set loading to false after post submission
     }
   };
 
@@ -194,8 +210,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
                     },
                     marginLeft: 3,
                   }}
+                  disabled={isLoading} // Disable the button while loading
                 >
-                  Create Post
+                  {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Create Post'}
                 </Button>
               </DialogActions>
             </form>
@@ -227,7 +244,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       {/* ImageMarker Dialog */}
       {showImageMarker && selectedImageUrl && (
         <ImageMarker imageUrls={[selectedImageUrl]} onClose={handleImageMarkerClose} />
-
       )}
     </>
   );
