@@ -459,11 +459,12 @@ export class ApiConstruct extends Construct {
       operationName: "GetPostById",
     });
 
-    // Define the /posts/{userID} resource
-    const userPost = posts.addResource("{userID}");
+    // Define the /posts/user/{userID} resource
+    const userPost = posts.addResource("user");
+    const userID = userPost.addResource("{userID}");
 
-    // GET /posts/{id} - Get Post by ID
-    userPost.addMethod("GET", new apigateway.LambdaIntegration(getPostsByUserIdLambda), {
+    // GET /posts/{userID}} - Get Post by ID
+    userID.addMethod("GET", new apigateway.LambdaIntegration(getPostsByUserIdLambda), {
       operationName: "GetPostByUserId",
     });
 
