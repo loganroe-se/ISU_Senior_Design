@@ -9,7 +9,7 @@ def handler(event, context):
         # Parse the user data from event
         path_params = event.get('pathParameters') or {}
 
-        user_id = path_params.get('id')
+        user_id = path_params.get('userID')
 
         # Check for missing, required values
         if not user_id:

@@ -344,17 +344,41 @@ export class ApiConstruct extends Construct {
     );
 
     // Post Lambdas
-    const postLambda = createLambda(
-      "PostLambda",
-      "lib/lambdas/post",
+    const createPostLambda = createLambda(
+      "CreatePostLambda",
+      "lib/lambdas/api-endpoints/post/create-post",
       "handler"
     );
 
-    postLambda.addToRolePolicy(new iam.PolicyStatement({
+    createPostLambda.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       resources: ["arn:aws:s3:::imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc/*"],
       actions: ["s3:PutObject"]
     }))
+
+    const deletePostLambda = createLambda(
+      "DeletePostLambda",
+      "lib/lambdas/api-endpoints/post/delete-post",
+      "handler"
+    );
+
+    const getPostByIdLambda = createLambda(
+      "GetPostByIdLambda",
+      "lib/lambdas/api-endpoints/post/get-post-by-id",
+      "handler"
+    );
+
+    const getPostsLambda = createLambda(
+      "GetPostsLambda",
+      "lib/lambdas/api-endpoints/post/get-posts",
+      "handler"
+    );
+
+    const getPostsByUserIdLambda = createLambda(
+      "GetPostsByUserIdLambda",
+      "lib/lambdas/api-endpoints/post/get-posts-by-user-id",
+      "handler"
+    );
 
     // Follow Lambdas
     const followUserLambda = createLambda(
@@ -409,13 +433,13 @@ export class ApiConstruct extends Construct {
     // POST /posts - Create
     posts.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(postLambda),
+      new apigateway.LambdaIntegration(createPostLambda),
       {
         operationName: "CreatePost",
       }
     );
     // GET /posts - Get All Posts
-    posts.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
+    posts.addMethod("GET", new apigateway.LambdaIntegration(getPostsLambda), {
       operationName: "GetPosts",
     });
 
@@ -425,19 +449,31 @@ export class ApiConstruct extends Construct {
     // DELETE /posts/{id} - Delete Post
     post.addMethod(
       "DELETE",
-      new apigateway.LambdaIntegration(postLambda),
+      new apigateway.LambdaIntegration(deletePostLambda),
       {
         operationName: "DeletePost",
       }
     );
     // GET /posts/{id} - Get Post by ID
-    post.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
+    post.addMethod("GET", new apigateway.LambdaIntegration(getPostByIdLambda), {
       operationName: "GetPostById",
     });
-    // PUT /posts/{id} - Update Post
-    post.addMethod("PUT", new apigateway.LambdaIntegration(postLambda), {
-      operationName: "UpdatePost",
+
+    // Define the /posts/{userID} resource
+    const userPost = posts.addResource("{userID}");
+
+    // GET /posts/{id} - Get Post by ID
+    userPost.addMethod("GET", new apigateway.LambdaIntegration(getPostsByUserIdLambda), {
+      operationName: "GetPostByUserId",
     });
+
+
+
+
+    // // PUT /posts/{id} - Update Post
+    // post.addMethod("PUT", new apigateway.LambdaIntegration(postLambda), {
+    //   operationName: "UpdatePost",
+    // });
 
     // ---------------------------- USER ENDPOINTS -------------------------------
 

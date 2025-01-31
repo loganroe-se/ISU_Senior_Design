@@ -21,7 +21,7 @@ def handler(event, context):
     
     except Exception as e:
         print(f"Error: {e}")
-        return create_response(500, f"Error creating post: {str(e)}")
+        return create_response(500, f"Error deleting post: {str(e)}")
     
 
 def deletePost(post_id):
