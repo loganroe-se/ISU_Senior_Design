@@ -309,80 +309,104 @@ export class ApiConstruct extends Construct {
     // User Lambdas
     const createUserLambda = createLambda(
       "CreateUserLambda",
-      "lib/lambdas/user/createUser",
-      "createUser"
-    );
-    const getUsersLambda = createLambda(
-      "GetUsersLambda",
-      "lib/lambdas/user/getUsers",
-      "getUsers"
-    );
-    const getUserByIdLambda = createLambda(
-      "GetUserByIdLambda",
-      "lib/lambdas/user/getUserById",
-      "getUserById"
-    );
-    const updateUserLambda = createLambda(
-      "UpdateUserLambda",
-      "lib/lambdas/user/updateUser",
-      "updateUser"
+      "lib/lambdas/api-endpoints/user/create-user",
+      "handler"
     );
     const deleteUserLambda = createLambda(
       "DeleteUserLambda",
-      "lib/lambdas/user/deleteUser",
-      "deleteUser"
+      "lib/lambdas/api-endpoints/user/delete-user",
+      "handler"
+    );
+    const getUserByIdLambda = createLambda(
+      "GetUserByIdLambda",
+      "lib/lambdas/api-endpoints/user/get-user-by-id",
+      "handler"
     );
     const getUserByUsernameLambda = createLambda(
       "GetUserByUsernameLambda",
-      "lib/lambdas/user/getUserByUsername",
-      "getUserByUsername"
+      "lib/lambdas/api-endpoints/user/get-user-by-username",
+      "handler"
+    );
+    const getUsersLambda = createLambda(
+      "GetUsersLambda",
+      "lib/lambdas/api-endpoints/user/get-users",
+      "handler"
+    );
+    const updateUserLambda = createLambda(
+      "UpdateUserLambda",
+      "lib/lambdas/api-endpoints/user/update-user",
+      "handler"
     );
     const userSignInLambda = createLambda(
       "UserSignInLambda",
-      "lib/lambdas/user/userSignIn",
-      "signIn"
-    );
-
-    // Post Lambdas
-    const postLambda = createLambda(
-      "PostLambda",
-      "lib/lambdas/post",
+      "lib/lambdas/api-endpoints/user/user-sign-in",
       "handler"
     );
 
-    postLambda.addToRolePolicy(new iam.PolicyStatement({
+    // Post Lambdas
+    const createPostLambda = createLambda(
+      "CreatePostLambda",
+      "lib/lambdas/api-endpoints/post/create-post",
+      "handler"
+    );
+
+    createPostLambda.addToRolePolicy(new iam.PolicyStatement({
       effect: iam.Effect.ALLOW,
       resources: ["arn:aws:s3:::imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc/*"],
       actions: ["s3:PutObject"]
     }))
 
+    const deletePostLambda = createLambda(
+      "DeletePostLambda",
+      "lib/lambdas/api-endpoints/post/delete-post",
+      "handler"
+    );
+
+    const getPostByIdLambda = createLambda(
+      "GetPostByIdLambda",
+      "lib/lambdas/api-endpoints/post/get-post-by-id",
+      "handler"
+    );
+
+    const getPostsLambda = createLambda(
+      "GetPostsLambda",
+      "lib/lambdas/api-endpoints/post/get-posts",
+      "handler"
+    );
+
+    const getPostsByUserIdLambda = createLambda(
+      "GetPostsByUserIdLambda",
+      "lib/lambdas/api-endpoints/post/get-posts-by-user-id",
+      "handler"
+    );
+
     // Follow Lambdas
     const followUserLambda = createLambda(
       "FollowUserLambda",
-      "lib/lambdas/follow/followUser",
-      "followUser"
+      "lib/lambdas/api-endpoints/follow/follow-user",
+      "handler"
     );
     const getFollowingLambda = createLambda(
       "GetFollowing",
-      "lib/lambdas/follow/getFollowing",
-      "getFollowing"
+      "lib/lambdas/api-endpoints/follow/get-following",
+      "handler"
     );
     const getFollowersLambda = createLambda(
       "GetFollowersLambda",
-      "lib/lambdas/follow/getFollowers",
-      "getFollowers"
+      "lib/lambdas/api-endpoints/follow/get-followers",
+      "handler"
     );
     const unfollowUserLambda = createLambda(
       "UnfollowUserLambda",
-      "lib/lambdas/follow/unfollowUser",
-      "unfollowUser"
+      "lib/lambdas/api-endpoints/follow/unfollow-user",
+      "handler"
     );
 
     // Testing lambda
     const testFunctionsLambda = createLambda(
       "TestFunctionsLambda",
-      "lib/lambdas/testFunctions",
-      "testFunctions"
+      "lib/lambdas/test-functions",
+      "handler"
     );
 
     // API Gateway setup with custom domain
@@ -401,7 +425,7 @@ export class ApiConstruct extends Construct {
       },
     });
 
-    // -------------------------------- POST LAMBDAS -------------------------
+    // -------------------------------- POST ENDPOINTS -------------------------
 
     // Define the /posts resource
     const posts = api.root.addResource("posts");
@@ -409,13 +433,13 @@ export class ApiConstruct extends Construct {
     // POST /posts - Create
     posts.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(postLambda),
+      new apigateway.LambdaIntegration(createPostLambda),
       {
         operationName: "CreatePost",
       }
     );
     // GET /posts - Get All Posts
-    posts.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
+    posts.addMethod("GET", new apigateway.LambdaIntegration(getPostsLambda), {
       operationName: "GetPosts",
     });
 
@@ -425,21 +449,34 @@ export class ApiConstruct extends Construct {
     // DELETE /posts/{id} - Delete Post
     post.addMethod(
       "DELETE",
-      new apigateway.LambdaIntegration(postLambda),
+      new apigateway.LambdaIntegration(deletePostLambda),
       {
         operationName: "DeletePost",
       }
     );
     // GET /posts/{id} - Get Post by ID
-    post.addMethod("GET", new apigateway.LambdaIntegration(postLambda), {
+    post.addMethod("GET", new apigateway.LambdaIntegration(getPostByIdLambda), {
       operationName: "GetPostById",
     });
-    // PUT /posts/{id} - Update Post
-    post.addMethod("PUT", new apigateway.LambdaIntegration(postLambda), {
-      operationName: "UpdatePost",
+
+    // Define the /posts/user/{userID} resource
+    const userPost = posts.addResource("user");
+    const userID = userPost.addResource("{userID}");
+
+    // GET /posts/{userID}} - Get Post by ID
+    userID.addMethod("GET", new apigateway.LambdaIntegration(getPostsByUserIdLambda), {
+      operationName: "GetPostByUserId",
     });
 
-    // ---------------------------- USER LAMBDAS -------------------------------
+
+
+
+    // // PUT /posts/{id} - Update Post
+    // post.addMethod("PUT", new apigateway.LambdaIntegration(postLambda), {
+    //   operationName: "UpdatePost",
+    // });
+
+    // ---------------------------- USER ENDPOINTS -------------------------------
 
     // Define the /users resource
     const users = api.root.addResource("users");
@@ -505,7 +542,7 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    // ----------------------------- FOLLOW LAMBDAS -----------------------------
+    // ----------------------------- FOLLOW ENDPOINTS -----------------------------
 
     // Define the /follow resource
     const follow = api.root.addResource("follow");
