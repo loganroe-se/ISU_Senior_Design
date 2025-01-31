@@ -1,11 +1,9 @@
 import json
-from sqlalchemy import select
-from sqlalchemy.orm import joinedload 
 from image import save_image_to_db
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, User
-from datetime import datetime, date
+from datetime import date
 
 def handler(event, context):
     try:
