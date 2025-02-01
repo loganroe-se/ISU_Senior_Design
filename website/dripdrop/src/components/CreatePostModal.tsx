@@ -12,13 +12,11 @@ import {
   FormControl,
   Snackbar,
   SnackbarContent,
-  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDropzone } from 'react-dropzone';
 import { createPost } from '../api/api'; // Import API functions
 import { useUserContext } from '../Auth/UserContext';
-import ImageMarker from './ImageMarker'; // Import ImageMarker component
 
 const dropzoneStyle: React.CSSProperties = {
   border: '2px dashed #cccccc',
@@ -49,12 +47,9 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     clothesUrl: '',
   });
   const [selectedImages, setSelectedImages] = useState<string[]>([]);
-  const [selectedImageUrl, setSelectedImageUrl] = useState<string | null>(null);
-  const [showImageMarker, setShowImageMarker] = useState(false); // Control ImageMarker modal
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
-  const [isLoading, setIsLoading] = useState(false); // Add loading state
   const { user } = useUserContext();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,22 +62,20 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       const reader = new FileReader();
 
       reader.onloadend = () => {
+        // Extract the Base64 string without the metadata (data:image/png;base64,)
         const base64String = reader.result as string;
+        const base64Data = base64String.split(',')[1]; // Split and get only the part after the comma
 
-        // Store the image URL and show the ImageMarker modal
-        setSelectedImageUrl(base64String);
-        setShowImageMarker(true);
+        // After the file is read, set the Base64 string into state without the header
+        setSelectedImages((prevImages) => [
+          ...prevImages,
+          base64Data, // Only store the Base64 data
+        ]);
       };
 
+      // Read the file as Data URL (Base64)
       reader.readAsDataURL(file);
     });
-  };
-
-  const handleImageMarkerClose = () => {
-    setShowImageMarker(false);
-    if (selectedImageUrl) {
-      setSelectedImages([...selectedImages, selectedImageUrl]);
-    }
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -91,27 +84,19 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png'],
     },
-    maxFiles: 3,
+    maxFiles: 3, // Limit to 3 images for this case
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!user) {
-      setSnackbarMessage('You must be logged in to create a post!');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-      return;
-    }
-
     if (selectedImages.length === 0) {
+      // Show an error message if no images are selected
       setSnackbarMessage('Please select at least one image!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
       return;
     }
-
-    setIsLoading(true); // Set loading to true before submitting the post
 
     const id = Number(user?.id);
     const newPost = {
@@ -121,131 +106,141 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     };
 
     try {
+      // Call createPost() to send the post data to the API
       await createPost(newPost);
+
+      // Reset form after successful submission
       setPostDetails({ caption: '', clothesUrl: '' });
       setSelectedImages([]);
+
+      // Open success snackbar
       setSnackbarMessage('Post created successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
     } catch (error) {
+      // Handle error and set error message in the state
       console.error('Failed to create post:', error);
-      setSnackbarMessage('Failed to create post!');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-    } finally {
-      setIsLoading(false); // Set loading to false after post submission
     }
   };
 
   return (
-    <>
-      <Dialog open={isOpen} onClose={onClose} maxWidth="md" fullWidth sx={{ borderRadius: 2 }}>
-        <DialogTitle
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
-          <IconButton edge="end" color="inherit" onClick={onClose}>
-            <CloseIcon />
-          </IconButton>
-        </DialogTitle>
+    <Dialog open={isOpen} onClose={onClose} maxWidth="md" fullWidth sx={{ borderRadius: 2 }}>
+      <DialogTitle
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}
+      >
+        <IconButton edge="end" color="inherit" onClick={onClose}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
 
-        <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2 }}>
-          <Box sx={{ width: '100%', maxWidth: 600 }}>
-            <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#333', fontWeight: 700 }}>
-              Create New Post
-            </Typography>
+      <DialogContent
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          p: 2,
+        }}
+      >
+        <Box sx={{ width: '100%', maxWidth: 600 }}>
+          <Typography
+            variant="h4"
+            component="h1"
+            gutterBottom
+            align="center"
+            sx={{ color: '#333', fontWeight: 700 }}
+          >
+            Create New Post
+          </Typography>
 
-            <form onSubmit={handleSubmit}>
-              <FormControl fullWidth>
-                <div {...getRootProps()} style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}>
-                  <input {...getInputProps()} />
-                  <Typography variant="body1" sx={{ color: '#444' }}>
-                    {isDragActive
-                      ? 'Drop the image here...'
-                      : selectedImages.length
-                        ? `Selected Images: ${selectedImages.length}`
-                        : 'Drag & drop an image, or click to select'}
-                  </Typography>
-                </div>
-              </FormControl>
+          <form onSubmit={handleSubmit}>
+            {/* Drag-and-drop image upload */}
+            <FormControl fullWidth>
+              <div {...getRootProps()} style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}>
+                <input {...getInputProps()} />
+                <Typography variant="body1" sx={{ color: '#444' }}>
+                  {isDragActive
+                    ? 'Drop the image here...'
+                    : selectedImages.length
+                      ? `Selected Images: ${selectedImages.length}`
+                      : 'Drag & drop an image, or click to select'}
+                </Typography>
+              </div>
+            </FormControl>
 
-              <TextField
-                name="caption"
-                label="Caption"
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={postDetails.caption}
-                onChange={handleInputChange}
-                required
-                sx={{
-                  mb: 2,
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: '12px',
-                    '& fieldset': {
-                      borderColor: '#ccc',
-                    },
-                    '&:hover fieldset': {
-                      borderColor: '#2196f3',
-                    },
+            {/* Caption input */}
+            <TextField
+              name="caption"
+              label="Caption"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              value={postDetails.caption}
+              onChange={handleInputChange}
+              required
+              sx={{
+                mb: 2,
+                '& .MuiOutlinedInput-root': {
+                  borderRadius: '12px',
+                  '& fieldset': {
+                    borderColor: '#ccc',
                   },
+                  '&:hover fieldset': {
+                    borderColor: '#2196f3',
+                  },
+                },
+              }}
+            />
+
+            {/* Action Buttons */}
+            <DialogActions sx={{ justifyContent: 'flex-end', p: 2, ml: 2 }}>
+              <Button onClick={onClose} color="error" sx={{ px: 4 }}>
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                sx={{
+                  bgcolor: '#2196f3',
+                  '&:hover': {
+                    bgcolor: '#1976d2',
+                  },
+                  marginLeft: 3, // Adjusted to the right
                 }}
-              />
+              >
+                Create Post
+              </Button>
+            </DialogActions>
+          </form>
+        </Box>
+      </DialogContent>
 
-              <DialogActions sx={{ justifyContent: 'flex-end', p: 2, ml: 2 }}>
-                <Button onClick={onClose} color="error" sx={{ px: 4 }}>
-                  Cancel
-                </Button>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  sx={{
-                    bgcolor: '#2196f3',
-                    '&:hover': {
-                      bgcolor: '#1976d2',
-                    },
-                    marginLeft: 3,
-                  }}
-                  disabled={isLoading} // Disable the button while loading
-                >
-                  {isLoading ? <CircularProgress size={24} color="inherit" /> : 'Create Post'}
-                </Button>
-              </DialogActions>
-            </form>
-          </Box>
-        </DialogContent>
-
-        <Snackbar
-          open={openSnackbar}
-          autoHideDuration={2000}
-          onClose={() => {
-            setOpenSnackbar(false);
-            onClose();
+      {/* Snackbar for success or error message */}
+      <Snackbar
+        open={openSnackbar}
+        autoHideDuration={2000}
+        onClose={() => {
+          setOpenSnackbar(false);
+          onClose();
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+        sx={{ bottom: 80 }}
+      >
+        <SnackbarContent
+          message={snackbarMessage}
+          sx={{
+            backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336',
+            color: 'white',
+            borderRadius: '8px',
+            padding: '10px 20px',
           }}
-          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-          sx={{ bottom: 80 }}
-        >
-          <SnackbarContent
-            message={snackbarMessage}
-            sx={{
-              backgroundColor: snackbarSeverity === 'success' ? '#4caf50' : '#f44336',
-              color: 'white',
-              borderRadius: '8px',
-              padding: '10px 20px',
-            }}
-          />
-        </Snackbar>
-      </Dialog>
-
-      {/* ImageMarker Dialog */}
-      {showImageMarker && selectedImageUrl && (
-        <ImageMarker imageUrls={[selectedImageUrl]} onClose={handleImageMarkerClose} />
-      )}
-    </>
+        />
+      </Snackbar>
+    </Dialog>
   );
 };
 
