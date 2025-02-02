@@ -13,7 +13,7 @@ import { User } from '../types';
 import FavoriteIcon from '@mui/icons-material/Favorite';
 import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
-import { NavLink } from 'react-router';
+import { NavLink } from 'react-router-dom'; // Ensure it's from react-router-dom
 
 interface PostCardProps {
   images: string; // Expect an array of image URLs
@@ -36,7 +36,7 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption }) => {
   const [user, setUser] = useState<User>({ id: 0, username: '', email: '' });
 
   const linkProps = {
-    uID: user.id,
+    user: user, // Pass full user object
   };
 
   async function getUser(username: string) {
@@ -69,7 +69,7 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption }) => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
           <NavLink
             to={{ pathname: '/profile' }}
-            state={linkProps}
+            state={linkProps} // Pass full user object as state
             style={{ textDecoration: 'none', color: 'black' }}
           >
             {username} {/* Display the username */}

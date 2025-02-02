@@ -4,13 +4,33 @@ import PostCard from './PostCard';
 import { fetchPosts, fetchUserById } from '../api/api'; // Import API functions
 import { retreivePost } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import ViewPostModal from './ViewPostModal';
 
 const Feed = () => {
   const [posts, setPosts] = useState<retreivePost[]>([]); // State for posts
+  const [selectedPost, setSelectedPost] = useState<{
+    postID: number;
+    userID: number;
+    caption: string;
+    createdDate: String;
+    images: { imageID: number; imageURL: string }[];
+  } | null>(null); // State for selected post with correct type
   const [loading, setLoading] = useState<boolean>(true); // State for loading
   const [error, setError] = useState<string | null>(null); // State for error message
   const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
+
+  const handlePostClick = (post: retreivePost) => {
+    // Map selectedPost to match the required structure
+    const mappedPost = {
+      postID: post.id,            // Use post.id instead of postID
+      userID: post.userID,
+      caption: post.caption,
+      createdDate: post.postedDate,  // Convert to ISO string to match expected type
+      images: post.images,         // Keep the images array as is
+    };
+    setSelectedPost(mappedPost); // Set mapped post
+  };
 
   useEffect(() => {
     const loadPostsAndUsernames = async () => {
@@ -91,7 +111,9 @@ const Feed = () => {
                   sx={{
                     display: 'flex',
                     justifyContent: 'center', // Centers the post card
+                    cursor: 'pointer', // Change cursor to pointer to indicate clickability
                   }}
+                  onClick={() => handlePostClick(post)} // Add the click handler to the Box
                 >
                   <PostCard images={imageURL} username={username} caption={post.caption} />
                 </Box>
@@ -104,6 +126,8 @@ const Feed = () => {
           </Typography>
         )}
       </Grid>
+      <ViewPostModal selectedPost={selectedPost} onClose={() => setSelectedPost(null)} />
+
     </Box>
   );
 };
