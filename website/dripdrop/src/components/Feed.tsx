@@ -5,8 +5,11 @@ import { fetchPosts, fetchUserById } from '../api/api'; // Import API functions
 import { retreivePost } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ViewPostModal from './ViewPostModal';
+import { useNavigate } from 'react-router-dom';
+
 
 const Feed = () => {
+  const navigate = useNavigate();
   const [posts, setPosts] = useState<retreivePost[]>([]); // State for posts
   const [selectedPost, setSelectedPost] = useState<{
     postID: number;
@@ -21,15 +24,18 @@ const Feed = () => {
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
 
   const handlePostClick = (post: retreivePost) => {
-    // Map selectedPost to match the required structure
+    // Navigate to the profile page and pass userID via state
+      navigate('/profile', { state: { userID: post.userID } });
+
+    // Optionally, you can keep handling the selected post as well if needed
     const mappedPost = {
-      postID: post.id,            // Use post.id instead of postID
+      postID: post.id,
       userID: post.userID,
       caption: post.caption,
-      createdDate: post.postedDate,  // Convert to ISO string to match expected type
-      images: post.images,         // Keep the images array as is
+      createdDate: post.postedDate,
+      images: post.images,
     };
-    setSelectedPost(mappedPost); // Set mapped post
+    setSelectedPost(mappedPost);
   };
 
   useEffect(() => {

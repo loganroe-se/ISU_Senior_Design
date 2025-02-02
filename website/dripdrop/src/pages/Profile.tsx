@@ -16,7 +16,7 @@ import FavoriteIcon from '@mui/icons-material/Favorite';
 import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
 import { useUserContext } from '../Auth/UserContext';
-import { useNavigate } from 'react-router';
+import { useNavigate, useLocation } from 'react-router';
 
 interface Image {
   imageID: number;
@@ -40,6 +40,7 @@ const Profile = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userLoading, setUserLoading] = useState(true);
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
   const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>(
@@ -47,19 +48,32 @@ const Profile = () => {
   );
 
   const navigate = useNavigate();
-
+  const location = useLocation();
+  const { userID } = location.state || {};
   // Define functions with useCallback for stable references
   const getUser = useCallback(async () => {
-    if (!user) return;
+    setUserLoading(true);
+    if (!userID) return; // If there's no userID, do nothing
     try {
-      const response = await fetch(`https://api.dripdropco.com/users/${user.id}`);
+      const response = await fetch(`https://api.dripdropco.com/users/${userID}`);
       const data = await response.json();
       setEmail(data.email);
       setUsername(data.username);
     } catch (error) {
       console.error('Error fetching user:', error);
     }
-  }, [user]);
+    finally{
+      setUserLoading(false);
+    }
+  }, [userID]);
+
+
+  useEffect(() => {
+    if (userID) {
+      getUser();
+    }
+  }, [userID, getUser]);
+
 
   const navigateToEditProfile = () => {
     navigate('/editProfile');
@@ -167,6 +181,11 @@ const Profile = () => {
           />
           <input type="file" accept="image/*" hidden onChange={handleProfilePicChange} />
         </IconButton>
+        {userLoading ? (
+          <Box marginLeft={'3em'} marginTop={'2em'}>
+            <CircularProgress />
+          </Box>
+        ) : (
         <Box>
           <Typography variant="h5">{username}</Typography>
           <Typography variant="body2" color="textSecondary">
@@ -184,6 +203,7 @@ const Profile = () => {
             </Typography>
           </Box>
         </Box>
+        )}
         <Box sx={{ display: 'flex', gap: 3, flexDirection: 'column', ml: 'auto' }}>
           <Button
             variant="contained"

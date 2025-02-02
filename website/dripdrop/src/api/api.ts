@@ -37,7 +37,6 @@ export const fetchUserById = async (userID: number): Promise<string | null> => {
 
 // Create a new post
 export const createPost = async (newPost: sendPost): Promise<sendPost> => {
-  console.log("Sending post data:", newPost);  // Log the data being sent
   try {
     const response = await fetch("https://api.dripdropco.com/posts/", {
       method: "POST",

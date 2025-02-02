@@ -17,9 +17,7 @@ const ImageMarker: React.FC<ImageMarkerProps> = ({ imageUrls, onClose }) => {
     const handleImageClick = (e: React.MouseEvent<HTMLImageElement>, imageUrl: string) => {
         const rect = e.currentTarget.getBoundingClientRect();
         const x = ((e.clientX - rect.left) / rect.width) * 100;
-        const y = ((e.clientY - rect.top) / rect.height) * 100;
-
-        console.log(`Marker placed on ${imageUrl}: X=${x.toFixed(2)}%, Y=${y.toFixed(2)}%`);
+        const y = ((e.clientY - rect.top) / rect.height) * 100
 
         setMarkers((prev) => ({
             ...prev,
