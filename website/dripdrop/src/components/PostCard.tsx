@@ -59,6 +59,7 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
         borderRadius: '12px',
         position: 'relative',
         overflow: 'hidden',
+        cursor:'pointer',
         '&:hover': {
           backgroundColor: '#f0f0f0', // Same hover color for the card background
           '& .image-overlay': {

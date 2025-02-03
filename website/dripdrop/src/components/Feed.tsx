@@ -5,11 +5,9 @@ import { fetchUserById, fetchPosts } from '../api/api'; // Import API functions
 import { Post } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ViewPostModal from './ViewPostModal';
-import { useNavigate } from 'react-router-dom';
 
 
 const Feed = () => {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]); // State for posts
   const [selectedPost, setSelectedPost] = useState<{
     postID: number;
@@ -24,22 +22,19 @@ const Feed = () => {
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
 
   const handlePostClick = (post: Post) => {
-    // Navigate to the profile page and pass userID via state
-    navigate('/profile', { state: { userID: post.userID } });
-
-    // Optionally, you can keep handling the selected post as well if needed
-    const mappedPost = {
-      postID: post.id, // Ensure this is correct if you are expecting postID and not id
+    // Set the selected post for the modal
+    setSelectedPost({
+      postID: post.id,
       userID: post.userID,
       caption: post.caption,
       createdDate: post.createdDate,
       images: post.images.map((image, index) => ({
-        imageID: index, // You can use a unique identifier here, like index or another unique value
+        imageID: index,
         imageURL: image.imageURL,
       })),
-    };
-    setSelectedPost(mappedPost);
+    });
   };
+
 
   useEffect(() => {
     const loadPostsAndUsernames = async () => {
