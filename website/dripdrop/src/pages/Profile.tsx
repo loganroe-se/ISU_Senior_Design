@@ -139,13 +139,13 @@ const Profile = () => {
     if (!user) return;
     try {
       const followersResponse = await fetch(
-        `https://api.dripdropco.com/follow/${user.id}/followers`
+        `https://api.dripdropco.com/follow/${userID}/followers`
       );
       const followersData = await followersResponse.json();
       setFollowers(followersData.length);
 
       const followingResponse = await fetch(
-        `https://api.dripdropco.com/follow/${user.id}/following`
+        `https://api.dripdropco.com/follow/${userID}/following`
       );
       const followingData = await followingResponse.json();
       setFollowing(followingData.length);
