@@ -1,15 +1,14 @@
 import { sendPost } from "../types";  // Ensure the Post type is correctly imported
-import { retreivePost } from "../types";  // Ensure the Post type is correctly imported
-import { Following, User } from "../types";  // Ensure the Post type is correctly imported
+import { Following, User, Post } from "../types";  // Ensure the Post type is correctly imported
 
 // Fetch all posts
-export const fetchPosts = async (): Promise<retreivePost[]> => {
+export const fetchPosts = async (): Promise<Post[]> => {
   try {
     const response = await fetch("https://api.dripdropco.com/posts/");
     if (!response.ok) {
       throw new Error("Failed to fetch posts");
     }
-    const data: retreivePost[] = await response.json();  // Cast the response to an array of posts
+    const data: Post[] = await response.json();  // Cast the response to an array of posts
     return data;
   } catch (error) {
     if (error instanceof Error) {

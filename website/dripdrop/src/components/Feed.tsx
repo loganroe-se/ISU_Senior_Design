@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, CircularProgress, Typography, Box } from '@mui/material';
 import PostCard from './PostCard';
-import { fetchPosts, fetchUserById } from '../api/api'; // Import API functions
-import { retreivePost } from '../types';
+import { fetchUserById, fetchPosts } from '../api/api'; // Import API functions
+import { Post } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ViewPostModal from './ViewPostModal';
 import { useNavigate } from 'react-router-dom';
@@ -10,7 +10,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Feed = () => {
   const navigate = useNavigate();
-  const [posts, setPosts] = useState<retreivePost[]>([]); // State for posts
+  const [posts, setPosts] = useState<Post[]>([]); // State for posts
   const [selectedPost, setSelectedPost] = useState<{
     postID: number;
     userID: number;
@@ -23,17 +23,20 @@ const Feed = () => {
   const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
 
-  const handlePostClick = (post: retreivePost) => {
+  const handlePostClick = (post: Post) => {
     // Navigate to the profile page and pass userID via state
-      navigate('/profile', { state: { userID: post.userID } });
+    navigate('/profile', { state: { userID: post.userID } });
 
     // Optionally, you can keep handling the selected post as well if needed
     const mappedPost = {
-      postID: post.id,
+      postID: post.id, // Ensure this is correct if you are expecting postID and not id
       userID: post.userID,
       caption: post.caption,
-      createdDate: post.postedDate,
-      images: post.images,
+      createdDate: post.createdDate,
+      images: post.images.map((image, index) => ({
+        imageID: index, // You can use a unique identifier here, like index or another unique value
+        imageURL: image.imageURL,
+      })),
     };
     setSelectedPost(mappedPost);
   };
@@ -117,11 +120,10 @@ const Feed = () => {
                   sx={{
                     display: 'flex',
                     justifyContent: 'center', // Centers the post card
-                    cursor: 'pointer', // Change cursor to pointer to indicate clickability
                   }}
-                  onClick={() => handlePostClick(post)} // Add the click handler to the Box
                 >
-                  <PostCard images={imageURL} username={username} caption={post.caption} />
+                  <PostCard images={imageURL} username={username} caption={post.caption} onPostClick={handlePostClick} // Pass the function as a prop
+                    post={post} />
                 </Box>
               </Grid>
             );

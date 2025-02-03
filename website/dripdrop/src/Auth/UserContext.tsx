@@ -1,17 +1,6 @@
 import axios from "axios";
 import React, { createContext, useContext, useState, ReactNode } from "react";
-
-interface User {
-  profilePic?: string;
-  id: number;
-  email: string;
-}
-
-interface UserContextType {
-  user: User | null;
-  signIn: (email: string, password: string) => Promise<void>;
-  signOut: () => void;
-}
+import { User, UserContextType } from '../types'
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
@@ -37,6 +26,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
       const signedInUser: User = {
         id: data.id,
         email: username,
+        username: data.userName
       };
 
       setUser(signedInUser);

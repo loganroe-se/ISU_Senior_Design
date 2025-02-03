@@ -9,26 +9,16 @@ export interface sendPost {
   images?: string[];
 }
 
-export interface retreivePost {
-  id: number; // Post ID
-  userID: number; // User ID
-  caption: string; // Post caption
-  clothesUrl: string; // URL for the clothes (assuming this is needed)
-  postedDate: String;
-  images: {
-    // Array of image objects, each containing an image URL
-    imageID: number;
-    imageURL: string;
-  }[]; // Array of image objects (instead of just a string array)
-}
+
 
 export interface Post {
-  id: string;
+  id: number;
   userID: number; // Added userID to associate with user data
   images: { imageURL: string }[]; // Array of image objects with imageURL field
-  username?: string; // Optional field, we'll populate this later
+  username: string; // Optional field, we'll populate this later
   caption: string;
-  postedDate: String;
+  createdDate: String;
+  clothesUrl: string;
 }
 
 export interface Following {
@@ -41,4 +31,9 @@ export interface User {
   id: number;
   username: string;
   email: string;
+}
+export interface UserContextType {
+  user: User | null;
+  signIn: (email: string, password: string) => Promise<void>;
+  signOut: () => void;
 }

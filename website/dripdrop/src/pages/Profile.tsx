@@ -17,19 +17,9 @@ import CommentIcon from '@mui/icons-material/Comment';
 import ViewPostModal from '../components/ViewPostModal'; // Import the new component
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
+import { Post } from '../types'; 
+import { v4 as uuidv4 } from 'uuid';
 
-interface Image {
-  imageID: number;
-  imageURL: string;
-}
-
-interface Post {
-  postID: number;
-  userID: number;
-  caption: string;
-  createdDate: string;
-  images: Image[];
-}
 
 const Profile = () => {
   const { user } = useUserContext();
@@ -78,13 +68,13 @@ const Profile = () => {
   const navigateToEditProfile = () => {
     navigate('/editProfile');
   };
-  console.log("USER ID: " + userID)
 
   useEffect(() => {
     if (user) {
       fetch(`https://api.dripdropco.com/posts/user/${userID}`)
         .then((response) => {
           if (!response.ok) {
+            setPosts([]);  // Reset posts state to an empty array if 404 or any error occurs
             throw new Error(`Error fetching posts: ${response.statusText}`);
           }
           return response.json();
@@ -98,7 +88,8 @@ const Profile = () => {
           setLoading(false);
         });
     }
-  }, [user, username]);
+  }, [user, username, userID]);
+
 
   const handlePostClick = (post: Post) => {
     setSelectedPost(post);
@@ -125,7 +116,7 @@ const Profile = () => {
     if (posts.length > 0 && Object.keys(postStats).length === 0) {
       const stats = posts.reduce(
         (acc, post) => {
-          acc[post.postID] = {
+          acc[post.id] = {
             likes: Math.floor(Math.random() * 500), // Random likes
             comments: Math.floor(Math.random() * 100), // Random comments
           };
@@ -163,6 +154,19 @@ const Profile = () => {
       getFollowersAndFollowing();
     }
   }, [user, getUser, getFollowersAndFollowing]);
+
+  const transformedPost = selectedPost
+    ? {
+      postID: selectedPost.id, // Map id to postID if required
+      userID: selectedPost.userID,
+      caption: selectedPost.caption,
+      createdDate: selectedPost.createdDate,
+      images: selectedPost.images.map((image, index) => ({
+        imageID: index, // Or another unique ID if needed
+        imageURL: image.imageURL,
+      })),
+    }
+    : null;
 
   return (
     <Paper sx={{ p: '1em', m: '1em', width: '1' }}>
@@ -255,53 +259,53 @@ const Profile = () => {
           </Box>
         ) : posts.length > 0 ? (
           <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
-            {posts.map((post) => (
-              <ImageListItem
-                key={post.postID}
-                onMouseEnter={() => setHoveredPost(post.postID)}
-                onMouseLeave={() => setHoveredPost(null)}
-                onClick={() => handlePostClick(post)}
-                sx={{ cursor: 'pointer', position: 'relative' }}
-              >
-                <img
-                  src={(post.images[0] ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                    : 'default_image.png')}
-
-                  alt={post.caption}
-                  loading="lazy"
-                />
-                ?
-                {hoveredPost === post.postID && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      color: 'white',
-                    }}
-                  >
-                    <Box display="flex" gap={2}>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <FavoriteIcon />
-                        <Typography>{postStats[post.postID]?.likes || 0}</Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <CommentIcon />
-                        <Typography>{postStats[post.postID]?.comments || 0}</Typography>
+              {posts.map((post) => (
+                <ImageListItem
+                  key={uuidv4()}
+                  onMouseEnter={() => setHoveredPost(post.id)}
+                  onMouseLeave={() => setHoveredPost(null)}
+                  onClick={() => handlePostClick(post)}
+                  sx={{ cursor: 'pointer', position: 'relative' }}
+                >
+                  <img
+                    src={
+                      post.images[0]
+                        ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+                        : 'default_image.png'
+                    }
+                    alt={post.caption}
+                    loading="lazy"
+                  />
+                  {hoveredPost === post.id && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: 'white',
+                      }}
+                    >
+                      <Box display="flex" gap={2}>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <FavoriteIcon />
+                          <Typography>{postStats[post.id]?.likes || 0}</Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <CommentIcon />
+                          <Typography>{postStats[post.id]?.comments || 0}</Typography>
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                )}
+                  )}
+                </ImageListItem>
+              ))}
 
-              </ImageListItem>
-
-            ))}
           </ImageList>
         ) : (
           <Typography variant="body2" color="textSecondary">
@@ -310,7 +314,7 @@ const Profile = () => {
         )}
       </Box>
 
-      <ViewPostModal selectedPost={selectedPost} onClose={closePostModal} />
+      <ViewPostModal selectedPost={transformedPost} onClose={closePostModal} />
     </Paper>
   );
 };

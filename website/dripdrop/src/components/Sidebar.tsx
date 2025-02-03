@@ -15,11 +15,13 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
   const [isFilterOpen, setFilterOpen] = useState(false);
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
 
-  const username = sessionStorage.getItem("username") || "Username";
+  const storedUser = sessionStorage.getItem("user");
+  const username = storedUser ? JSON.parse(storedUser).username : "Username";
+
 
   const handleSearchClick = () => setShowSearch(!showSearch);
   const handleFilterClick = () => setFilterOpen(true);
-  const handleCreatePostClick = () => setCreatePostModalOpen(true);
+  const handleCreatePostClick = () => setCreatePostModalOpen(true); 
 
   const sidebarItems = [
     { iconClass: "bi bi-house-door", label: "Home", link: "/" },
@@ -106,7 +108,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
           <MenuItem
             component={NavLink}
             to="/profile"
-            state={{ uID: user?.id }}
+            state={{ userID: user?.id }}
             sx={{ display: 'flex', alignItems: 'center', width: '100%', paddingLeft: '1.9rem', }}
           >
             <ListItemIcon sx={{ minWidth: 'unset', marginRight: '2rem' }}>
