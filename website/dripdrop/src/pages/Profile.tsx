@@ -36,7 +36,7 @@ const Profile = () => {
   const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>(
     {}
   );
-
+  
   const navigate = useNavigate();
   const location = useLocation();
   const { userID } = location.state || {};
