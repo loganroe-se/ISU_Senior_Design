@@ -1,8 +1,19 @@
-import { Text, View } from "react-native";
-import Login from "@/components/screens/Login";
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
 
-export default function Index() {
+// Import your screens
+import SignUpScreen from '../components/screens/Signup';
+
+const Stack = createStackNavigator();
+
+export default function App() {
   return (
-    <Login />
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="SignUp">
+        <Stack.Screen name="SignUp" component={SignUpScreen} />
+        {/* Add more screens here as needed */}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
 }
