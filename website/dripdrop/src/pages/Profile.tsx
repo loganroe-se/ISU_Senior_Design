@@ -78,10 +78,11 @@ const Profile = () => {
   const navigateToEditProfile = () => {
     navigate('/editProfile');
   };
+  console.log("USER ID: " + userID)
 
   useEffect(() => {
     if (user) {
-      fetch(`https://api.dripdropco.com/posts?${user.id}`)
+      fetch(`https://api.dripdropco.com/posts/user/${userID}`)
         .then((response) => {
           if (!response.ok) {
             throw new Error(`Error fetching posts: ${response.statusText}`);
