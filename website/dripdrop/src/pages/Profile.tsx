@@ -18,7 +18,6 @@ import ViewPostModal from '../components/ViewPostModal'; // Import the new compo
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
-import { v4 as uuidv4 } from 'uuid';
 
 const Profile = () => {
   const { user } = useUserContext();
@@ -50,19 +49,16 @@ const Profile = () => {
       setUsername(data.username);
     } catch (error) {
       console.error('Error fetching user:', error);
-    }
-    finally {
+    } finally {
       setUserLoading(false);
     }
   }, [userID]);
-
 
   useEffect(() => {
     if (userID) {
       getUser();
     }
   }, [userID, getUser]);
-
 
   const navigateToEditProfile = () => {
     navigate('/editProfile');
@@ -73,7 +69,7 @@ const Profile = () => {
       fetch(`https://api.dripdropco.com/posts/user/${userID}`)
         .then((response) => {
           if (!response.ok) {
-            setPosts([]);  // Reset posts state to an empty array if 404 or any error occurs
+            setPosts([]); // Reset posts state to an empty array if 404 or any error occurs
             throw new Error(`Error fetching posts: ${response.statusText}`);
           }
           return response.json();
@@ -88,7 +84,6 @@ const Profile = () => {
         });
     }
   }, [user, username, userID]);
-
 
   const handlePostHover = (index: number) => {
     setHoveredPost(index);
@@ -151,7 +146,7 @@ const Profile = () => {
     } catch (error) {
       console.error('Error fetching followers or following:', error);
     }
-  }, [user]);
+  }, [user, userID]);
 
   useEffect(() => {
     if (user) {
@@ -162,15 +157,15 @@ const Profile = () => {
 
   const transformedPost = selectedPost
     ? {
-      postID: selectedPost.id, // Map id to postID if required
-      userID: selectedPost.userID,
-      caption: selectedPost.caption,
-      createdDate: selectedPost.createdDate,
-      images: selectedPost.images.map((image, index) => ({
-        imageID: index,
-        imageURL: image.imageURL,
-      })),
-    }
+        postID: selectedPost.id, // Map id to postID if required
+        userID: selectedPost.userID,
+        caption: selectedPost.caption,
+        createdDate: selectedPost.createdDate,
+        images: selectedPost.images.map((image, index) => ({
+          imageID: index,
+          imageURL: image.imageURL,
+        })),
+      }
     : null;
 
   return (
@@ -316,7 +311,6 @@ const Profile = () => {
                 )}
               </ImageListItem>
             ))}
-
           </ImageList>
         ) : (
           <Typography variant="body2" color="textSecondary">
