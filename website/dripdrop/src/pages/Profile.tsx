@@ -20,7 +20,6 @@ import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 
-
 const Profile = () => {
   const { user } = useUserContext();
   const [email, setEmail] = useState('');
@@ -36,7 +35,7 @@ const Profile = () => {
   const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>(
     {}
   );
-  
+
   const navigate = useNavigate();
   const location = useLocation();
   const { userID } = location.state || {};
