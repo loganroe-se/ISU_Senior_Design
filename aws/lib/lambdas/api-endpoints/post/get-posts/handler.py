@@ -52,7 +52,7 @@ def getPosts():
 
     except Exception as e:
         # Handle the exception
-        code, msg = handle_exception(e, "Post.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:

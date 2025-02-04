@@ -46,7 +46,7 @@ def getUserByUsername(username):
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "User.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:
