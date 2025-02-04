@@ -38,7 +38,7 @@ def createFollow(followerId, followedId):
         followed_exists = session.execute(select(User).where(User.userID == followedId)).scalars().first()
 
         if not follower_exists or not followed_exists:
-            return 404, "One or both user IDs do not exist."
+            return 404, "One or both user ids do not exist."
 
         # Check if the follow relationship already exists
         existing_follow = session.execute(select(Follow).where(and_(Follow.followerId == followerId, Follow.followedId == followedId))).scalars().first()
