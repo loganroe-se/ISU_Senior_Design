@@ -11,6 +11,7 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import React, { useRef, useEffect, useState } from 'react';
 import ClearIcon from '@mui/icons-material/Clear';
+import { useNavigate } from 'react-router-dom';
 
 interface SearchbarItemProps {
   profilePic: string;
@@ -166,17 +167,23 @@ const Searchbar: React.FC<SearchbarProps> = ({
   );
 };
 
+
 const SearchbarItem: React.FC<SearchbarItemProps> = ({
   profilePic,
   profileUsername,
+  profileID,
   setShowSearchBar,
 }) => {
-  const hideSearchBar = () => {
+  const navigate = useNavigate();
+
+  const handleItemClick = () => {
     setShowSearchBar(false);
+    // Navigate to the /profile page and pass the profileID as state
+    navigate('/profile', { state: { userID: profileID } });
   };
 
   return (
-    <MenuItem onClick={hideSearchBar} sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+    <MenuItem onClick={handleItemClick} sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
       <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1rem' }}>
         <Avatar sx={{ height: '2.5rem', width: '2.5rem' }} src={profilePic} />
       </ListItemIcon>
@@ -188,5 +195,6 @@ const SearchbarItem: React.FC<SearchbarItemProps> = ({
     </MenuItem>
   );
 };
+
 
 export default Searchbar;

@@ -7,7 +7,7 @@ interface ViewPostModalProps {
         postID: number;
         userID: number;
         caption: string;
-        createdDate: string;
+        createdDate: String;
         images: { imageID: number; imageURL: string }[];
     } | null;
     onClose: () => void;
@@ -128,8 +128,11 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
                         <strong>Caption:</strong> {selectedPost?.caption}
                     </Typography>
                     <Typography variant="body2" color="textSecondary" gutterBottom>
-                        <strong>Created Date:</strong> {selectedPost?.createdDate}
+                        
+                            <strong>Created Date:</strong> {selectedPost?.createdDate}
+                        
                     </Typography>
+
 
                     <Divider sx={{ my: 2 }} />
 

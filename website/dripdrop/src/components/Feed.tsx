@@ -1,15 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Grid, CircularProgress, Typography, Box } from '@mui/material';
 import PostCard from './PostCard';
-import { fetchPosts, fetchUserById } from '../api/api'; // Import API functions
-import { retreivePost } from '../types';
+import { fetchUserById, fetchPosts } from '../api/api'; // Import API functions
+import { Post } from '../types';
+import { v4 as uuidv4 } from 'uuid';
+import ViewPostModal from './ViewPostModal';
+
 
 const Feed = () => {
-  const [posts, setPosts] = useState<retreivePost[]>([]); // State for posts
+  const [posts, setPosts] = useState<Post[]>([]); // State for posts
+  const [selectedPost, setSelectedPost] = useState<{
+    postID: number;
+    userID: number;
+    caption: string;
+    createdDate: String;
+    images: { imageID: number; imageURL: string }[];
+  } | null>(null); // State for selected post with correct type
   const [loading, setLoading] = useState<boolean>(true); // State for loading
   const [error, setError] = useState<string | null>(null); // State for error message
   const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
   const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
+
+  const handlePostClick = (post: Post) => {
+    // Set the selected post for the modal
+    setSelectedPost({
+      postID: post.id,
+      userID: post.userID,
+      caption: post.caption,
+      createdDate: post.createdDate,
+      images: post.images.map((image, index) => ({
+        imageID: index,
+        imageURL: image.imageURL,
+      })),
+    });
+  };
+
 
   useEffect(() => {
     const loadPostsAndUsernames = async () => {
@@ -85,14 +110,15 @@ const Feed = () => {
             const username = usernamesMap[index] || 'Loading...';
 
             return (
-              <Grid item key={post.id} xs={12}>
+              <Grid item key={uuidv4()} xs={12}>
                 <Box
                   sx={{
                     display: 'flex',
                     justifyContent: 'center', // Centers the post card
                   }}
                 >
-                  <PostCard images={imageURL} username={username} caption={post.caption} />
+                  <PostCard images={imageURL} username={username} caption={post.caption} onPostClick={handlePostClick} // Pass the function as a prop
+                    post={post} />
                 </Box>
               </Grid>
             );
@@ -103,6 +129,8 @@ const Feed = () => {
           </Typography>
         )}
       </Grid>
+      <ViewPostModal selectedPost={selectedPost} onClose={() => setSelectedPost(null)} />
+
     </Box>
   );
 };

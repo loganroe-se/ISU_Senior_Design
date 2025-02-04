@@ -12,11 +12,13 @@ import {
   FormControl,
   Snackbar,
   SnackbarContent,
+  CircularProgress,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { useDropzone } from 'react-dropzone';
 import { createPost } from '../api/api'; // Import API functions
 import { useUserContext } from '../Auth/UserContext';
+import ImageMarker from './ImageMarker'; // Import the ImageMarker component
 
 const dropzoneStyle: React.CSSProperties = {
   border: '2px dashed #cccccc',
@@ -51,6 +53,8 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState<'success' | 'error'>('success');
   const { user } = useUserContext();
+  const [showImageMarker, setShowImageMarker] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState(false); // New state for loading
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -62,18 +66,17 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       const reader = new FileReader();
 
       reader.onloadend = () => {
-        // Extract the Base64 string without the metadata (data:image/png;base64,)
         const base64String = reader.result as string;
-        const base64Data = base64String.split(',')[1]; // Split and get only the part after the comma
+        const base64Data = base64String.split(',')[1];
 
-        // After the file is read, set the Base64 string into state without the header
         setSelectedImages((prevImages) => [
           ...prevImages,
-          base64Data, // Only store the Base64 data
+          base64Data,
         ]);
+
+        setShowImageMarker(true);
       };
 
-      // Read the file as Data URL (Base64)
       reader.readAsDataURL(file);
     });
   };
@@ -84,14 +87,13 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
       'image/jpeg': ['.jpg', '.jpeg'],
       'image/png': ['.png'],
     },
-    maxFiles: 3, // Limit to 3 images for this case
+    maxFiles: 3,
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (selectedImages.length === 0) {
-      // Show an error message if no images are selected
       setSnackbarMessage('Please select at least one image!');
       setSnackbarSeverity('error');
       setOpenSnackbar(true);
@@ -106,72 +108,47 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
     };
 
     try {
-      // Call createPost() to send the post data to the API
+      setIsLoading(true); // Set loading to true
       await createPost(newPost);
-
-      // Reset form after successful submission
       setPostDetails({ caption: '', clothesUrl: '' });
       setSelectedImages([]);
-
-      // Open success snackbar
       setSnackbarMessage('Post created successfully!');
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
     } catch (error) {
-      // Handle error and set error message in the state
       console.error('Failed to create post:', error);
+      setSnackbarMessage('Failed to create post!');
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    } finally {
+      setIsLoading(false); // Set loading to false
     }
   };
 
   return (
     <Dialog open={isOpen} onClose={onClose} maxWidth="md" fullWidth sx={{ borderRadius: 2 }}>
-      <DialogTitle
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-        }}
-      >
+      <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <IconButton edge="end" color="inherit" onClick={onClose}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
 
-      <DialogContent
-        sx={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          p: 2,
-        }}
-      >
+      <DialogContent sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 2 }}>
         <Box sx={{ width: '100%', maxWidth: 600 }}>
-          <Typography
-            variant="h4"
-            component="h1"
-            gutterBottom
-            align="center"
-            sx={{ color: '#333', fontWeight: 700 }}
-          >
+          <Typography variant="h4" component="h1" gutterBottom align="center" sx={{ color: '#333', fontWeight: 700 }}>
             Create New Post
           </Typography>
 
           <form onSubmit={handleSubmit}>
-            {/* Drag-and-drop image upload */}
             <FormControl fullWidth>
               <div {...getRootProps()} style={isDragActive ? dropzoneActiveStyle : dropzoneStyle}>
                 <input {...getInputProps()} />
                 <Typography variant="body1" sx={{ color: '#444' }}>
-                  {isDragActive
-                    ? 'Drop the image here...'
-                    : selectedImages.length
-                      ? `Selected Images: ${selectedImages.length}`
-                      : 'Drag & drop an image, or click to select'}
+                  {isDragActive ? 'Drop the image here...' : selectedImages.length ? `Selected Images: ${selectedImages.length}` : 'Drag & drop an image, or click to select'}
                 </Typography>
               </div>
             </FormControl>
 
-            {/* Caption input */}
             <TextField
               name="caption"
               label="Caption"
@@ -195,7 +172,6 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
               }}
             />
 
-            {/* Action Buttons */}
             <DialogActions sx={{ justifyContent: 'flex-end', p: 2, ml: 2 }}>
               <Button onClick={onClose} color="error" sx={{ px: 4 }}>
                 Cancel
@@ -206,20 +182,23 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
                 color="primary"
                 sx={{
                   bgcolor: '#2196f3',
-                  '&:hover': {
-                    bgcolor: '#1976d2',
-                  },
-                  marginLeft: 3, // Adjusted to the right
+                  '&:hover': { bgcolor: '#1976d2' },
+                  marginLeft: 3,
+                  display: 'flex',
+                  alignItems: 'center',
                 }}
               >
-                Create Post
+                {isLoading ? (
+                  <CircularProgress size={24} sx={{ color: 'white', marginRight: 2 }} />
+                ) : (
+                  'Create Post'
+                )}
               </Button>
             </DialogActions>
           </form>
         </Box>
       </DialogContent>
 
-      {/* Snackbar for success or error message */}
       <Snackbar
         open={openSnackbar}
         autoHideDuration={2000}
@@ -240,6 +219,13 @@ const CreatePostModal: React.FC<CreatePostModalProps> = ({ isOpen, onClose }) =>
           }}
         />
       </Snackbar>
+
+      {showImageMarker && (
+        <ImageMarker
+          imageUrls={selectedImages.map((base64) => `data:image/png;base64,${base64}`)}
+          onClose={() => setShowImageMarker(false)}
+        />
+      )}
     </Dialog>
   );
 };
