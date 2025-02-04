@@ -3,6 +3,7 @@ from utils import create_response, handle_exception
 from sqlalchemy import select
 from sqlalchemy_utils import create_session
 from dripdrop_orm_objects import User
+from sqlalchemy.exc import IntegrityError
 from passlib.hash import bcrypt
 
 def handler(event, context):
@@ -69,6 +70,19 @@ def updateUser(user_id, username, email, password):
             return 200, f'User with userID: {user_id} was updated successfully'
         else:
             return 404, f'User with userID: {user_id} was not found'
+        
+    except IntegrityError as e:
+        session.rollback()
+
+        # Check for duplicate email or username in the error message
+        if 'email' in str(e.orig):
+            error_message = 'Email already exists'
+        elif 'username' in str(e.orig):
+            error_message = 'Username already exists'
+        else:
+            error_message = 'Duplicate entry'
+
+        return 409, error_message
 
     except Exception as e:
         # Call a helper to handle the exception
