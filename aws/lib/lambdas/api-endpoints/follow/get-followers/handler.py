@@ -18,7 +18,7 @@ def handler(event, context):
         return create_response(status_code, message)
     
     except Exception as e:
-        return create_response(500, f"Error retrieving followers list: {str(e)}")
+        return create_response(500, f"Error retrieving followers: {str(e)}")
     
 
 def getFollowers(user_id):
@@ -49,7 +49,7 @@ def getFollowers(user_id):
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "follow.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:

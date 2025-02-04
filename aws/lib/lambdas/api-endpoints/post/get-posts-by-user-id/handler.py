@@ -62,7 +62,7 @@ def getPostsByUserId(user_id):
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Post.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:

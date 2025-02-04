@@ -48,11 +48,10 @@ def createPost(user_id, caption, images):
         # Create a new post
         new_post = Post(userID=user_id, caption=caption, createdDate=createdDate)
 
-
         session.add(new_post)
         session.commit()
 
-            # Call the function to save images to the database
+        # Call the function to save images to the database
         save_image_to_db(session, new_post.postID, images)
 
         # Return success message after the transaction is committed
@@ -63,7 +62,7 @@ def createPost(user_id, caption, images):
 
     except Exception as e:
         # Handle the exception
-        code, msg = handle_exception(e, "Post.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:
