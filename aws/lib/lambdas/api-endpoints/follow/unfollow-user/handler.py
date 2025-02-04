@@ -35,8 +35,8 @@ def deleteFollow(followerId, followedId):
         session = create_session()
 
         # Check if both users exist
-        follower_exists = session.execute(select(User).where(User.userId == followerId)).scalars().first()
-        followed_exists = session.execute(select(User).where(User.userId == followedId)).scalars().first()
+        follower_exists = session.execute(select(User).where(User.userID == followerId)).scalars().first()
+        followed_exists = session.execute(select(User).where(User.userID == followedId)).scalars().first()
 
         if not follower_exists or not followed_exists:
             return 404, "One or both users does not exist."
