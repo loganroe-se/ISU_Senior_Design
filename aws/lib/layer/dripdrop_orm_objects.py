@@ -39,11 +39,12 @@ class Post(Base):
     userRel = relationship("User", back_populates="posts")
     #Establish relationship with image
     images = relationship("Image", order_by="Image.imageID", back_populates="postRel")
-    has_seen_posts = relationship("HasSeen", back_populates="post")
+    has_seen = relationship("HasSeen", back_populates="post")
 
 # Has Seen table
 class HasSeen(Base):
     __tablename__ = 'has_seen'
+    hasSeenID = Column(Integer, primary_key=True)
     userID = Column(Integer, ForeignKey('users.userID'))
     postID = Column(Integer, ForeignKey('posts.postID'))
     timeViewed = Column(Date)
@@ -54,7 +55,7 @@ class HasSeen(Base):
 
     # Index for userID and postID (faster read times)
     __table_args__ = (
-        Index('idx_user_post', 'userID', 'postID')
+        Index('idx_user_post', 'userID', 'postID'),
     )
 
 # Image table

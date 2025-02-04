@@ -357,10 +357,20 @@ export class ApiConstruct extends Construct {
     }))
 
     // Has Seen Lambdas
-    const hasSeenLambda = createLambda(
-      "HasSeenLambda",
-      "lib/lambdas/has-seen",
-      "handler"
+    const markAsSeenLambda = createLambda(
+      "MarkAsSeenLambda",
+      "lib/lambdas/has-seen/markAsSeen",
+      "markAsSeen"
+    );
+    const getUsersByPostIdLambda = createLambda(
+      "GetUsersByPostId",
+      "lib/lambdas/has-seen/getUsersByPostId",
+      "getUsersByPostId"
+    );
+    const getSeenPostsByUserIdLambda = createLambda(
+      "GetSeenPostsByUserId",
+      "lib/lambdas/has-seen/getSeenPostsByUserId",
+      "getSeenPostsByUserId"
     );
 
     // Follow Lambdas
@@ -520,31 +530,31 @@ export class ApiConstruct extends Construct {
     // POST /hasSeen - Add new seen posts for a user
     hasSeen.addMethod(
       "POST",
-      new apigateway.LambdaIntegration(hasSeenLambda),
+      new apigateway.LambdaIntegration(markAsSeenLambda),
       {
         operationName: "MarkAsSeen",
       }
     );
 
     // Define the /has-seen/seenPosts resource
-    const hasSeenPosts = hasSeen.addResource("seenPosts")
+    const hasSeenPosts = hasSeen.addResource("seenPosts").addResource("{id}")
 
     // GET /hasSeen/seenPosts - Get the list of seen posts by a userID
     hasSeenPosts.addMethod(
       "GET",
-      new apigateway.LambdaIntegration(hasSeenLambda),
+      new apigateway.LambdaIntegration(getSeenPostsByUserIdLambda),
       {
         operationName: "GetSeenPosts",
       }
     );
 
     // Define the /has-seen/seenUsers resource
-    const hasSeenUsers = hasSeen.addResource("seenUsers")
+    const hasSeenUsers = hasSeen.addResource("seenUsers").addResource("{id}")
 
     // GET /hasSeen/seenUsers - Get the list of users that have seen a post
     hasSeenUsers.addMethod(
       "GET",
-      new apigateway.LambdaIntegration(hasSeenLambda),
+      new apigateway.LambdaIntegration(getUsersByPostIdLambda),
       {
         operationName: "GetSeenUsers",
       }
