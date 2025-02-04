@@ -2,7 +2,7 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select, and_
 from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import Follow
+from dripdrop_orm_objects import Follow, User
 
 def handler(event, context):
     try:
@@ -32,6 +32,13 @@ def createFollow(followerId, followedId):
     try:
         # Create the session
         session = create_session()
+
+        # Check if both users exist
+        follower_exists = session.execute(select(User).where(User.userId == followerId)).scalars().first()
+        followed_exists = session.execute(select(User).where(User.userId == followedId)).scalars().first()
+
+        if not follower_exists or not followed_exists:
+            return 404, "One or both user IDs do not exist."
 
         # Check if the follow relationship already exists
         existing_follow = session.execute(select(Follow).where(and_(Follow.followerId == followerId, Follow.followedId == followedId))).scalars().first()
