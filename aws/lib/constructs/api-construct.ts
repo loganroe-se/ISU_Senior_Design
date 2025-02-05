@@ -346,24 +346,24 @@ export class ApiConstruct extends Construct {
     // Has Seen Lambdas
     const markAsSeenLambda = createLambda(
       "MarkAsSeenLambda",
-      "lib/lambdas/has-seen/mark-as-seen",
+      "lib/lambdas/api-endpoints/has-seen/mark-as-seen",
       "handler"
     );
     const getUsersByPostIdLambda = createLambda(
       "GetUsersByPostId",
-      "lib/lambdas/has-seen/get-users-by-post-id",
+      "lib/lambdas/api-endpoints/has-seen/get-users-by-post-id",
       "handler"
     );
     const getSeenPostsByUserIdLambda = createLambda(
       "GetSeenPostsByUserId",
-      "lib/lambdas/has-seen/get-seen-posts-by-user-id",
+      "lib/lambdas/api-endpoints/has-seen/get-seen-posts-by-user-id",
       "handler"
     );
 
     // Feed Lambdas
     const getFeedLambda = createLambda(
       "GetFeedLambda",
-      "lib/lambdas/feed/get-feed",
+      "lib/lambdas/api-endpoints/feed/get-feed",
       "handler"
     );
 
