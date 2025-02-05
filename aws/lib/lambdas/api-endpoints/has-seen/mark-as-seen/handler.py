@@ -28,6 +28,10 @@ def handler(event, context):
     
 
 def markAsSeen(userID, postIDs):
+    # Ensure postIDs is always a list (if a single postID is passed)
+    if isinstance(postIDs, int):
+        postIDs = [postIDs]
+
     # Try to mark the posts as seen
     try:
         # Create the session
@@ -49,7 +53,7 @@ def markAsSeen(userID, postIDs):
         
         # Mark the valid posts as seen
         for postID in valid_postIDs:
-            session.add(HasSeen(userID=userID, postID=postID, timeViewed=datetime.now()))
+            session.add(HasSeen(userID=userID, postID=postID, timeViewed=datetime.datetime.now()))
 
         # Commit the changes
         session.commit()
@@ -58,9 +62,9 @@ def markAsSeen(userID, postIDs):
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Has_Seen.py")
+        code, msg = handle_exception(e, "MarkAsSeen Handler.py")
         return code, msg
     
     finally:
-        if 'sesion' in locals() and session:
+        if 'session' in locals() and session:
             session.close()

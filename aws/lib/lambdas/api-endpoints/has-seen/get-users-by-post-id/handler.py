@@ -33,18 +33,22 @@ def getUsers(postID):
             raise Exception("404", f"Post with postID: {postID} was not found")
 
         # Get the user details
-        users = session.query(User).join(HasSeen, HasSeen.userID == User.userID).filter(HasSeen.postID == postID).all()
+        users_query = session.query(User).join(HasSeen, HasSeen.userID == User.userID).filter(HasSeen.postID == postID)
+        users = users_query.all()
 
         if not users:
             return 404, f"No users have seen post with postID: {postID}"        
         else:
-            return 200, users
+            # Serialize the users
+            users_serialized = [{'username': user.username, 'email': user.email, 'id': user.userID} for user in users]
+
+            return 200, users_serialized
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Has_Seen.py")
+        code, msg = handle_exception(e, "GetUsersByPostID Handler.py")
         return code, msg
     
     finally:
-        if 'sesion' in locals() and session:
+        if 'session' in locals() and session:
             session.close()

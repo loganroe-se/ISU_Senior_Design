@@ -2,15 +2,13 @@ import json
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, HasSeen, User
+from datetime import datetime, date
 
 def handler(event, context):
     try:
-        # Parse the user data from event
-        body = json.loads(event['body'])
-
-        # Get all body attributes
-        userID = body.get('userID')
-        limit = body.get('limit', 20)
+        # Get id & limit from path parameters
+        userID = event['queryStringParameters'].get('userID')
+        limit = event['queryStringParameters'].get('limit', 20)
 
         # Check for missing, required values
         if not userID:
@@ -57,7 +55,25 @@ def getFeed(userID, limit: int = 20):
 
         feed_posts = followed_posts + non_followed_posts[:remaining_limit]
 
-        return 200, feed_posts
+        # Serialize posts before returning
+        feed_posts_serialized = [
+            {
+                "postID": post.postID,
+                "userID": post.userID,
+                "caption": post.caption,
+                "createdDate": (
+                    post.createdDate.isoformat()
+                    if isinstance(post.createdDate, (datetime, date))
+                    else post.createdDate
+                ),
+                "images": [
+                    {"imageID": image.imageID, "imageURL": image.imageURL}
+                    for image in post.images
+                ],
+            } for post in feed_posts
+        ]
+
+        return 200, feed_posts_serialized
 
     except Exception as e:
         # Call a helper to handle the exception

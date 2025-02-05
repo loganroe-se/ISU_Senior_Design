@@ -1,6 +1,7 @@
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, User, HasSeen
+from datetime import datetime, date
 
 def handler(event, context):
     try:
@@ -34,18 +35,37 @@ def getSeenPosts(userID):
             raise Exception("404", f"User with userID: {userID} was not found")
         
         # Get the list of posts for the userID
-        seen_posts = session.query(Post).join(HasSeen, HasSeen.postID == Post.postID).filter(HasSeen.userID == userID).all()
+        seen_posts_query = session.query(Post).join(HasSeen, HasSeen.postID == Post.postID).filter(HasSeen.userID == userID)
+        seen_posts = seen_posts_query.all()
 
         if not seen_posts:
             return 404, f"No posts have been seen by user with userID: {userID}"
         else:
-            return 200, seen_posts
+            # Serialize the posts
+            seen_posts_data = [
+                {
+                    "postID": post.postID,
+                    "userID": post.userID,
+                    "caption": post.caption,
+                    "createdDate": (
+                        post.createdDate.isoformat()
+                        if isinstance(post.createdDate, (datetime, date))
+                        else post.createdDate
+                    ),
+                    "images": [
+                        {"imageID": image.imageID, "imageURL": image.imageURL}
+                        for image in post.images
+                    ],
+                } for post in seen_posts
+            ]
+            
+            return 200, seen_posts_data
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Has_Seen.py")
+        code, msg = handle_exception(e, "GetSeenPostsByUserID Handler.py")
         return code, msg
     
     finally:
-        if 'sesion' in locals() and session:
+        if 'session' in locals() and session:
             session.close()

@@ -359,6 +359,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/api-endpoints/has-seen/get-seen-posts-by-user-id",
       "handler"
     );
+    const resetSeenPostsForUserIdLambda = createLambda(
+      "ResetSeenPostsForUserIdLambda",
+      "lib/lambdas/api-endpoints/has-seen/reset-seen-posts-for-user-id",
+      "handler"
+    );
 
     // Feed Lambdas
     const getFeedLambda = createLambda(
@@ -605,6 +610,18 @@ export class ApiConstruct extends Construct {
       }
     );
 
+    // Define the /has-seen/resetSeen resource
+    const resetSeenPosts = hasSeen.addResource("resetSeen").addResource("{id}")
+
+    // POST /hasSeen/resetSeen - Resets the list of seen posts for a given userID
+    resetSeenPosts.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(resetSeenPostsForUserIdLambda),
+      {
+        operationName: "ResetSeenPosts",
+      }
+    )
+
     // -------------------------------- FEED ENDPOINTS -------------------------
 
     // Define the /feed resource
@@ -616,6 +633,14 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(getFeedLambda),
       {
         operationName: "GetFeed",
+        requestParameters: {
+          "method.request.querystring.userID": true,
+          "method.request.querystring.limit": false,
+        },
+        requestValidatorOptions: {
+          validateRequestParameters: true,
+          validateRequestBody: false,
+        },
       }
     );
 
