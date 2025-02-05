@@ -346,18 +346,25 @@ export class ApiConstruct extends Construct {
     // Has Seen Lambdas
     const markAsSeenLambda = createLambda(
       "MarkAsSeenLambda",
-      "lib/lambdas/has-seen/markAsSeen",
-      "markAsSeen"
+      "lib/lambdas/has-seen/mark-as-seen",
+      "handler"
     );
     const getUsersByPostIdLambda = createLambda(
       "GetUsersByPostId",
-      "lib/lambdas/has-seen/getUsersByPostId",
-      "getUsersByPostId"
+      "lib/lambdas/has-seen/get-users-by-post-id",
+      "handler"
     );
     const getSeenPostsByUserIdLambda = createLambda(
       "GetSeenPostsByUserId",
-      "lib/lambdas/has-seen/getSeenPostsByUserId",
-      "getSeenPostsByUserId"
+      "lib/lambdas/has-seen/get-seen-posts-by-user-id",
+      "handler"
+    );
+
+    // Feed Lambdas
+    const getFeedLambda = createLambda(
+      "GetFeedLambda",
+      "lib/lambdas/feed/get-feed",
+      "handler"
     );
 
     // Post Lambdas
@@ -595,6 +602,20 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(getUsersByPostIdLambda),
       {
         operationName: "GetSeenUsers",
+      }
+    );
+
+    // -------------------------------- FEED ENDPOINTS -------------------------
+
+    // Define the /feed resource
+    const feed = api.root.addResource("feed");
+
+    // GET /feed - Gets the feed for a user ID
+    feed.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFeedLambda),
+      {
+        operationName: "GetFeed",
       }
     );
 
