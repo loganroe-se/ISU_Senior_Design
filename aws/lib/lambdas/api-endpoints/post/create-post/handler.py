@@ -34,7 +34,7 @@ def handler(event, context):
             return create_response(400, 'Missing required field: userID')
         
         # Call another function to create the user
-        status_code, message = createPost(userID, caption, images)
+        status_code, message = createPost(userID, caption, images, xCoord, yCoord, name, brand, category, price, itemURL, size)
 
         # Return message
         return create_response(status_code, message)
@@ -44,7 +44,7 @@ def handler(event, context):
         return create_response(500, f"Error creating post: {str(e)}")
     
 
-def createPost(user_id, caption, images):
+def createPost(user_id, caption, images, xCoord=None, yCoord=None, name="", brand="", category="", price="", itemURL="", size=""):
     # Try to create the post
     try:
         # Create the session
@@ -68,7 +68,25 @@ def createPost(user_id, caption, images):
         # Call the function to save images to the database
         save_image_to_db(session, new_post.postID, images)
 
-        
+        #---------------- Start of new code ----------------------
+
+        # could add:
+        # saved_images = save_image_to_db(.........)
+        # for image in saved_images:
+        # do the next few lines
+
+        imageID = 1
+
+        if xCoord and yCoord:
+            coordinateID = createCoordinates(session, xCoord, yCoord)
+        else:
+            coordinateID = None
+
+        clothingItemID = createClothingItem(session, name, brand, category, price, size)
+
+        createItem(session, imageID, coordinateID, clothingItemID)
+
+        #-------------- End of new code -----------------------------
 
         # Return success message after the transaction is committed
         return (
@@ -85,3 +103,26 @@ def createPost(user_id, caption, images):
         # Ensure session is closed
         if "session" in locals() and session:
             session.close()
+
+
+# ------------------ New functions --------------------------
+
+def createCoordinates(session, xCoord, yCoord):
+    # Create a new coordinate entry
+    new_coordinates = Coordinate(xCoord = xCoord, yCoord = yCoord)
+    session.add(new_coordinates)
+    session.commit()
+    return new_coordinates.coordinateID
+
+def createClothingItem(session, name, brand, category, price, itemURL, size):
+    new_clothingItem = ClothingItem(name = name, category = category, price = price, itemURL = itemURL, size = size)
+    session.add(new_clothingItem)
+    session.commit()
+    return new_clothingItem.clothingItemID
+
+
+def createItem(session, imageID, coordinateID, clothingItemID):
+    new_item = Item(imageID = imageID, coordinateID = coordinateID, clothingItemID = clothingItemID)
+    session.add(new_item)
+    session.commit()
+    return 0
