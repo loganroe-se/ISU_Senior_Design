@@ -15,6 +15,7 @@ class User(Base):
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
     following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
     followers = relationship("Follow", foreign_keys="Follow.followedId", back_populates="followed", cascade="all, delete")
+    likes = relationship("Like", back_populates="user", cascade="all, delete")
 
 # Following table
 class Follow(Base):
@@ -34,10 +35,11 @@ class Post(Base):
     userID = Column(Integer, ForeignKey('users.userID'))
     caption = Column(String(50))
     createdDate = Column(Date)
-    #Establish relationship with user
+    #Establish relationships
     userRel = relationship("User", back_populates="posts")
-    #Establish relationship with image
     images = relationship("Image", order_by="Image.imageID", back_populates="postRel")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete")
+    likes = relationship("Like", back_populates="post", cascade="all, delete")
 
 # Image table
 class Image(Base):
@@ -47,6 +49,28 @@ class Image(Base):
     imageURL = Column(String(2000), nullable=False)
     #Establish relationship with post
     postRel = relationship("Post", back_populates="images")
+
+# Comment table
+class Comment(Base):
+    __tablename__ = 'comments'
+    commentID = Column(Integer, primary_key=True)
+    userID = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    postID = Column(Integer, ForeignKey('posts.postID'), nullable=False)
+    content = Column(String(500), nullable=False)
+    createdDate = Column(Date, nullable=False)
+    # Relationships
+    user = relationship("User", back_populates="comments")
+    post = relationship("Post", back_populates="comments")
+
+# Like table
+class Like(Base):
+    __tablename__ = 'likes'
+    userID = Column(Integer, ForeignKey('users.userID'), primary_key=True)
+    postID = Column(Integer, ForeignKey('posts.postID'), primary_key=True)
+    createdDate = Column(Date, nullable=False)
+    # Relationships
+    user = relationship("User", back_populates="likes")
+    post = relationship("Post", back_populates="likes")
 
 # Tag table
 class Tag(Base):
