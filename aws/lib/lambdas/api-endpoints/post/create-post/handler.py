@@ -2,22 +2,36 @@ import json
 from image import save_image_to_db
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
-from dripdrop_orm_objects import Post, User
+from dripdrop_orm_objects import Post, User, Item, ClothingItem, Coordinate
 from datetime import date
 
+# main function to handle the request body and call helper functions to populate all the tables
 def handler(event, context):
     try:
         # Parse the user data from event
         body = json.loads(event['body'])
 
-        # Get all body attributes
+        # Get post/image attributes
         userID = body.get('userID')
         caption = body.get('caption', "")
         images = body.get('images')
 
+        # Get optional coordinates
+        xCoord = body.get('xCoord')
+        yCoord = body.get('yCoord')
+
+        # Get optional clothing item details
+        name = body.get('name')
+        brand = body.get('brand')
+        category = body.get('category')
+        price = body.get('price')
+        itemURL = body.get('itemURL')
+        size = body.get('size')     
+
+
         # Check for missing, required values
         if not userID:
-                return create_response(400, 'Missing required field: userID')
+            return create_response(400, 'Missing required field: userID')
         
         # Call another function to create the user
         status_code, message = createPost(userID, caption, images)
@@ -53,6 +67,8 @@ def createPost(user_id, caption, images):
 
         # Call the function to save images to the database
         save_image_to_db(session, new_post.postID, images)
+
+        
 
         # Return success message after the transaction is committed
         return (
