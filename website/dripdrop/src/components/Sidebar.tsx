@@ -96,30 +96,29 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
         </Box>
 
         {/* Footer */}
-        <Box
+
+        <MenuItem
+          component={NavLink}
+          to="/profile"
+          state={{ userID: user?.id }}
           sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
+            paddingLeft: '1.9rem',
             border: '1px solid #dfdfdf',
             borderRadius: '0px 0px 5px 5px',
             height: '10vh',
-            display: 'flex',
-            alignItems: 'center',
           }}
         >
-          <MenuItem
-            component={NavLink}
-            to="/profile"
-            state={{ userID: user?.id }}
-            sx={{ display: 'flex', alignItems: 'center', width: '100%', paddingLeft: '1.9rem' }}
-          >
-            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '2rem' }}>
-              <Avatar sx={{ height: '3rem', width: '3rem' }} />
-            </ListItemIcon>
-            <Box>
-              <Typography sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{user?.email}</Typography>
-              <Typography sx={{ fontSize: '1rem' }}>@{username}</Typography>
-            </Box>
-          </MenuItem>
-        </Box>
+          <ListItemIcon sx={{ minWidth: 'unset', marginRight: '2rem' }}>
+            <Avatar sx={{ height: '3rem', width: '3rem' }} />
+          </ListItemIcon>
+          <Box>
+            <Typography sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{user?.email}</Typography>
+            <Typography sx={{ fontSize: '1rem' }}>@{username}</Typography>
+          </Box>
+        </MenuItem>
 
         {/* Filters and Modals */}
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
