@@ -27,7 +27,6 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
     { iconClass: 'bi bi-house-door', label: 'Home', link: '/' },
     { iconClass: 'bi bi-search', label: 'Search', link: '#', onClick: handleSearchClick },
     { iconClass: 'bi bi-plus-square', label: 'Post', link: '#', onClick: handleCreatePostClick },
-    { iconClass: 'bi bi-bookmarks', label: 'Lists', link: '/lists' },
     { iconClass: 'bi bi-bell', label: 'Notifications', link: '/notifications' },
     { iconClass: 'bi bi-funnel', label: 'Filters', link: '#', onClick: handleFilterClick },
   ];
@@ -61,7 +60,6 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
         <Box
           sx={{
             display: 'grid',
-            padding: '1rem 0',
             border: '1px solid #DFDFDF',
             height: '75vh',
           }}
@@ -74,7 +72,6 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
               onClick={onClick}
               sx={{
                 paddingLeft: '2rem',
-                height: '7em',
               }}
             >
               <ListItemIcon
@@ -83,7 +80,6 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
                   marginRight: '1rem',
                   fontSize: '2rem',
                   color: 'black',
-                  height: '3rem',
                   width: '3rem',
                   justifyContent: 'center',
                 }}
