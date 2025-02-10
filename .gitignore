@@ -6,6 +6,8 @@ typings
 ai/cls_dataset/
 ai/seg_dataset/
 ai/classify/
+classify.zip
+seg_dataset.zip
 
 #python
 python/
