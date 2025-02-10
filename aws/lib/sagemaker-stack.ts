@@ -4,7 +4,7 @@ import * as iam from 'aws-cdk-lib/aws-iam';
 import * as sagemaker from 'aws-cdk-lib/aws-sagemaker';
 import { Aws, Stack, StackProps, RemovalPolicy } from 'aws-cdk-lib';
 
-export class YOLOv8SageMakerStack extends Stack {
+export class YoloSageMakerStack extends Stack {
     private readonly bucket: s3.Bucket;
 
     constructor(scope: Construct, id: string, props?: StackProps) {
@@ -14,20 +14,20 @@ export class YOLOv8SageMakerStack extends Stack {
         const account = Aws.ACCOUNT_ID;
 
         // Create S3 bucket
-        this.bucket = new s3.Bucket(this, "yolov8-s3", {
+        this.bucket = new s3.Bucket(this, "yolov11-s3", {
             autoDeleteObjects: true,
             removalPolicy: RemovalPolicy.DESTROY
         });
 
         // IAM Roles
         // Create role for Notebook instance
-        const nRole = new iam.Role(this, "yolov8-notebookAccessRole", {
+        const nRole = new iam.Role(this, "yolov11-notebookAccessRole", {
             assumedBy: new iam.ServicePrincipal('sagemaker.amazonaws.com'),
         });
 
         // Attach the right policies for SageMaker Notebook instance
-        const nPolicy = new iam.Policy(this, "yolov8-notebookAccessPolicy", {
-            policyName: "yolov8-notebookAccessPolicy",
+        const nPolicy = new iam.Policy(this, "yolov11-notebookAccessPolicy", {
+            policyName: "yolov11-notebookAccessPolicy",
             statements: [
                 new iam.PolicyStatement({
                     actions: ['sagemaker:*'],
@@ -51,14 +51,14 @@ export class YOLOv8SageMakerStack extends Stack {
         nPolicy.attachToRole(nRole);
 
         // Create SageMaker Notebook instance
-        const notebookInstanceId = 'yolov8-sm-notebook';
+        const notebookInstanceId = 'yolov11-sm-notebook';
         new sagemaker.CfnNotebookInstance(this, notebookInstanceId, {
             instanceType: 'ml.m5.4xlarge',
             volumeSizeInGb: 5,
             notebookInstanceName: notebookInstanceId,
             roleArn: nRole.roleArn,
             additionalCodeRepositories: [
-                "https://github.com/aws-samples/host-yolov8-on-sagemaker-endpoint"
+                "https://github.com/elyskrie21/dripdrop-ai"
             ],
         });
     }
