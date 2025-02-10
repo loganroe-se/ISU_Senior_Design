@@ -1,119 +1,129 @@
 import React, { useState } from 'react';
 import { Box, Typography, MenuItem, ListItemIcon, Avatar } from '@mui/material';
-import { Link } from 'react-router-dom';
 import Filter from './Filters'; // Assuming Filter component is imported
-import PostModal from './PostModal'; // Import the PostModal component
+import CreatePostModal from './CreatePostModal'; // Import the CreatePostModal component
+import { NavLink } from 'react-router';
+import { useUserContext } from '../Auth/UserContext';
 
-
-interface SidebarItemProps {
-  iconClass: string;
-  label: string;
-  link: string;
-  isLast?: boolean;
-  onClick?: () => void;
+interface SidebarProps {
+  showSearch: boolean;
+  setShowSearch: (newValue: boolean) => void;
 }
 
-const Sidebar = () => {
-  const [isFilterOpen, setFilterOpen] = useState(false); // State for drawer visibility
-  const [isPostModalOpen, setPostModalOpen] = useState(false); // State for modal visibility
+const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
+  const { user } = useUserContext();
+  const [isFilterOpen, setFilterOpen] = useState(false);
+  const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
+
+  const storedUser = sessionStorage.getItem('user');
+  console.log(sessionStorage.getItem('user'));
+  const username = storedUser ? JSON.parse(storedUser).username : 'Username';
+
+  const handleSearchClick = () => setShowSearch(!showSearch);
+  const handleFilterClick = () => setFilterOpen(true);
+  const handleCreatePostClick = () => setCreatePostModalOpen(true);
+
+  const sidebarItems = [
+    { iconClass: 'bi bi-house-door', label: 'Home', link: '/' },
+    { iconClass: 'bi bi-search', label: 'Search', link: '#', onClick: handleSearchClick },
+    { iconClass: 'bi bi-plus-square', label: 'Post', link: '#', onClick: handleCreatePostClick },
+    { iconClass: 'bi bi-bell', label: 'Notifications', link: '/notifications' },
+    { iconClass: 'bi bi-funnel', label: 'Filters', link: '#', onClick: handleFilterClick },
+  ];
 
   return (
-    <Box sx={{
-      height: '100vh',
-      display: 'flex',
-    }}>
+    <>
       <Box>
+        {/* Header */}
         <Box
           sx={{
             backgroundColor: '#0073FF',
             display: 'flex',
             justifyContent: 'center',
             alignItems: 'center',
+            borderRadius: '5px 5px 0px 0px',
+            height: '10vh',
+            padding: '1rem 2rem',
           }}
         >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              padding: '1rem 2rem',
-            }}
-          >
-            <img src={'/images/logo.svg'} alt="logo" style={{ width: '30px', height: '45px', marginRight: '.5rem' }} />
-            <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '2.5rem', margin: 0 }}>dripdrop</Typography>
+          <img
+            src="/images/logo.svg"
+            alt="logo"
+            style={{ width: '30px', height: '45px', marginRight: '.5rem' }}
+          />
+          <Typography sx={{ color: 'white', fontWeight: 'bold', fontSize: '2.5rem' }}>
+            dripdrop
+          </Typography>
+        </Box>
+
+        {/* Sidebar Items */}
+        <Box
+          sx={{
+            display: 'grid',
+            border: '1px solid #DFDFDF',
+            height: '75vh',
+          }}
+        >
+          {sidebarItems.map(({ iconClass, label, link, onClick }, index) => (
+            <MenuItem
+              key={index}
+              component={NavLink}
+              to={link}
+              onClick={onClick}
+              sx={{
+                paddingLeft: '2rem',
+              }}
+            >
+              <ListItemIcon
+                sx={{
+                  minWidth: 'unset',
+                  marginRight: '1rem',
+                  fontSize: '2rem',
+                  color: 'black',
+                  width: '3rem',
+                  justifyContent: 'center',
+                }}
+              >
+                <i className={iconClass}></i>
+              </ListItemIcon>
+              <Typography sx={{ fontSize: '1.5rem' }}>{label}</Typography>
+            </MenuItem>
+          ))}
+        </Box>
+
+        {/* Footer */}
+
+        <MenuItem
+          component={NavLink}
+          to="/profile"
+          state={{ userID: user?.id }}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
+            paddingLeft: '1.9rem',
+            border: '1px solid #dfdfdf',
+            borderRadius: '0px 0px 5px 5px',
+            height: '10vh',
+          }}
+        >
+          <ListItemIcon sx={{ minWidth: 'unset', marginRight: '2rem' }}>
+            <Avatar sx={{ height: '3rem', width: '3rem' }} />
+          </ListItemIcon>
+          <Box>
+            <Typography sx={{ fontSize: '1rem', fontWeight: 'bold' }}>{user?.email}</Typography>
+            <Typography sx={{ fontSize: '1rem' }}>@{username}</Typography>
           </Box>
-        </Box>
+        </MenuItem>
 
-        <Box sx={{ padding: '1rem 0', border: '1px solid #DFDFDF' }}>
-          <SidebarItem iconClass="bi bi-house-door" label="Home" link="/" />
-          <SidebarItem iconClass="bi bi-search" label="Search" link="/search" />
-          <SidebarItem
-            iconClass="bi bi-plus-square"
-            label="Post"
-            link="#"
-            onClick={() => setPostModalOpen(true)} // Open the modal on click
-          />
-          <SidebarItem iconClass="bi bi-bookmarks" label="Lists" link="/lists" />
-          <SidebarItem iconClass="bi bi-bell" label="Notifications" link="/notifications" />
-          <SidebarItem
-            iconClass="bi bi-funnel"
-            label="Filters"
-            link="#" // Prevent navigation
-            onClick={() => setFilterOpen(true)} // Open filter drawer
-          />
-
-          {/* User Information as Sidebar Item */}
-          <MenuItem
-            component={Link}
-            to="/profile" // Link to the user's profile
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              paddingLeft: '2rem',
-              marginTop: '1.5rem', // Add space above
-            }}
-          >
-            <ListItemIcon sx={{ minWidth: 'unset', marginRight: '1.5rem' }}>
-              <Avatar sx={{ height: '3rem', width: '3rem', border: '3px solid black' }} />
-            </ListItemIcon>
-            <Box>
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 'bold', margin: 0 }}>{sessionStorage.getItem("email")}</Typography>
-              <Typography sx={{ fontSize: '1rem', margin: 0 }}>@{sessionStorage.getItem("username")}</Typography>
-            </Box>
-          </MenuItem>
-
-        </Box>
+        {/* Filters and Modals */}
         <Filter isFilterOpen={isFilterOpen} setFilterOpen={setFilterOpen} />
+        <CreatePostModal
+          isOpen={isCreatePostModalOpen}
+          onClose={() => setCreatePostModalOpen(false)}
+        />
       </Box>
-      <PostModal isOpen={isPostModalOpen} onClose={() => setPostModalOpen(false)} />
-    </Box>
-  );
-};
-
-const SidebarItem: React.FC<SidebarItemProps> = ({ iconClass, label, link, isLast, onClick }) => {
-  return (
-    <MenuItem
-      component={Link}
-      to={link}
-      onClick={onClick} // Handle click for filter item
-      sx={{
-        paddingLeft: '2rem',
-        alignItems: 'center',
-        marginBottom: isLast ? '0rem' : '1.25rem',
-      }}
-    >
-      <ListItemIcon
-        sx={{
-          minWidth: 'unset',
-          marginRight: '1.5rem',
-          fontSize: '2rem',
-          color: 'black'
-        }}
-      >
-        <i className={iconClass}></i>
-      </ListItemIcon>
-      <Typography sx={{ fontSize: '1.5rem' }}>{label}</Typography>
-    </MenuItem>
+    </>
   );
 };
 

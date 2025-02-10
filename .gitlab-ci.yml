@@ -50,9 +50,12 @@ build website:
   rules:
     - if: $CI_COMMIT_REF_NAME
       changes:
-        paths:
-          - website/dripdrop/**/*
-        compare_to:  'refs/heads/master'
+        - website/dripdrop/**/*
+        - aws/lib/constructs/static-site.ts
+        - aws/lib/layer/website-hosting-stack.ts
+        # paths:
+        #   - website/dripdrop/**/*
+        # compare_to:  'refs/heads/master'
       
 
 
@@ -74,6 +77,8 @@ aws-cdk-diff:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - website/dripdrop/**/*
+        - aws/lib/constructs/static-site.ts
+        - aws/lib/layer/website-hosting-stack.ts
 
 
 aws-cdk-deploy:
@@ -95,6 +100,8 @@ aws-cdk-deploy:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - website/dripdrop/**/*
+        - aws/lib/constructs/static-site.ts
+        - aws/lib/layer/website-hosting-stack.ts
 
 
 # API 
@@ -113,7 +120,8 @@ build layer:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - aws/**/*
+        - aws/lib/constructs/api-construct.ts
+        - aws/lib/layer/api-stack.ts
 
 aws-cdk-diff-api:
   image: $BUILD_IMAGE
@@ -132,7 +140,8 @@ aws-cdk-diff-api:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - aws/**/*
+        - aws/lib/constructs/api-construct.ts
+        - aws/lib/layer/api-stack.ts
 
 
 aws-cdk-deploy-api:
@@ -153,7 +162,8 @@ aws-cdk-deploy-api:
   rules:
     - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
-        - aws/**/*
+        - aws/lib/constructs/api-construct.ts
+        - aws/lib/layer/api-stack.ts
 
 # BRANCH DEPLOY
 

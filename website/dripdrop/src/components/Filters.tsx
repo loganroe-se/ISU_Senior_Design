@@ -36,10 +36,7 @@ const Filter: React.FC<FilterProps> = ({ isFilterOpen, setFilterOpen }) => {
     const drawerRef = useRef<HTMLDivElement | null>(null);
 
     const closeFilterDrawer = () => {
-        console.log("Before close Filter Drawer: " + isFilterOpen);
         setFilterOpen(false);
-        console.log("Filter: " + JSON.stringify(filters));
-        console.log("After close Filter Drawer: " + isFilterOpen);
     };
 
     useEffect(() => {

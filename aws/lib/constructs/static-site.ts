@@ -26,7 +26,6 @@ export class StaticSite extends Construct {
   constructor(parent: Stack, name: string, props: StaticSiteProps) {
     super(parent, name);
 
-    console.log("NAME: ",)
     const subdomain = name == "WebsiteHostingStack" ? props.siteSubDomain : name;
     const zone = route53.HostedZone.fromLookup(this, "Zone", {
       domainName:  props.domainName,
@@ -68,9 +67,9 @@ export class StaticSite extends Construct {
       errorResponses: [
         {
           httpStatus: 403,
-          responseHttpStatus: 403,
-          responsePagePath: "/error.html",
-          ttl: Duration.minutes(30),
+          responseHttpStatus: 200,
+          responsePagePath: "/",
+          ttl: Duration.minutes(60),
         },
       ],
       defaultBehavior: {
