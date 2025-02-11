@@ -57,7 +57,7 @@ class Item(Base):
     clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), nullable=False)
 
     # Relationships
-    coordinates = relationship("Coordinates", uselist=False)
+    coordinates = relationship("Coordinate", back_populates="item", uselist=False)
     image = relationship("Image", back_populates="items")
     clothingItem = relationship("ClothingItem", back_populates="items")
 
@@ -72,8 +72,9 @@ class ClothingItem(Base):
     itemURL = Column(String(200))
     size = Column(String(5))
 
-    # Relationship with Items
+    # Relationships
     items = relationship("Item", back_populates="clothingItem")
+    clothing_item_tags = relationship("ClothingItemTag", back_populates="clothing_item")
 
 # Coordinates Table
 class Coordinate(Base):
@@ -81,13 +82,26 @@ class Coordinate(Base):
     coordinateID = Column(Integer, primary_key=True)
     xCoord = Column(Integer, nullable=False)
     yCoord = Column(Integer, nullable=False)
+    # Relationship with Item (One-to-One)
+    item = relationship("Item", back_populates="coordinates", uselist=False)
 
 # Tag table
 class Tag(Base):
     __tablename__ = 'tags'
     tagID = Column(Integer, primary_key=True)
     tag = Column(String(100), nullable=False, unique=True)
+    # Relationships
+    clothing_item_tags = relationship("ClothingItemTag", back_populates="tag")
 
     @validates('tag')
     def convert_lower(self, key, value):
         return value.lower()
+    
+class ClothingItemTag(Base):
+    __tablename__ = 'clothing_item_tags'
+    tagID = Column(Integer, ForeignKey('tags.tagID'), primary_key=True)
+    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), primary_key=True)
+    # Relationships
+    tag = relationship("Tag", back_populates="clothing_item_tags")
+    clothing_item = relationship("ClothingItem", back_populates="clothing_item_tags")
+
