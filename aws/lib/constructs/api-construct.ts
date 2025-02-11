@@ -402,6 +402,35 @@ export class ApiConstruct extends Construct {
       "handler"
     );
 
+    // Like Lambdas
+    const likePostLambda = createLambda(
+      "LikePostLambda",
+      "lib/lambdas/api-endpoints/like/like-post",
+      "handler"
+    );
+    const unlikePostLambda = createLambda(
+      "UnlikePostLambda",
+      "lib/lambdas/api-endpoints/like/unlike-post",
+      "handler"
+    );
+
+    // Comment Lambdas
+    const addCommentLambda = createLambda(
+      "AddCommentLambda",
+      "lib/lambdas/api-endpoints/comment/add-comment",
+      "handler"
+    );
+    const deleteCommentLambda = createLambda(
+      "DeleteCommentLambda",
+      "lib/lambdas/api-endpoints/comment/delete-comment",
+      "handler"
+    );
+    const getCommentsLambda = createLambda(
+      "getCommentsLambda",
+      "lib/lambdas/api-endpoints/comment/get-comments",
+      "handler"
+    );
+
     // Testing lambda
     const testFunctionsLambda = createLambda(
       "TestFunctionsLambda",
@@ -589,6 +618,56 @@ export class ApiConstruct extends Construct {
         operationName: "GetFollowing",
       }
     );
+
+    // ----------------------------- LIKE ENDPOINTS -----------------------------
+
+    // Define the /follow resource
+    const like = api.root.addResource("like");
+
+    // POST /like - like a post
+    like.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(likePostLambda),
+      {
+        operationName: "LikePost",
+      }
+    );
+
+    // DELETE /like - unlike a post
+    follow.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(unlikePostLambda),
+      {
+        operationName: "UnlikePost",
+      }
+    );
+
+    // ----------------------------- COMMENT ENDPOINTS -----------------------------
+
+    // Define the /follow resource
+    const comment = api.root.addResource("comment");
+
+    // POST /comment - comment on a post
+    comment.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(addCommentLambda),
+      {
+        operationName: "AddComment",
+      }
+    );
+
+    // DELETE /comment - remove a comment
+    comment.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(deleteCommentLambda),
+      {
+        operationName: "DeleteComent",
+      }
+    );
+
+
+
+
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {

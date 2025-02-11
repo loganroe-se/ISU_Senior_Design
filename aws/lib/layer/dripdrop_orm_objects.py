@@ -87,6 +87,26 @@ class Coordinate(Base):
     # Relationship with Item (One-to-One)
     item = relationship("Item", back_populates="coordinates", uselist=False)
 
+# Tag table
+class Tag(Base):
+    __tablename__ = 'tags'
+    tagID = Column(Integer, primary_key=True)
+    tag = Column(String(100), nullable=False, unique=True)
+    # Relationships
+    clothing_item_tags = relationship("ClothingItemTag", back_populates="tag")
+
+    @validates('tag')
+    def convert_lower(self, key, value):
+        return value.lower()
+    
+class ClothingItemTag(Base):
+    __tablename__ = 'clothing_item_tags'
+    tagID = Column(Integer, ForeignKey('tags.tagID'), primary_key=True)
+    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), primary_key=True)
+    # Relationships
+    tag = relationship("Tag", back_populates="clothing_item_tags")
+    clothing_item = relationship("ClothingItem", back_populates="clothing_item_tags")
+
 # Comment table
 class Comment(Base):
     __tablename__ = 'comments'
@@ -108,24 +128,4 @@ class Like(Base):
     # Relationships
     user = relationship("User", back_populates="likes")
     post = relationship("Post", back_populates="likes")
-
-# Tag table
-class Tag(Base):
-    __tablename__ = 'tags'
-    tagID = Column(Integer, primary_key=True)
-    tag = Column(String(100), nullable=False, unique=True)
-    # Relationships
-    clothing_item_tags = relationship("ClothingItemTag", back_populates="tag")
-
-    @validates('tag')
-    def convert_lower(self, key, value):
-        return value.lower()
-    
-class ClothingItemTag(Base):
-    __tablename__ = 'clothing_item_tags'
-    tagID = Column(Integer, ForeignKey('tags.tagID'), primary_key=True)
-    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), primary_key=True)
-    # Relationships
-    tag = relationship("Tag", back_populates="clothing_item_tags")
-    clothing_item = relationship("ClothingItem", back_populates="clothing_item_tags")
 
