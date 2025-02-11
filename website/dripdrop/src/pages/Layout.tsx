@@ -5,6 +5,7 @@ import Container from '@mui/material/Container';
 import Sidebar from '../components/Sidebar';
 import Searchbar from '../components/Searchbar';
 import { useEffect, useState } from 'react';
+import { User } from '../types';
 
 type Props = {
   children: string | JSX.Element | JSX.Element[];
@@ -18,12 +19,6 @@ export default function Home({ children }: Props) {
   const [filteredSearchResults, setFilteredSearchResults] = useState<User[]>([]);
   const [showSearch, setShowSearch] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Add loading state
-
-  interface User {
-    username: string;
-    email: string;
-    id: string;
-  }
 
   useEffect(() => {
     const performSearch = async () => {
