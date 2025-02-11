@@ -52,8 +52,8 @@ class Image(Base):
 # Item table
 class Item(Base):
     __tablename__ = 'items'
+    imageID = Column(Integer, ForeignKey('images.imageID'), primary_key=True)
     coordinateID = Column(Integer, ForeignKey('coordinates.coordinateID'), unique=True)
-    imageID = Column(Integer, ForeignKey('images.imageID'), nullable=False)
     clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), nullable=False)
 
     # Relationships
