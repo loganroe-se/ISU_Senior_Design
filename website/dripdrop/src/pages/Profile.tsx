@@ -43,7 +43,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   );
   const navigate = useNavigate();
   const location = useLocation();
-  const { userID } = location.state || {};
+  const { userID } = location.state || { userID: user?.id };
 
   // Define functions with useCallback for stable references
   const getUser = useCallback(async () => {
@@ -60,22 +60,6 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
       setUserLoading(false);
     }
   }, [userID]);
-
-  useEffect(() => {
-    // Set the tabIndex from the state passed via the navigation
-    if (location.state?.tabIndex !== undefined) {
-      setTabIndex(location.state.tabIndex);
-    }
-    if (userID) {
-      getUser();
-    }
-  }, [location.state, userID, getUser]);
-
-  useEffect(() => {
-    if (userID) {
-      getUser();
-    }
-  }, [userID, getUser]);
 
   const navigateToEditProfile = () => {
     navigate('/editProfile');
@@ -99,8 +83,19 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   }, [tabIndex, userID]);
 
   useEffect(() => {
-    fetchPosts();
-  }, [fetchPosts]);
+    if (userID) {
+      getUser();
+      fetchPosts();
+      getFollowersAndFollowing();
+    }
+  }, [userID, tabIndex, getUser]);
+
+  useEffect(() => {
+    // Set the tabIndex from the state passed via the navigation
+    if (location.state?.tabIndex !== undefined) {
+      setTabIndex(location.state.tabIndex);
+    }
+  }, [location.state]);
 
   const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
     setTabIndex(newValue);
@@ -168,13 +163,6 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
       console.error('Error fetching followers or following:', error);
     }
   }, [user, userID]);
-
-  useEffect(() => {
-    if (user) {
-      getUser();
-      getFollowersAndFollowing();
-    }
-  }, [user, getUser, getFollowersAndFollowing]);
 
   const transformedPost = selectedPost
     ? {
