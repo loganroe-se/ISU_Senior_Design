@@ -10,6 +10,8 @@ import {
   ImageListItem,
   CircularProgress,
   Button,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import FavoriteIcon from '@mui/icons-material/Favorite';
@@ -19,7 +21,11 @@ import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
 
-const Profile = () => {
+interface ProfileProps {
+  initialTabIndex?: number;
+}
+
+const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   const { user } = useUserContext();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -28,16 +34,17 @@ const Profile = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tabIndex, setTabIndex] = useState<number>(initialTabIndex ?? 0);
   const [userLoading, setUserLoading] = useState(true);
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
   const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>(
     {}
   );
-
   const navigate = useNavigate();
   const location = useLocation();
-  const { userID } = location.state || {};
+  const { userID } = location.state || { userID: user?.id };
+
   // Define functions with useCallback for stable references
   const getUser = useCallback(async () => {
     setUserLoading(true);
@@ -54,36 +61,45 @@ const Profile = () => {
     }
   }, [userID]);
 
-  useEffect(() => {
-    if (userID) {
-      getUser();
-    }
-  }, [userID, getUser]);
-
   const navigateToEditProfile = () => {
     navigate('/editProfile');
   };
 
-  useEffect(() => {
-    if (user) {
-      fetch(`https://api.dripdropco.com/posts/user/${userID}`)
-        .then((response) => {
-          if (!response.ok) {
-            setPosts([]); // Reset posts state to an empty array if 404 or any error occurs
-            throw new Error(`Error fetching posts: ${response.statusText}`);
-          }
-          return response.json();
-        })
-        .then((data: Post[]) => {
-          setPosts(data);
-          setLoading(false);
-        })
-        .catch((error) => {
-          console.error(error);
-          setLoading(false);
-        });
+  const fetchPosts = useCallback(async () => {
+    setLoading(true);
+    try {
+      const endpoint =
+        tabIndex === 0
+          ? `https://api.dripdropco.com/posts/user/${userID}`
+          : 'https://api.dripdropco.com/posts';
+      const response = await fetch(endpoint);
+      const data = await response.json();
+      setPosts(data);
+    } catch (error) {
+      console.error('Error fetching posts:', error);
+    } finally {
+      setLoading(false);
     }
-  }, [user, username, userID]);
+  }, [tabIndex, userID]);
+
+  useEffect(() => {
+    if (userID) {
+      getUser();
+      fetchPosts();
+      getFollowersAndFollowing();
+    }
+  }, [userID, tabIndex, getUser]);
+
+  useEffect(() => {
+    // Set the tabIndex from the state passed via the navigation
+    if (location.state?.tabIndex !== undefined) {
+      setTabIndex(location.state.tabIndex);
+    }
+  }, [location.state]);
+
+  const handleTabChange = (_: React.SyntheticEvent, newValue: number) => {
+    setTabIndex(newValue);
+  };
 
   const handlePostHover = (index: number) => {
     setHoveredPost(index);
@@ -147,13 +163,6 @@ const Profile = () => {
       console.error('Error fetching followers or following:', error);
     }
   }, [user, userID]);
-
-  useEffect(() => {
-    if (user) {
-      getUser();
-      getFollowersAndFollowing();
-    }
-  }, [user, getUser, getFollowersAndFollowing]);
 
   const transformedPost = selectedPost
     ? {
@@ -248,77 +257,74 @@ const Profile = () => {
       </Box>
 
       <Divider sx={{ my: 2, backgroundColor: 'grey.300' }} />
-
       <Box mt={3}>
-        <Typography variant="h4" gutterBottom>
-          Posts
-        </Typography>
+        <Tabs value={tabIndex} onChange={handleTabChange} centered>
+          <Tab label="Posts" />
+          <Tab label="Drafts" />
+        </Tabs>
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
             <CircularProgress />
           </Box>
-        ) : posts.length > 0 ? (
-          <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
-            {posts.map((post, index) => (
-              <ImageListItem
-                key={index}
-                onMouseEnter={() => {
-                  handlePostHover(index);
-                }}
-                onMouseLeave={() => {
-                  handlePostHoverAway();
-                }}
-                onClick={() => {
-                  handlePostClick(post);
-                }}
-                sx={{ cursor: 'pointer', position: 'relative' }}
-              >
-                <img
-                  src={
-                    post.images[0]
-                      ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                      : 'default_image.png'
-                  }
-                  alt={post.caption}
-                  loading="lazy"
-                />
-                {hoveredPost === index && (
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      color: 'white',
-                    }}
-                  >
-                    <Box display="flex" gap={2}>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <FavoriteIcon />
-                        <Typography>{postStats[post.id]?.likes || 0}</Typography>
-                      </Box>
-                      <Box display="flex" alignItems="center" gap={0.5}>
-                        <CommentIcon />
-                        <Typography>{postStats[post.id]?.comments || 0}</Typography>
+        ) : (
+          <Box mt={3}>
+            <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
+              {posts.map((post, index) => (
+                <ImageListItem
+                  key={index}
+                  onMouseEnter={() => {
+                    handlePostHover(index);
+                  }}
+                  onMouseLeave={() => {
+                    handlePostHoverAway();
+                  }}
+                  onClick={() => {
+                    handlePostClick(post);
+                  }}
+                  sx={{ cursor: 'pointer', position: 'relative' }}
+                >
+                  <img
+                    src={
+                      post.images[0]
+                        ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+                        : 'default_image.png'
+                    }
+                    alt={post.caption}
+                    loading="lazy"
+                  />
+                  {hoveredPost === index && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 0,
+                        left: 0,
+                        width: '100%',
+                        height: '100%',
+                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: 'white',
+                      }}
+                    >
+                      <Box display="flex" gap={2}>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <FavoriteIcon />
+                          <Typography>{postStats[post.id]?.likes || 0}</Typography>
+                        </Box>
+                        <Box display="flex" alignItems="center" gap={0.5}>
+                          <CommentIcon />
+                          <Typography>{postStats[post.id]?.comments || 0}</Typography>
+                        </Box>
                       </Box>
                     </Box>
-                  </Box>
-                )}
-              </ImageListItem>
-            ))}
-          </ImageList>
-        ) : (
-          <Typography variant="body2" color="textSecondary">
-            No posts to display.
-          </Typography>
+                  )}
+                </ImageListItem>
+              ))}
+            </ImageList>
+          </Box>
         )}
       </Box>
-
       <ViewPostModal selectedPost={transformedPost} onClose={closePostModal} />
     </Paper>
   );
