@@ -45,7 +45,7 @@ def createLike(userId, postId):
             return 409, "Duplicate like entry: The like already exists."
 
         # Create new like relationship
-        new_like = Like(userId=userId, postId=postId)
+        new_like = Like(userID=userId, postID=postId)
 
         # Add like to database
         session.add(new_like)

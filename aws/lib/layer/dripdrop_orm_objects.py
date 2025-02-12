@@ -126,7 +126,6 @@ class Like(Base):
     __tablename__ = 'likes'
     userID = Column(Integer, ForeignKey('users.userID'), primary_key=True)
     postID = Column(Integer, ForeignKey('posts.postID'), primary_key=True)
-    createdDate = Column(Date, nullable=False)
     # Relationships
     user = relationship("User", back_populates="likes")
     post = relationship("Post", back_populates="likes")
