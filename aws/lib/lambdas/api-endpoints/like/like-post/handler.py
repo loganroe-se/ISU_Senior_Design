@@ -40,7 +40,7 @@ def createLike(userId, postId):
             return 404, "User or post does not exist."
 
         # Check if the like already exists
-        existing_like = session.execute(select(Like).where(and_(Like.userId == userId, Like.postId == postId))).scalars().first()
+        existing_like = session.execute(select(Like).where(and_(Like.userID == userId, Like.postID == postId))).scalars().first()
         if existing_like:
             return 409, "Duplicate like entry: The like already exists."
 

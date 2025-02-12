@@ -16,6 +16,7 @@ class User(Base):
     following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
     followers = relationship("Follow", foreign_keys="Follow.followedId", back_populates="followed", cascade="all, delete")
     likes = relationship("Like", back_populates="user", cascade="all, delete")
+    comments = relationship("Comment", back_populates="user", cascade="all, delete")  # Add this line
 
 # Following table
 class Follow(Base):

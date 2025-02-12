@@ -34,7 +34,7 @@ def deleteLike(userId, postId):
         session = create_session()
 
         # Fetch like relationship
-        like = session.execute(select(Like).where((Like.userId == userId) & (Like.postId == postId))).scalars().first()
+        like = session.execute(select(Like).where((Like.userID == userId) & (Like.postID == postId))).scalars().first()
 
         if like:
             session.delete(like)
