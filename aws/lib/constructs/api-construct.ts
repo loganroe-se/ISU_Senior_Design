@@ -625,22 +625,14 @@ export class ApiConstruct extends Construct {
     const like = api.root.addResource("like");
 
     // POST /like - like a post
-    like.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(likePostLambda),
-      {
-        operationName: "LikePost",
-      }
-    );
+    like.addMethod("POST", new apigateway.LambdaIntegration(likePostLambda), {  
+      operationName: "LikePost",
+    });
 
     // DELETE /like - unlike a post
-    follow.addMethod(
-      "DELETE",
-      new apigateway.LambdaIntegration(unlikePostLambda),
-      {
+    follow.addMethod("DELETE", new apigateway.LambdaIntegration(unlikePostLambda), {
         operationName: "UnlikePost",
-      }
-    );
+    });
 
     // ----------------------------- COMMENT ENDPOINTS -----------------------------
 
@@ -648,23 +640,25 @@ export class ApiConstruct extends Construct {
     const comment = api.root.addResource("comment");
 
     // POST /comment - comment on a post
-    comment.addMethod(
-      "POST",
-      new apigateway.LambdaIntegration(addCommentLambda),
-      {
-        operationName: "AddComment",
-      }
-    );
+    comment.addMethod("POST", new apigateway.LambdaIntegration(addCommentLambda), {
+      operationName: "AddComment",
+    });
+
+    // Define the /comment/{post-id} resource
+    const commentID = comment.addResource("{comment-id}");
 
     // DELETE /comment - remove a comment
-    comment.addMethod(
-      "DELETE",
-      new apigateway.LambdaIntegration(deleteCommentLambda),
-      {
-        operationName: "DeleteComent",
-      }
-    );
+    commentID.addMethod("DELETE", new apigateway.LambdaIntegration(deleteCommentLambda), {
+      operationName: "DeleteComent",
+    });
 
+    // Define the /comment/{post-id} resource
+    const commentPostID = comment.addResource("{post-id}");
+
+    // GET /comment/{post-id} - get comments for a post
+    commentPostID.addMethod("GET", new apigateway.LambdaIntegration(getCommentsLambda), {
+      operationName: "GetCommentsByPostId",
+    });
 
 
 

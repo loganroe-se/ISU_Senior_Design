@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, Boolean, UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -34,6 +34,7 @@ class Post(Base):
     postID = Column(Integer, primary_key=True)
     userID = Column(Integer, ForeignKey('users.userID'))
     caption = Column(String(50))
+    isPublic = Column(Boolean, nullable=False, default=False)
     createdDate = Column(Date)
     #Establish relationships
     userRel = relationship("User", back_populates="posts")
