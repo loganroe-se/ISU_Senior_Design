@@ -26,7 +26,12 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
     { iconClass: 'bi-house-door', label: 'Home', link: '/' },
     { iconClass: 'bi-search', label: 'Search', link: '#', onClick: handleSearchClick },
     { iconClass: 'bi-plus-square', label: 'Post', link: '#', onClick: handleCreatePostClick },
-    { iconClass: 'bi-pencil-square', label: 'Drafts', link: '/drafts' },
+    {
+      iconClass: 'bi-pencil-square',
+      label: 'Drafts',
+      link: '/profile',
+      state: { tabIndex: 1, userID: user?.id },
+    },
     { iconClass: 'bi-bell', label: 'Notifications', link: '/notifications' },
     { iconClass: 'bi-funnel', label: 'Filters', link: '#', onClick: handleFilterClick },
   ];
@@ -64,12 +69,13 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
             height: '75vh',
           }}
         >
-          {sidebarItems.map(({ iconClass, label, link, onClick }, index) => (
+          {sidebarItems.map(({ iconClass, label, link, onClick, state }, index) => (
             <MenuItem
               key={index}
               component={NavLink}
               to={link}
               onClick={onClick}
+              state={state}
               sx={{
                 paddingLeft: '2rem',
               }}
@@ -96,7 +102,7 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
         <MenuItem
           component={NavLink}
           to="/profile"
-          state={{ userID: user?.id }}
+          state={{ tabIndex: 0, userID: user?.id }}
           sx={{
             display: 'flex',
             alignItems: 'center',

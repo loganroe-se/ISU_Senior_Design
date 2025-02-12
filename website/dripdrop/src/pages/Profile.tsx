@@ -21,7 +21,11 @@ import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
 
-const Profile = () => {
+interface ProfileProps {
+  initialTabIndex?: number;
+}
+
+const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   const { user } = useUserContext();
   const [email, setEmail] = useState('');
   const [username, setUsername] = useState('');
@@ -30,17 +34,17 @@ const Profile = () => {
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [hoveredPost, setHoveredPost] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState<number>(initialTabIndex ?? 0);
   const [userLoading, setUserLoading] = useState(true);
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
   const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>(
     {}
   );
-
   const navigate = useNavigate();
   const location = useLocation();
   const { userID } = location.state || {};
+
   // Define functions with useCallback for stable references
   const getUser = useCallback(async () => {
     setUserLoading(true);
@@ -56,6 +60,16 @@ const Profile = () => {
       setUserLoading(false);
     }
   }, [userID]);
+
+  useEffect(() => {
+    // Set the tabIndex from the state passed via the navigation
+    if (location.state?.tabIndex !== undefined) {
+      setTabIndex(location.state.tabIndex);
+    }
+    if (userID) {
+      getUser();
+    }
+  }, [location.state, userID, getUser]);
 
   useEffect(() => {
     if (userID) {
