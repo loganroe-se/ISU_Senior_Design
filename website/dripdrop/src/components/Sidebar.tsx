@@ -16,7 +16,6 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
   const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
 
   const storedUser = sessionStorage.getItem('user');
-  console.log(sessionStorage.getItem('user'));
   const username = storedUser ? JSON.parse(storedUser).username : 'Username';
 
   const handleSearchClick = () => setShowSearch(!showSearch);
@@ -24,11 +23,12 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
   const handleCreatePostClick = () => setCreatePostModalOpen(true);
 
   const sidebarItems = [
-    { iconClass: 'bi bi-house-door', label: 'Home', link: '/' },
-    { iconClass: 'bi bi-search', label: 'Search', link: '#', onClick: handleSearchClick },
-    { iconClass: 'bi bi-plus-square', label: 'Post', link: '#', onClick: handleCreatePostClick },
-    { iconClass: 'bi bi-bell', label: 'Notifications', link: '/notifications' },
-    { iconClass: 'bi bi-funnel', label: 'Filters', link: '#', onClick: handleFilterClick },
+    { iconClass: 'bi-house-door', label: 'Home', link: '/' },
+    { iconClass: 'bi-search', label: 'Search', link: '#', onClick: handleSearchClick },
+    { iconClass: 'bi-plus-square', label: 'Post', link: '#', onClick: handleCreatePostClick },
+    { iconClass: 'bi-pencil-square', label: 'Drafts', link: '/drafts' },
+    { iconClass: 'bi-bell', label: 'Notifications', link: '/notifications' },
+    { iconClass: 'bi-funnel', label: 'Filters', link: '#', onClick: handleFilterClick },
   ];
 
   return (
