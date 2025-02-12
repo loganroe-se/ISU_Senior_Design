@@ -644,7 +644,7 @@ export class ApiConstruct extends Construct {
       operationName: "AddComment",
     });
 
-    // Define the /comment/{post-id} resource
+    // Define the /comment/{comment-id} resource
     const commentID = comment.addResource("{comment-id}");
 
     // DELETE /comment - remove a comment
@@ -652,8 +652,9 @@ export class ApiConstruct extends Construct {
       operationName: "DeleteComent",
     });
 
-    // Define the /comment/{post-id} resource
-    const commentPostID = comment.addResource("{post-id}");
+    // Define the /comment/post/{id} resource
+    const commentPost = comment.addResource("post");
+    const commentPostID = commentPost.addResource("{post-id}");
 
     // GET /comment/{post-id} - get comments for a post
     commentPostID.addMethod("GET", new apigateway.LambdaIntegration(getCommentsLambda), {
