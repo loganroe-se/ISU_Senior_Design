@@ -630,7 +630,7 @@ export class ApiConstruct extends Construct {
     });
 
     // DELETE /like - unlike a post
-    follow.addMethod("DELETE", new apigateway.LambdaIntegration(unlikePostLambda), {
+    like.addMethod("DELETE", new apigateway.LambdaIntegration(unlikePostLambda), {
         operationName: "UnlikePost",
     });
 
