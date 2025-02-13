@@ -66,13 +66,61 @@ class Image(Base):
     imageURL = Column(String(2000), nullable=False)
     #Establish relationship with post
     postRel = relationship("Post", back_populates="images")
+    items = relationship("Item", back_populates="image")
+
+# Item table
+class Item(Base):
+    __tablename__ = 'items'
+    imageID = Column(Integer, ForeignKey('images.imageID'), primary_key=True)
+    coordinateID = Column(Integer, ForeignKey('coordinates.coordinateID'), unique=True)
+    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), nullable=False)
+
+    # Relationships
+    coordinates = relationship("Coordinate", back_populates="item", uselist=False)
+    image = relationship("Image", back_populates="items")
+    clothingItem = relationship("ClothingItem", back_populates="items")
+
+# Clothing Item Table
+class ClothingItem(Base):
+    __tablename__ = 'clothing_items'
+    clothingItemID = Column(Integer, primary_key=True)
+    name = Column(String(50), nullable=False)
+    brand = Column(String(50), nullable=False)
+    category = Column(String(50))
+    price = Column(Float)
+    itemURL = Column(String(200))
+    size = Column(String(5))
+
+    # Relationships
+    items = relationship("Item", back_populates="clothingItem")
+    clothing_item_tags = relationship("ClothingItemTag", back_populates="clothing_item")
+
+# Coordinates Table
+class Coordinate(Base):
+    __tablename__ = 'coordinates'
+    coordinateID = Column(Integer, primary_key=True)
+    xCoord = Column(Integer, nullable=False)
+    yCoord = Column(Integer, nullable=False)
+    # Relationship with Item (One-to-One)
+    item = relationship("Item", back_populates="coordinates", uselist=False)
 
 # Tag table
 class Tag(Base):
     __tablename__ = 'tags'
     tagID = Column(Integer, primary_key=True)
     tag = Column(String(100), nullable=False, unique=True)
+    # Relationships
+    clothing_item_tags = relationship("ClothingItemTag", back_populates="tag")
 
     @validates('tag')
     def convert_lower(self, key, value):
         return value.lower()
+    
+class ClothingItemTag(Base):
+    __tablename__ = 'clothing_item_tags'
+    tagID = Column(Integer, ForeignKey('tags.tagID'), primary_key=True)
+    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), primary_key=True)
+    # Relationships
+    tag = relationship("Tag", back_populates="clothing_item_tags")
+    clothing_item = relationship("ClothingItem", back_populates="clothing_item_tags")
+
