@@ -1,44 +1,48 @@
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
-from dripdrop_orm_objects import Post
-from sqlalchemy import select
+from dripdrop_orm_objects import Post, User, HasSeen
 from datetime import datetime, date
 
 def handler(event, context):
     try:
-        # Parse the user data from event
-        path_params = event.get('pathParameters') or {}
-
-        user_id = path_params.get('userID')
+        # Get id from path parameters
+        user_id = event['pathParameters'].get('id')
 
         # Check for missing, required values
         if not user_id:
             return create_response(400, 'Missing user ID')
         
-        # Call another function to create the user
-        status_code, message = getPostsByUserId(user_id)
+        # Call another function to get the posts
+        status_code, message = getSeenPosts(user_id)
 
         # Return message
         return create_response(status_code, message)
-    
+
     except Exception as e:
         print(f"Error: {e}")
-        return create_response(500, f"Error getting posts: {str(e)}")
-    
+        return create_response(500, f"Error getting seen posts: {str(e)}")
 
-def getPostsByUserId(user_id):
+
+def getSeenPosts(userID):
+    # Try to get seen posts by userID
     try:
         # Create the session
         session = create_session()
 
-        # Fetch all posts that match the userID
-        posts_result = (
-            session.execute(select(Post).where(Post.userID == user_id)).scalars().all()
-        )
+        # Check if the userID exists
+        user = session.query(User).filter_by(userID=userID).first()
+        if not user:
+            raise Exception("404", f"User with userID: {userID} was not found")
+        
+        # Get the list of posts for the userID
+        seen_posts_query = session.query(Post).join(HasSeen, HasSeen.postID == Post.postID).filter(HasSeen.userID == userID)
+        seen_posts = seen_posts_query.all()
 
-        if posts_result:
-            # Create a list of post dictionaries directly
-            posts_list = [
+        if not seen_posts:
+            return 404, f"No posts have been seen by user with userID: {userID}"
+        else:
+            # Serialize the posts
+            seen_posts_data = [
                 {
                     "postID": post.postID,
                     "userID": post.userID,
@@ -52,20 +56,16 @@ def getPostsByUserId(user_id):
                         {"imageID": image.imageID, "imageURL": image.imageURL}
                         for image in post.images
                     ],
-                    "numLikes": len(post.likes),
-                }
-                for post in posts_result
+                } for post in seen_posts
             ]
-
-            return 200, posts_list
-        else:
-            return 404, f"No posts found for userID: {user_id}"
+            
+            return 200, seen_posts_data
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Error accessing database")
+        code, msg = handle_exception(e, "GetSeenPostsByUserID Handler.py")
         return code, msg
-
+    
     finally:
-        if "session" in locals() and session:
+        if 'session' in locals() and session:
             session.close()

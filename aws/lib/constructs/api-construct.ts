@@ -343,6 +343,35 @@ export class ApiConstruct extends Construct {
       "handler"
     );
 
+    // Has Seen Lambdas
+    const markAsSeenLambda = createLambda(
+      "MarkAsSeenLambda",
+      "lib/lambdas/api-endpoints/has-seen/mark-as-seen",
+      "handler"
+    );
+    const getUsersByPostIdLambda = createLambda(
+      "GetUsersByPostId",
+      "lib/lambdas/api-endpoints/has-seen/get-users-by-post-id",
+      "handler"
+    );
+    const getSeenPostsByUserIdLambda = createLambda(
+      "GetSeenPostsByUserId",
+      "lib/lambdas/api-endpoints/has-seen/get-seen-posts-by-user-id",
+      "handler"
+    );
+    const resetSeenPostsForUserIdLambda = createLambda(
+      "ResetSeenPostsForUserIdLambda",
+      "lib/lambdas/api-endpoints/has-seen/reset-seen-posts-for-user-id",
+      "handler"
+    );
+
+    // Feed Lambdas
+    const getFeedLambda = createLambda(
+      "GetFeedLambda",
+      "lib/lambdas/api-endpoints/feed/get-feed",
+      "handler"
+    );
+
     // Post Lambdas
     const createPostLambda = createLambda(
       "CreatePostLambda",
@@ -380,6 +409,7 @@ export class ApiConstruct extends Construct {
       "handler"
     );
 
+
     // Follow Lambdas
     const followUserLambda = createLambda(
       "FollowUserLambda",
@@ -399,6 +429,35 @@ export class ApiConstruct extends Construct {
     const unfollowUserLambda = createLambda(
       "UnfollowUserLambda",
       "lib/lambdas/api-endpoints/follow/unfollow-user",
+      "handler"
+    );
+
+    // Like Lambdas
+    const likePostLambda = createLambda(
+      "LikePostLambda",
+      "lib/lambdas/api-endpoints/like/like-post",
+      "handler"
+    );
+    const unlikePostLambda = createLambda(
+      "UnlikePostLambda",
+      "lib/lambdas/api-endpoints/like/unlike-post",
+      "handler"
+    );
+
+    // Comment Lambdas
+    const addCommentLambda = createLambda(
+      "AddCommentLambda",
+      "lib/lambdas/api-endpoints/comment/add-comment",
+      "handler"
+    );
+    const deleteCommentLambda = createLambda(
+      "DeleteCommentLambda",
+      "lib/lambdas/api-endpoints/comment/delete-comment",
+      "handler"
+    );
+    const getCommentsLambda = createLambda(
+      "getCommentsLambda",
+      "lib/lambdas/api-endpoints/comment/get-comments",
       "handler"
     );
 
@@ -542,6 +601,77 @@ export class ApiConstruct extends Construct {
       }
     );
 
+    // -------------------------------- HAS SEEN ENDPOINTS -------------------------
+
+    // Define the /hasSeen resource
+    const hasSeen = api.root.addResource("hasSeen");
+
+    // POST /hasSeen - Add new seen posts for a user
+    hasSeen.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(markAsSeenLambda),
+      {
+        operationName: "MarkAsSeen",
+      }
+    );
+
+    // Define the /has-seen/{id} resource
+    const hasSeenUserID = hasSeen.addResource("{id}")
+
+    // Define the /has-seen/{id}/seenPosts resource
+    const hasSeenPosts = hasSeenUserID.addResource("seenPosts")
+
+    // GET /hasSeen/seenPosts - Get the list of seen posts by a userID
+    hasSeenPosts.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getSeenPostsByUserIdLambda),
+      {
+        operationName: "GetSeenPosts",
+      }
+    );
+
+    // Define the /has-seen/{id}/resetSeen resource
+    const resetSeenPosts = hasSeenUserID.addResource("resetSeen")
+
+    // DELETE /hasSeen/resetSeen - Resets the list of seen posts for a given userID
+    resetSeenPosts.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(resetSeenPostsForUserIdLambda),
+      {
+        operationName: "ResetSeenPosts",
+      }
+    );
+
+    // Define the /has-seen/seenUsers resource
+    const hasSeenUsers = hasSeen.addResource("seenUsers").addResource("{id}")
+
+    // GET /hasSeen/seenUsers - Get the list of users that have seen a post
+    hasSeenUsers.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUsersByPostIdLambda),
+      {
+        operationName: "GetSeenUsers",
+      }
+    );
+
+    // -------------------------------- FEED ENDPOINTS -------------------------
+
+    // Define the /feed/{id} resource
+    const feed = api.root.addResource("feed").addResource("{userID}");
+
+    // GET /feed - Gets the feed for a user ID
+    feed.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFeedLambda),
+      {
+        operationName: "GetFeed",
+        requestParameters: {
+          "method.request.path.userID": true,
+          "method.request.querystring.limit": false,
+        },
+      }
+    );
+
     // ----------------------------- FOLLOW ENDPOINTS -----------------------------
 
     // Define the /follow resource
@@ -589,6 +719,51 @@ export class ApiConstruct extends Construct {
         operationName: "GetFollowing",
       }
     );
+
+    // ----------------------------- LIKE ENDPOINTS -----------------------------
+
+    // Define the /follow resource
+    const like = api.root.addResource("like");
+
+    // POST /like - like a post
+    like.addMethod("POST", new apigateway.LambdaIntegration(likePostLambda), {  
+      operationName: "LikePost",
+    });
+
+    // DELETE /like - unlike a post
+    like.addMethod("DELETE", new apigateway.LambdaIntegration(unlikePostLambda), {
+        operationName: "UnlikePost",
+    });
+
+    // ----------------------------- COMMENT ENDPOINTS -----------------------------
+
+    // Define the /follow resource
+    const comment = api.root.addResource("comment");
+
+    // POST /comment - comment on a post
+    comment.addMethod("POST", new apigateway.LambdaIntegration(addCommentLambda), {
+      operationName: "AddComment",
+    });
+
+    // Define the /comment/{comment-id} resource
+    const commentID = comment.addResource("{comment-id}");
+
+    // DELETE /comment - remove a comment
+    commentID.addMethod("DELETE", new apigateway.LambdaIntegration(deleteCommentLambda), {
+      operationName: "DeleteComent",
+    });
+
+    // Define the /comment/post/{id} resource
+    const commentPost = comment.addResource("post");
+    const commentPostID = commentPost.addResource("{post-id}");
+
+    // GET /comment/{post-id} - get comments for a post
+    commentPostID.addMethod("GET", new apigateway.LambdaIntegration(getCommentsLambda), {
+      operationName: "GetCommentsByPostId",
+    });
+
+
+
 
     // Create an ARecord for API Gateway in Route 53
     new route53.ARecord(this, "ApiAliasRecord", {
