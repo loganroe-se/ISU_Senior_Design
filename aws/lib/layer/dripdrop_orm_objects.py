@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, Boolean, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, Boolean, Index, UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -15,6 +15,7 @@ class User(Base):
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
     following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
     followers = relationship("Follow", foreign_keys="Follow.followedId", back_populates="followed", cascade="all, delete")
+    has_seen = relationship("HasSeen", back_populates="user")
     likes = relationship("Like", back_populates="user", cascade="all, delete")
     comments = relationship("Comment", back_populates="user", cascade="all, delete")  # Add this line
 
@@ -40,6 +41,24 @@ class Post(Base):
     #Establish relationships
     userRel = relationship("User", back_populates="posts")
     images = relationship("Image", order_by="Image.imageID", back_populates="postRel")
+    has_seen = relationship("HasSeen", back_populates="post")
+
+# Has Seen table
+class HasSeen(Base):
+    __tablename__ = 'has_seen'
+    hasSeenID = Column(Integer, primary_key=True)
+    userID = Column(Integer, ForeignKey('users.userID'))
+    postID = Column(Integer, ForeignKey('posts.postID'))
+    timeViewed = Column(Date)
+
+    # Relationships
+    user = relationship("User", back_populates="has_seen")
+    post = relationship("Post", back_populates="has_seen")
+
+    # Index for userID and postID (faster read times)
+    __table_args__ = (
+        Index('idx_user_post', 'userID', 'postID'),
+    )
     comments = relationship("Comment", back_populates="post", cascade="all, delete")
     likes = relationship("Like", back_populates="post", cascade="all, delete")
 

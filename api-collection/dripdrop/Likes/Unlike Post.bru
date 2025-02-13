@@ -1,0 +1,18 @@
+meta {
+  name: Unlike Post
+  type: http
+  seq: 2
+}
+
+delete {
+  url: https://api.dripdropco.com/like
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userId": "1",
+    "postId": "1"
+  }
+}
