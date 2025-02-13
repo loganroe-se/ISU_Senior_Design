@@ -613,9 +613,9 @@ export class ApiConstruct extends Construct {
     // Define the /has-seen/resetSeen resource
     const resetSeenPosts = hasSeen.addResource("resetSeen").addResource("{id}")
 
-    // POST /hasSeen/resetSeen - Resets the list of seen posts for a given userID
+    // DELETE /hasSeen/resetSeen - Resets the list of seen posts for a given userID
     resetSeenPosts.addMethod(
-      "POST",
+      "DELETE",
       new apigateway.LambdaIntegration(resetSeenPostsForUserIdLambda),
       {
         operationName: "ResetSeenPosts",
@@ -624,8 +624,8 @@ export class ApiConstruct extends Construct {
 
     // -------------------------------- FEED ENDPOINTS -------------------------
 
-    // Define the /feed resource
-    const feed = api.root.addResource("feed");
+    // Define the /feed/{id} resource
+    const feed = api.root.addResource("feed").addResource("{userID}");
 
     // GET /feed - Gets the feed for a user ID
     feed.addMethod(
@@ -634,12 +634,8 @@ export class ApiConstruct extends Construct {
       {
         operationName: "GetFeed",
         requestParameters: {
-          "method.request.querystring.userID": true,
+          "method.request.path.userID": true,
           "method.request.querystring.limit": false,
-        },
-        requestValidatorOptions: {
-          validateRequestParameters: true,
-          validateRequestBody: false,
         },
       }
     );

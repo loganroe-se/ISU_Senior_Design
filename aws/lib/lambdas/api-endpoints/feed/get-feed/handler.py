@@ -1,14 +1,18 @@
-import json
 from sqlalchemy_utils import create_session
+from sqlalchemy.orm import aliased
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, HasSeen, User
 from datetime import datetime, date
 
 def handler(event, context):
-    try:
+    try:  
+        # Get path params & query params      
+        path_params = event.get('pathParameters') or {}
+        query_params = event.get('queryStringParameters') or {}
+
         # Get id & limit from path parameters
-        userID = event['queryStringParameters'].get('userID')
-        limit = event['queryStringParameters'].get('limit', 20)
+        userID = path_params.get('userID')
+        limit = query_params.get('limit', 20)
 
         # Check for missing, required values
         if not userID:
@@ -27,6 +31,9 @@ def handler(event, context):
 
 # General feed function -- limit is the number of posts to return, with default being 20
 def getFeed(userID, limit: int = 20):
+    # Ensure limit is an int
+    limit = int(limit)
+
     # Try to get the feed
     try:
         # Create the session
@@ -87,27 +94,35 @@ def getFeed(userID, limit: int = 20):
 
 # Helper -- Get the unseen list of posts from followed users
 def getFollowedPosts(userID: int, session, followed_user_ids, limit):
+    # Set up alias
+    seen_alias = aliased(HasSeen)
+
     # Get the posts from followed users excluding the ones the user has already seen
-    followed_posts = session.query(Post).join(HasSeen, HasSeen.postID == Post.postID, isouter=True) \
-        .filter(Post.userID.in_(followed_user_ids)) \
-        .filter(HasSeen.userID != userID) \
-        .order_by(Post.createdDate.desc()) \
-        .limit(limit) \
-        .distinct(Post.postID) \
-        .all()
+    followed_posts = session.query(Post).filter(
+        Post.userID.in_(followed_user_ids),
+        Post.userID != userID,
+        ~session.query(seen_alias).filter(
+            seen_alias.postID == Post.postID,
+            seen_alias.userID == userID
+        ).exists()
+    ).order_by(Post.createdDate.desc()).limit(limit).all()
 
     return followed_posts
 
 # Helper -- Get the unseen list of posts from not followed users
 def getNonFollowedPosts(userID: int, session, followed_user_ids, limit):
+    # Set up alias
+    seen_alias = aliased(HasSeen)
+
     # Get the posts from non-followed users excluding the ones the user has already seen
-    non_followed_posts = session.query(Post).join(HasSeen, HasSeen.postID == Post.postID, isouter=True) \
-        .filter(Post.userID.notin_(followed_user_ids)) \
-        .filter(HasSeen.userID != userID) \
-        .order_by(Post.createdDate.desc()) \
-        .limit(limit) \
-        .distinct(Post.postID) \
-        .all()
+    non_followed_posts = session.query(Post).filter(
+        Post.userID.notin_(followed_user_ids),
+        Post.userID != userID,
+        ~session.query(seen_alias).filter(
+            seen_alias.postID == Post.postID,
+            seen_alias.userID == userID
+        ).exists()
+    ).order_by(Post.createdDate.desc()).limit(limit).all()
 
     return non_followed_posts
 
