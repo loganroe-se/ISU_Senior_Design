@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Date, Index, Float, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, Date, Float, Boolean, Index, UniqueConstraint
 from sqlalchemy.orm import relationship, validates
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -16,6 +16,8 @@ class User(Base):
     following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
     followers = relationship("Follow", foreign_keys="Follow.followedId", back_populates="followed", cascade="all, delete")
     has_seen = relationship("HasSeen", back_populates="user")
+    likes = relationship("Like", back_populates="user", cascade="all, delete")
+    comments = relationship("Comment", back_populates="user", cascade="all, delete")  # Add this line
 
 # Following table
 class Follow(Base):
@@ -34,12 +36,14 @@ class Post(Base):
     postID = Column(Integer, primary_key=True)
     userID = Column(Integer, ForeignKey('users.userID'))
     caption = Column(String(50))
+    isPublic = Column(Boolean, nullable=False, default=False)
     createdDate = Column(Date)
-    #Establish relationship with user
+    #Establish relationships
     userRel = relationship("User", back_populates="posts")
-    #Establish relationship with image
     images = relationship("Image", order_by="Image.imageID", back_populates="postRel")
     has_seen = relationship("HasSeen", back_populates="post")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete")
+    likes = relationship("Like", back_populates="post", cascade="all, delete")
 
 # Has Seen table
 class HasSeen(Base):
@@ -123,4 +127,25 @@ class ClothingItemTag(Base):
     # Relationships
     tag = relationship("Tag", back_populates="clothing_item_tags")
     clothing_item = relationship("ClothingItem", back_populates="clothing_item_tags")
+
+# Comment table
+class Comment(Base):
+    __tablename__ = 'comments'
+    commentID = Column(Integer, primary_key=True)
+    userID = Column(Integer, ForeignKey('users.userID'), nullable=False)
+    postID = Column(Integer, ForeignKey('posts.postID'), nullable=False)
+    content = Column(String(500), nullable=False)
+    createdDate = Column(Date, nullable=False)
+    # Relationships
+    user = relationship("User", back_populates="comments")
+    post = relationship("Post", back_populates="comments")
+
+# Like table
+class Like(Base):
+    __tablename__ = 'likes'
+    userID = Column(Integer, ForeignKey('users.userID'), primary_key=True)
+    postID = Column(Integer, ForeignKey('posts.postID'), primary_key=True)
+    # Relationships
+    user = relationship("User", back_populates="likes")
+    post = relationship("Post", back_populates="likes")
 

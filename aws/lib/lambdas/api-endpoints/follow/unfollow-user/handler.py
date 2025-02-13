@@ -34,20 +34,12 @@ def deleteFollow(followerId, followedId):
         # Create the session
         session = create_session()
 
-        # Check if both users exist
-        follower_exists = session.execute(select(User).where(User.userID == followerId)).scalars().first()
-        followed_exists = session.execute(select(User).where(User.userID == followedId)).scalars().first()
-
-        if not follower_exists or not followed_exists:
-            return 404, "One or both user ids does not exist."
-
         # Fetch follow relationship
         follow = session.execute(select(Follow).where(and_(Follow.followerId == followerId, Follow.followedId == followedId))).scalars().first()
 
         if follow:
             session.delete(follow)
             session.commit()
-
             return 200, f'Follow relationship was removed successfully'
         else:
             return 404, f'Follow relationship was not found'

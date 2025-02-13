@@ -77,6 +77,7 @@ def getFeed(userID, limit: int = 20):
                     {"imageID": image.imageID, "imageURL": image.imageURL}
                     for image in post.images
                 ],
+                "numLikes": len(post.likes),
             } for post in feed_posts
         ]
 
