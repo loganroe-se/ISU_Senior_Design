@@ -343,6 +343,35 @@ export class ApiConstruct extends Construct {
       "handler"
     );
 
+    // Has Seen Lambdas
+    const markAsSeenLambda = createLambda(
+      "MarkAsSeenLambda",
+      "lib/lambdas/api-endpoints/has-seen/mark-as-seen",
+      "handler"
+    );
+    const getUsersByPostIdLambda = createLambda(
+      "GetUsersByPostId",
+      "lib/lambdas/api-endpoints/has-seen/get-users-by-post-id",
+      "handler"
+    );
+    const getSeenPostsByUserIdLambda = createLambda(
+      "GetSeenPostsByUserId",
+      "lib/lambdas/api-endpoints/has-seen/get-seen-posts-by-user-id",
+      "handler"
+    );
+    const resetSeenPostsForUserIdLambda = createLambda(
+      "ResetSeenPostsForUserIdLambda",
+      "lib/lambdas/api-endpoints/has-seen/reset-seen-posts-for-user-id",
+      "handler"
+    );
+
+    // Feed Lambdas
+    const getFeedLambda = createLambda(
+      "GetFeedLambda",
+      "lib/lambdas/api-endpoints/feed/get-feed",
+      "handler"
+    );
+
     // Post Lambdas
     const createPostLambda = createLambda(
       "CreatePostLambda",
@@ -379,6 +408,7 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/api-endpoints/post/get-posts-by-user-id",
       "handler"
     );
+
 
     // Follow Lambdas
     const followUserLambda = createLambda(
@@ -539,6 +569,77 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(userSignInLambda),
       {
         operationName: "UserSignIn",
+      }
+    );
+
+    // -------------------------------- HAS SEEN ENDPOINTS -------------------------
+
+    // Define the /hasSeen resource
+    const hasSeen = api.root.addResource("hasSeen");
+
+    // POST /hasSeen - Add new seen posts for a user
+    hasSeen.addMethod(
+      "POST",
+      new apigateway.LambdaIntegration(markAsSeenLambda),
+      {
+        operationName: "MarkAsSeen",
+      }
+    );
+
+    // Define the /has-seen/{id} resource
+    const hasSeenUserID = hasSeen.addResource("{id}")
+
+    // Define the /has-seen/{id}/seenPosts resource
+    const hasSeenPosts = hasSeenUserID.addResource("seenPosts")
+
+    // GET /hasSeen/seenPosts - Get the list of seen posts by a userID
+    hasSeenPosts.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getSeenPostsByUserIdLambda),
+      {
+        operationName: "GetSeenPosts",
+      }
+    );
+
+    // Define the /has-seen/{id}/resetSeen resource
+    const resetSeenPosts = hasSeenUserID.addResource("resetSeen")
+
+    // DELETE /hasSeen/resetSeen - Resets the list of seen posts for a given userID
+    resetSeenPosts.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(resetSeenPostsForUserIdLambda),
+      {
+        operationName: "ResetSeenPosts",
+      }
+    );
+
+    // Define the /has-seen/seenUsers resource
+    const hasSeenUsers = hasSeen.addResource("seenUsers").addResource("{id}")
+
+    // GET /hasSeen/seenUsers - Get the list of users that have seen a post
+    hasSeenUsers.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getUsersByPostIdLambda),
+      {
+        operationName: "GetSeenUsers",
+      }
+    );
+
+    // -------------------------------- FEED ENDPOINTS -------------------------
+
+    // Define the /feed/{id} resource
+    const feed = api.root.addResource("feed").addResource("{userID}");
+
+    // GET /feed - Gets the feed for a user ID
+    feed.addMethod(
+      "GET",
+      new apigateway.LambdaIntegration(getFeedLambda),
+      {
+        operationName: "GetFeed",
+        requestParameters: {
+          "method.request.path.userID": true,
+          "method.request.querystring.limit": false,
+        },
       }
     );
 

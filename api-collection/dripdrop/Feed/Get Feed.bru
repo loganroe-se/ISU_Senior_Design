@@ -1,0 +1,15 @@
+meta {
+  name: Get Feed
+  type: http
+  seq: 1
+}
+
+get {
+  url: https://api.dripdropco.com/feed/{userID}
+  body: none
+  auth: none
+}
+
+params:query {
+  ~limit: 20
+}
