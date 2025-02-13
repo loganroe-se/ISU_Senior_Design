@@ -42,6 +42,8 @@ class Post(Base):
     userRel = relationship("User", back_populates="posts")
     images = relationship("Image", order_by="Image.imageID", back_populates="postRel")
     has_seen = relationship("HasSeen", back_populates="post")
+    comments = relationship("Comment", back_populates="post", cascade="all, delete")
+    likes = relationship("Like", back_populates="post", cascade="all, delete")
 
 # Has Seen table
 class HasSeen(Base):
@@ -59,8 +61,6 @@ class HasSeen(Base):
     __table_args__ = (
         Index('idx_user_post', 'userID', 'postID'),
     )
-    comments = relationship("Comment", back_populates="post", cascade="all, delete")
-    likes = relationship("Like", back_populates="post", cascade="all, delete")
 
 # Image table
 class Image(Base):
