@@ -586,8 +586,11 @@ export class ApiConstruct extends Construct {
       }
     );
 
-    // Define the /has-seen/seenPosts resource
-    const hasSeenPosts = hasSeen.addResource("seenPosts").addResource("{id}")
+    // Define the /has-seen/{id} resource
+    const hasSeenUserID = hasSeen.addResource("{id}")
+
+    // Define the /has-seen/{id}/seenPosts resource
+    const hasSeenPosts = hasSeenUserID.addResource("seenPosts")
 
     // GET /hasSeen/seenPosts - Get the list of seen posts by a userID
     hasSeenPosts.addMethod(
@@ -595,6 +598,18 @@ export class ApiConstruct extends Construct {
       new apigateway.LambdaIntegration(getSeenPostsByUserIdLambda),
       {
         operationName: "GetSeenPosts",
+      }
+    );
+
+    // Define the /has-seen/{id}/resetSeen resource
+    const resetSeenPosts = hasSeenUserID.addResource("resetSeen")
+
+    // DELETE /hasSeen/resetSeen - Resets the list of seen posts for a given userID
+    resetSeenPosts.addMethod(
+      "DELETE",
+      new apigateway.LambdaIntegration(resetSeenPostsForUserIdLambda),
+      {
+        operationName: "ResetSeenPosts",
       }
     );
 
@@ -609,18 +624,6 @@ export class ApiConstruct extends Construct {
         operationName: "GetSeenUsers",
       }
     );
-
-    // Define the /has-seen/resetSeen resource
-    const resetSeenPosts = hasSeen.addResource("resetSeen").addResource("{id}")
-
-    // DELETE /hasSeen/resetSeen - Resets the list of seen posts for a given userID
-    resetSeenPosts.addMethod(
-      "DELETE",
-      new apigateway.LambdaIntegration(resetSeenPostsForUserIdLambda),
-      {
-        operationName: "ResetSeenPosts",
-      }
-    )
 
     // -------------------------------- FEED ENDPOINTS -------------------------
 
