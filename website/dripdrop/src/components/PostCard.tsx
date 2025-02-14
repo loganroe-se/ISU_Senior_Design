@@ -26,10 +26,10 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostClick, post }) => {
   const { user } = useUserContext(); // Get the logged-in user from context
-  const [liked, setLiked] = useState(false);
   const [saved, setSaved] = useState(false);
   const [numLikes, setNumLikes] = useState(post.numLikes);
   const [userProfile, setUserProfile] = useState<User>({ id: 0, username: '', email: '' });
+  const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
     async function getUser() {
@@ -39,27 +39,38 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
     getUser();
   }, [username]);
 
-  const handleLike = async () => {
+  const handleLike = async (postID: number) => {
     if (!user || !user.id) {
       console.error('User ID not found in context');
       return;
     }
 
-    const updatedLikes = liked ? numLikes - 1 : numLikes + 1;
-    setLiked(!liked);
+    // Toggle the like state in UI immediately
+    setLikedPosts((prevLikes) => ({
+      ...prevLikes,
+      [postID]: !prevLikes[postID],
+    }));
+
+    const isCurrentlyLiked = likedPosts[postID] || false;
+    const updatedLikes = isCurrentlyLiked ? numLikes - 1 : numLikes + 1;
     setNumLikes(updatedLikes);
 
     try {
-      console.log('POST:', post.postID);
-      if (liked) {
-        await unlikePost(user.id, post.postID);
+      console.log('POST:', postID);
+      if (isCurrentlyLiked) {
+        await unlikePost(user.id, postID);
       } else {
-        await likePost(user.id, post.postID);
+        await likePost(user.id, postID);
       }
     } catch (error) {
       console.error('Error updating like:', error);
-      setLiked(!liked); // Revert state if there's an error
-      setNumLikes(liked ? numLikes + 1 : numLikes - 1);
+
+      // Revert state if there's an error
+      setLikedPosts((prevLikes) => ({
+        ...prevLikes,
+        [postID]: isCurrentlyLiked,
+      }));
+      setNumLikes(isCurrentlyLiked ? numLikes + 1 : numLikes - 1);
     }
   };
 
@@ -112,11 +123,11 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
         <IconButton
           onClick={(event) => {
             event.stopPropagation();
-            handleLike();
+            handleLike(post.postID);
           }}
-          color={liked ? 'secondary' : 'default'}
+          color={likedPosts ? 'secondary' : 'default'}
         >
-          <FavoriteIcon />
+          <FavoriteIcon sx={{ color: likedPosts[post.postID] ? 'red' : 'gray' }} />
         </IconButton>
         <Typography variant="body2" color="text.secondary">
           {numLikes}

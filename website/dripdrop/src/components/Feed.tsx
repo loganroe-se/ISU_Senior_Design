@@ -100,8 +100,6 @@ const Feed = () => {
       <Grid container spacing={3} justifyContent="center">
         {Array.isArray(posts) && posts.length > 0 ? (
           posts.map((post, index) => {
-            console.log('Post ARRAY:', post.postID);
-
             const imageURL =
               Array.isArray(post.images) && post.images.length > 0 && post.images[0].imageURL
                 ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`

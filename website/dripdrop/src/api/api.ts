@@ -159,8 +159,6 @@ export const unfollowUser = async (followerID: number, followingID: number): Pro
 // Like a post
 export const likePost = async (userId: number, postId: number): Promise<void> => {
   try {
-    console.log('USER ID: ' + userId);
-    console.log('PostiD: ' + postId);
     const response = await fetch('https://api.dripdropco.com/like', {
       method: 'POST',
       headers: {
