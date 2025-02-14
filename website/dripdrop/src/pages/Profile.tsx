@@ -82,13 +82,33 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     }
   }, [tabIndex, userID]);
 
+  // Fetch followers and following
+  const getFollowersAndFollowing = useCallback(async () => {
+    if (!user) return;
+    try {
+      const followersResponse = await fetch(
+        `https://api.dripdropco.com/follow/${userID}/followers`
+      );
+      const followersData = await followersResponse.json();
+      setFollowers(followersData.length);
+
+      const followingResponse = await fetch(
+        `https://api.dripdropco.com/follow/${userID}/following`
+      );
+      const followingData = await followingResponse.json();
+      setFollowing(followingData.length);
+    } catch (error) {
+      console.error('Error fetching followers or following:', error);
+    }
+  }, [user, userID]);
+
   useEffect(() => {
     if (userID) {
       getUser();
       fetchPosts();
       getFollowersAndFollowing();
     }
-  }, [userID, tabIndex, getUser]);
+  }, [userID, tabIndex, getUser, fetchPosts, getFollowersAndFollowing]);
 
   useEffect(() => {
     // Set the tabIndex from the state passed via the navigation
@@ -132,7 +152,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     if (posts.length > 0 && Object.keys(postStats).length === 0) {
       const stats = posts.reduce(
         (acc, post) => {
-          acc[post.id] = {
+          acc[post.postID] = {
             likes: Math.floor(Math.random() * 500), // Random likes
             comments: Math.floor(Math.random() * 100), // Random comments
           };
@@ -144,29 +164,9 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     }
   }, [posts, postStats]);
 
-  // Fetch followers and following
-  const getFollowersAndFollowing = useCallback(async () => {
-    if (!user) return;
-    try {
-      const followersResponse = await fetch(
-        `https://api.dripdropco.com/follow/${userID}/followers`
-      );
-      const followersData = await followersResponse.json();
-      setFollowers(followersData.length);
-
-      const followingResponse = await fetch(
-        `https://api.dripdropco.com/follow/${userID}/following`
-      );
-      const followingData = await followingResponse.json();
-      setFollowing(followingData.length);
-    } catch (error) {
-      console.error('Error fetching followers or following:', error);
-    }
-  }, [user, userID]);
-
   const transformedPost = selectedPost
     ? {
-        postID: selectedPost.id, // Map id to postID if required
+        postID: selectedPost.postID, // Map id to postID if required
         userID: selectedPost.userID,
         caption: selectedPost.caption,
         createdDate: selectedPost.createdDate,
@@ -310,11 +310,11 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
                       <Box display="flex" gap={2}>
                         <Box display="flex" alignItems="center" gap={0.5}>
                           <FavoriteIcon />
-                          <Typography>{postStats[post.id]?.likes || 0}</Typography>
+                          <Typography>{postStats[post.postID]?.likes || 0}</Typography>
                         </Box>
                         <Box display="flex" alignItems="center" gap={0.5}>
                           <CommentIcon />
-                          <Typography>{postStats[post.id]?.comments || 0}</Typography>
+                          <Typography>{postStats[post.postID]?.comments || 0}</Typography>
                         </Box>
                       </Box>
                     </Box>

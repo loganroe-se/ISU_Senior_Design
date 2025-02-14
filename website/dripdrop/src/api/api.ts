@@ -155,3 +155,45 @@ export const unfollowUser = async (followerID: number, followingID: number): Pro
     throw error;
   }
 };
+
+// Like a post
+export const likePost = async (userId: number, postId: number): Promise<void> => {
+  try {
+    console.log('USER ID: ' + userId);
+    console.log('PostiD: ' + postId);
+    const response = await fetch('https://api.dripdropco.com/like', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, postId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to like post');
+    }
+  } catch (error) {
+    console.error('Error liking post:', error);
+    throw error;
+  }
+};
+
+// Unlike a post
+export const unlikePost = async (userId: number, postId: number): Promise<void> => {
+  try {
+    const response = await fetch('https://api.dripdropco.com/like', {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, postId }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to unlike post');
+    }
+  } catch (error) {
+    console.error('Error unliking post:', error);
+    throw error;
+  }
+};

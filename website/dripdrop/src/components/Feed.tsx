@@ -6,14 +6,13 @@ import { Post } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ViewPostModal from './ViewPostModal';
 
-
 const Feed = () => {
   const [posts, setPosts] = useState<Post[]>([]); // State for posts
   const [selectedPost, setSelectedPost] = useState<{
     postID: number;
     userID: number;
     caption: string;
-    createdDate: String;
+    createdDate: string;
     images: { imageID: number; imageURL: string }[];
   } | null>(null); // State for selected post with correct type
   const [loading, setLoading] = useState<boolean>(true); // State for loading
@@ -24,7 +23,7 @@ const Feed = () => {
   const handlePostClick = (post: Post) => {
     // Set the selected post for the modal
     setSelectedPost({
-      postID: post.id,
+      postID: post.postID,
       userID: post.userID,
       caption: post.caption,
       createdDate: post.createdDate,
@@ -34,7 +33,6 @@ const Feed = () => {
       })),
     });
   };
-
 
   useEffect(() => {
     const loadPostsAndUsernames = async () => {
@@ -102,6 +100,8 @@ const Feed = () => {
       <Grid container spacing={3} justifyContent="center">
         {Array.isArray(posts) && posts.length > 0 ? (
           posts.map((post, index) => {
+            console.log('Post ARRAY:', post.postID);
+
             const imageURL =
               Array.isArray(post.images) && post.images.length > 0 && post.images[0].imageURL
                 ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
@@ -117,8 +117,13 @@ const Feed = () => {
                     justifyContent: 'center', // Centers the post card
                   }}
                 >
-                  <PostCard images={imageURL} username={username} caption={post.caption} onPostClick={handlePostClick} // Pass the function as a prop
-                    post={post} />
+                  <PostCard
+                    images={imageURL}
+                    username={username}
+                    caption={post.caption}
+                    onPostClick={handlePostClick} // Pass the function as a prop
+                    post={post}
+                  />
                 </Box>
               </Grid>
             );
@@ -130,7 +135,6 @@ const Feed = () => {
         )}
       </Grid>
       <ViewPostModal selectedPost={selectedPost} onClose={() => setSelectedPost(null)} />
-
     </Box>
   );
 };
