@@ -1,5 +1,4 @@
-import { sendPost } from '../types'; // Ensure the Post type is correctly imported
-import { Following, User, Post } from '../types'; // Ensure the Post type is correctly imported
+import { Following, User, Post, sendPost, Comment } from '../types';
 
 // Fetch all posts
 export const fetchPosts = async (): Promise<Post[]> => {
@@ -192,6 +191,61 @@ export const unlikePost = async (userId: number, postId: number): Promise<void> 
     }
   } catch (error) {
     console.error('Error unliking post:', error);
+    throw error;
+  }
+};
+// Fetch comments for a specific post
+export const fetchCommentsByPostID = async (postID: number): Promise<Comment[]> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/comment/post/${postID}`);
+    if (!response.ok) {
+      throw new Error(`Error fetching comments: ${response.statusText}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+// Create a new comment
+export const createComment = async (
+  userId: number,
+  postId: number,
+  content: string
+): Promise<Comment> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/comment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ userId, postId, content }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error creating comment: ${response.statusText}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+// Delete a comment by commentID
+export const deleteComment = async (commentID: number): Promise<void> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/comment/${commentID}`, {
+      method: 'DELETE',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Error deleting comment: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error(error);
     throw error;
   }
 };

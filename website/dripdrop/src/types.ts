@@ -4,16 +4,16 @@ export type Image = {
 };
 
 export interface sendPost {
-  userID: number; // Added userID to associate with user data
+  userID: number;
   caption: string;
   images?: string[];
 }
 
 export interface Post {
   postID: number;
-  userID: number; // Added userID to associate with user data
-  images: { imageURL: string }[]; // Array of image objects with imageURL field
-  username: string; // Optional field, we'll populate this later
+  userID: number;
+  images: { imageURL: string }[];
+  username: string;
   caption: string;
   createdDate: string;
   clothesUrl: string;
@@ -40,4 +40,12 @@ export interface UserContextType {
 export interface Marker {
   x: number;
   y: number;
+}
+
+export interface Comment {
+  commentID: number;
+  userID: number;
+  postID: number;
+  content: string;
+  createdDate: string;
 }
