@@ -55,6 +55,7 @@ export class YoloSageMakerStack extends Stack {
         new sagemaker.CfnNotebookInstance(this, notebookInstanceId, {
             instanceType: 'ml.m5.4xlarge',
             volumeSizeInGb: 5,
+            platformIdentifier: "notebook-al2-v3",
             notebookInstanceName: notebookInstanceId,
             roleArn: nRole.roleArn,
             additionalCodeRepositories: [
