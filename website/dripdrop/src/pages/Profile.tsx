@@ -20,6 +20,7 @@ import ViewPostModal from '../components/ViewPostModal'; // Import the new compo
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
+import { fetchUserPosts, fetchAllPosts, fetchFollowers, fetchFollowing } from '../api/api';
 
 interface ProfileProps {
   initialTabIndex?: number;
@@ -68,12 +69,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const endpoint =
-        tabIndex === 0
-          ? `https://api.dripdropco.com/posts/user/${userID}`
-          : 'https://api.dripdropco.com/posts';
-      const response = await fetch(endpoint);
-      const data = await response.json();
+      const data = tabIndex === 0 ? await fetchUserPosts(userID) : await fetchAllPosts();
       setPosts(data);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -86,17 +82,13 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   const getFollowersAndFollowing = useCallback(async () => {
     if (!user) return;
     try {
-      const followersResponse = await fetch(
-        `https://api.dripdropco.com/follow/${userID}/followers`
-      );
-      const followersData = await followersResponse.json();
-      setFollowers(followersData.length);
+      const [followersCount, followingCount] = await Promise.all([
+        fetchFollowers(userID),
+        fetchFollowing(userID),
+      ]);
 
-      const followingResponse = await fetch(
-        `https://api.dripdropco.com/follow/${userID}/following`
-      );
-      const followingData = await followingResponse.json();
-      setFollowing(followingData.length);
+      setFollowers(followersCount);
+      setFollowing(followingCount);
     } catch (error) {
       console.error('Error fetching followers or following:', error);
     }
@@ -104,11 +96,21 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
 
   useEffect(() => {
     if (userID) {
-      getUser();
       fetchPosts();
+    }
+  }, [fetchPosts]);
+
+  useEffect(() => {
+    if (userID) {
+      getUser();
+    }
+  }, [getUser]);
+
+  useEffect(() => {
+    if (userID) {
       getFollowersAndFollowing();
     }
-  }, [userID, tabIndex, getUser, fetchPosts, getFollowersAndFollowing]);
+  }, [getFollowersAndFollowing]);
 
   useEffect(() => {
     // Set the tabIndex from the state passed via the navigation
@@ -149,7 +151,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
 
   // Function to initialize random stats for posts
   useEffect(() => {
-    if (posts.length > 0 && Object.keys(postStats).length === 0) {
+    if (Array.isArray(posts) && posts.length > 0 && Object.keys(postStats).length === 0) {
       const stats = posts.reduce(
         (acc, post) => {
           acc[post.postID] = {
@@ -268,60 +270,69 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
           </Box>
         ) : (
           <Box mt={3}>
-            <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
-              {posts.map((post, index) => (
-                <ImageListItem
-                  key={index}
-                  onMouseEnter={() => {
-                    handlePostHover(index);
-                  }}
-                  onMouseLeave={() => {
-                    handlePostHoverAway();
-                  }}
-                  onClick={() => {
-                    handlePostClick(post);
-                  }}
-                  sx={{ cursor: 'pointer', position: 'relative' }}
-                >
-                  <img
-                    src={
-                      post.images[0]
-                        ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                        : 'default_image.png'
-                    }
-                    alt={post.caption}
-                    loading="lazy"
-                  />
-                  {hoveredPost === index && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        color: 'white',
-                      }}
-                    >
-                      <Box display="flex" gap={2}>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <FavoriteIcon />
-                          <Typography>{postStats[post.postID]?.likes || 0}</Typography>
-                        </Box>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <CommentIcon />
-                          <Typography>{postStats[post.postID]?.comments || 0}</Typography>
+            {Array.isArray(posts) ? (
+              <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
+                {posts.map((post, index) => (
+                  <ImageListItem
+                    key={index}
+                    onMouseEnter={() => {
+                      handlePostHover(index);
+                    }}
+                    onMouseLeave={() => {
+                      handlePostHoverAway();
+                    }}
+                    onClick={() => {
+                      handlePostClick(post);
+                    }}
+                    sx={{ cursor: 'pointer', position: 'relative' }}
+                  >
+                    <img
+                      src={
+                        post.images[0]
+                          ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+                          : 'default_image.png'
+                      }
+                      alt={post.caption}
+                      loading="lazy"
+                    />
+                    {hoveredPost === index && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          color: 'white',
+                        }}
+                      >
+                        <Box display="flex" gap={2}>
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <FavoriteIcon />
+                            <Typography>{postStats[post.postID]?.likes || 0}</Typography>
+                          </Box>
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <CommentIcon />
+                            <Typography>{postStats[post.postID]?.comments || 0}</Typography>
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                  )}
-                </ImageListItem>
-              ))}
-            </ImageList>
+                    )}
+                  </ImageListItem>
+                ))}
+              </ImageList>
+            ) : (
+              <Box>
+                {' '}
+                <Typography variant="body2" color="textSecondary" mr={2}>
+                  No Posts
+                </Typography>
+              </Box>
+            )}
           </Box>
         )}
       </Box>

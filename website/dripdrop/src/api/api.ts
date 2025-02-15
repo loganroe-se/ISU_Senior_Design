@@ -1,4 +1,4 @@
-import { Following, User, Post, sendPost, Comment } from '../types';
+import { User, Post, sendPost, Comment } from '../types';
 
 // Fetch all posts
 export const fetchPosts = async (): Promise<Post[]> => {
@@ -18,17 +18,29 @@ export const fetchPosts = async (): Promise<Post[]> => {
   }
 };
 
-// Fetch posts by user ID
-export const fetchPostsByUserId = async (userID: number): Promise<Post[]> => {
+// api.ts
+export const fetchUserPosts = async (userID: number): Promise<Post[]> => {
   try {
     const response = await fetch(`https://api.dripdropco.com/posts/user/${userID}`);
-    if (!response.ok) {
-      throw new Error('Failed to fetch posts for user');
-    }
-    return await response.json();
+    const data = await response.json();
+    return data as Post[];
   } catch (error) {
-    console.error('Error fetching posts for user:', error);
-    throw error;
+    console.error('Error fetching user posts:', error);
+    return [];
+  }
+};
+
+export const fetchAllPosts = async (): Promise<Post[]> => {
+  try {
+    const response = await fetch('https://api.dripdropco.com/posts');
+    const data = await response.json();
+    if (!Array.isArray(data)) {
+      throw new Error('Expected an array of posts');
+    }
+    return data as Post[];
+  } catch (error) {
+    console.error('Error fetching all posts:', error);
+    return [];
   }
 };
 
@@ -100,19 +112,31 @@ export const fetchUserByUsername = async (username: string): Promise<User> => {
   }
 };
 
-// Fetch user following list by userID
-export const fetchFollowing = async (userID: number): Promise<Following[]> => {
+export const fetchFollowers = async (userID: number): Promise<number> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/follow/${userID}/followers`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch followers');
+    }
+    const followers: User[] = await response.json(); // Assuming the response is an array
+    return followers.length;
+  } catch (error) {
+    console.error('Error fetching followers:', error);
+    return 0;
+  }
+};
+
+export const fetchFollowing = async (userID: number): Promise<number> => {
   try {
     const response = await fetch(`https://api.dripdropco.com/follow/${userID}/following`);
     if (!response.ok) {
-      throw new Error('Failed to fetch following list');
+      throw new Error('Failed to fetch following');
     }
-    const following = await response.json();
-
-    return following; // Return the following list
+    const following: User[] = await response.json(); // Assuming the response is an array
+    return following.length;
   } catch (error) {
-    console.error('Error fetching following list:', error);
-    return []; // Return null if follow fetching fails
+    console.error('Error fetching following:', error);
+    return 0;
   }
 };
 

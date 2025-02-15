@@ -71,7 +71,7 @@ export default function Home({ children }: Props) {
 
     const timeoutId = setTimeout(() => {
       performSearch();
-    }, 1000);
+    }, 300);
 
     return () => clearTimeout(timeoutId);
   }, [search, hasSearched, lastSearch, searchResults]);
