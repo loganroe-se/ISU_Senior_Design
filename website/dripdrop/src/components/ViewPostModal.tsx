@@ -33,6 +33,7 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
   const [comments, setComments] = useState<Comment[]>([]); // Use the Comment interface
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(false); // Loading state for comments
+  const [isPostingComment, setIsPostingComment] = useState(false);
 
   // Fallback default image URL
   const defaultImageURL = 'default_image.png';
@@ -81,18 +82,25 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
 
   const handleCommentSubmit = async () => {
     if (newComment.trim() && selectedPost) {
+      setIsPostingComment(true); // Start loading
       try {
-        // Create the comment via the API
-        const comment = await createComment(userID, selectedPost.postID, newComment);
-        console.log('New comment created:', comment); // Debugging: Log the API response
+        await createComment(userID, selectedPost.postID, newComment);
 
-        // Add the new comment to the comments state
-        setComments((prevComments) => [...prevComments, comment]);
+        // Fetch updated comments
+        const updatedComments = await fetchCommentsByPostID(selectedPost.postID);
 
-        // Clear the input field
-        setNewComment('');
+        // Find the newly added comment
+        const newAddedComment = updatedComments.find((comment) => comment.content === newComment);
+
+        if (newAddedComment) {
+          setComments((prevComments) => [...prevComments, newAddedComment]);
+        }
+
+        setNewComment(''); // Clear input field
       } catch (error) {
         console.error('Failed to post comment:', error);
+      } finally {
+        setIsPostingComment(false); // Stop loading
       }
     }
   };
@@ -215,7 +223,7 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
                   {/* Use commentID as the key */}
                   <ListItemText
                     primary={comment.content}
-                    secondary={`User ID: ${comment.userID} - ${new Date(comment.createdDate).toLocaleString()}`}
+                    secondary={`User ID: ${comment.userID} - ${comment.createdDate}`}
                   />
                 </ListItem>
               ))}
@@ -236,8 +244,9 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
               size="small"
               sx={{ alignSelf: 'flex-end' }}
               onClick={handleCommentSubmit}
+              disabled={isPostingComment} // Disable while posting
             >
-              Post
+              {isPostingComment ? <CircularProgress size={20} color="inherit" /> : 'Post'}
             </Button>
           </Box>
         </Box>

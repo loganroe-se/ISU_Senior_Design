@@ -15,10 +15,10 @@ const Feed = () => {
     createdDate: string;
     images: { imageID: number; imageURL: string }[];
   } | null>(null); // State for selected post with correct type
-  const [loading, setLoading] = useState<boolean>(true); // State for loading
-  const [error, setError] = useState<string | null>(null); // State for error message
-  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
-  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({});
+  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true);
 
   const handlePostClick = (post: Post) => {
     // Set the selected post for the modal
