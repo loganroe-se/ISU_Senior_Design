@@ -12,7 +12,6 @@ import {
 import { fetchUserByUsername, likePost, unlikePost } from '../api/api';
 import { User, Post } from '../types';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
 import { NavLink } from 'react-router-dom';
 
@@ -26,7 +25,6 @@ interface PostCardProps {
 
 const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostClick, post }) => {
   const { user } = useUserContext(); // Get the logged-in user from context
-  const [saved, setSaved] = useState(false);
   const [numLikes, setNumLikes] = useState(post.numLikes);
   const [userProfile, setUserProfile] = useState<User>({ id: 0, username: '', email: '' });
   const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
@@ -56,7 +54,6 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
     setNumLikes(updatedLikes);
 
     try {
-      console.log('POST:', postID);
       if (isCurrentlyLiked) {
         await unlikePost(user.id, postID);
       } else {
@@ -72,10 +69,6 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
       }));
       setNumLikes(isCurrentlyLiked ? numLikes + 1 : numLikes - 1);
     }
-  };
-
-  const handleSave = () => {
-    setSaved(!saved);
   };
 
   return (
@@ -135,16 +128,7 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
         <IconButton
           onClick={(event) => {
             event.stopPropagation();
-            handleSave();
-          }}
-          color={saved ? 'primary' : 'default'}
-        >
-          <BookmarkIcon />
-        </IconButton>
-        <IconButton
-          onClick={(event) => {
-            event.stopPropagation();
-            console.log('Comment clicked');
+            onPostClick(post);
           }}
         >
           <CommentIcon />
