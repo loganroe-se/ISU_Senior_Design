@@ -47,7 +47,6 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
     setCurrentImageIndex(0);
     if (selectedPost) {
       setIsLoading(true); // Start loading
-      console.log('POST ID :' + selectedPost.postID);
       fetchCommentsByPostID(selectedPost.postID)
         .then((fetchedComments) => {
           setComments(fetchedComments);
@@ -70,19 +69,28 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
       setCurrentImageIndex(currentImageIndex - 1);
     }
   };
+  const storedUser = sessionStorage.getItem('user');
+
+  let userID: number;
+  if (storedUser) {
+    const user = JSON.parse(storedUser); // Parse the JSON string into an object
+    userID = user.id; // Access the userID property
+  } else {
+    console.error('No user found in sessionStorage');
+  }
 
   const handleCommentSubmit = async () => {
     if (newComment.trim() && selectedPost) {
       try {
-        const comment = await createComment(selectedPost.userID, selectedPost.postID, newComment);
-        // Ensure the comment has the required fields
-        const newCommentWithDetails: Comment = {
-          ...comment,
-          userID: selectedPost.userID, // Ensure userID is set
-          createdDate: new Date().toISOString(), // Add a timestamp if the API doesn't provide one
-        };
-        setComments([...comments, newCommentWithDetails]); // Add the new comment to the list
-        setNewComment(''); // Clear the input field
+        // Create the comment via the API
+        const comment = await createComment(userID, selectedPost.postID, newComment);
+        console.log('New comment created:', comment); // Debugging: Log the API response
+
+        // Add the new comment to the comments state
+        setComments((prevComments) => [...prevComments, comment]);
+
+        // Clear the input field
+        setNewComment('');
       } catch (error) {
         console.error('Failed to post comment:', error);
       }
@@ -203,6 +211,8 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
             <List sx={{ maxHeight: '50%', overflowY: 'auto', mb: 2 }}>
               {comments.map((comment) => (
                 <ListItem key={uuidv4()}>
+                  {' '}
+                  {/* Use commentID as the key */}
                   <ListItemText
                     primary={comment.content}
                     secondary={`User ID: ${comment.userID} - ${new Date(comment.createdDate).toLocaleString()}`}
