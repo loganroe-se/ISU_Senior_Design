@@ -18,6 +18,20 @@ export const fetchPosts = async (): Promise<Post[]> => {
   }
 };
 
+// Fetch posts by user ID
+export const fetchPostsByUserId = async (userID: number): Promise<Post[]> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/posts/user/${userID}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch posts for user');
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching posts for user:', error);
+    throw error;
+  }
+};
+
 // Fetch user by userID to get the username
 export const fetchUserById = async (userID: number): Promise<string | null> => {
   try {
@@ -197,7 +211,6 @@ export const unlikePost = async (userId: number, postId: number): Promise<void> 
 // Fetch comments for a specific post
 export const fetchCommentsByPostID = async (postID: number): Promise<Comment[]> => {
   try {
-    console.log('POST ID ' + postID);
     const response = await fetch(`https://api.dripdropco.com/comment/post/${postID}`);
     if (!response.ok) {
       throw new Error(`Error fetching comments: ${response.statusText}`);
