@@ -1,0 +1,11 @@
+meta {
+  name: Reset Seen Posts By User ID
+  type: http
+  seq: 2
+}
+
+delete {
+  url: https://api.dripdropco.com/hasSeen/{id}/resetSeen
+  body: none
+  auth: none
+}

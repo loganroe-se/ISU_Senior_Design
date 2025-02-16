@@ -2,7 +2,7 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select, and_
 from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import Follow
+from dripdrop_orm_objects import Follow, User
 
 def handler(event, context):    
     try:
@@ -40,14 +40,13 @@ def deleteFollow(followerId, followedId):
         if follow:
             session.delete(follow)
             session.commit()
-
-            return 200, f'Follow relationship was deleted successfully'
+            return 200, f'Follow relationship was removed successfully'
         else:
             return 404, f'Follow relationship was not found'
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "follow.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:

@@ -25,7 +25,9 @@ def getPosts():
 
         # Fetch all posts with their related images
         posts_result = (
-            session.query(Post).options(joinedload(Post.images)).all()
+            session.query(Post)
+            .options(joinedload(Post.images), joinedload(Post.likes))
+            .all()
         )
 
         # Create a list of post dictionaries, including images
@@ -43,6 +45,7 @@ def getPosts():
                     {"imageID": image.imageID, "imageURL": image.imageURL}
                     for image in post.images
                 ],
+                "numLikes": len(post.likes),
             }
             for post in posts_result
         ]
@@ -52,7 +55,7 @@ def getPosts():
 
     except Exception as e:
         # Handle the exception
-        code, msg = handle_exception(e, "Post.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:

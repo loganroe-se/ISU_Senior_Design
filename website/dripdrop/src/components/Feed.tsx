@@ -5,40 +5,33 @@ import { fetchUserById, fetchPosts } from '../api/api'; // Import API functions
 import { Post } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ViewPostModal from './ViewPostModal';
-import { useNavigate } from 'react-router-dom';
-
 
 const Feed = () => {
-  const navigate = useNavigate();
   const [posts, setPosts] = useState<Post[]>([]); // State for posts
   const [selectedPost, setSelectedPost] = useState<{
     postID: number;
     userID: number;
     caption: string;
-    createdDate: String;
+    createdDate: string;
     images: { imageID: number; imageURL: string }[];
   } | null>(null); // State for selected post with correct type
-  const [loading, setLoading] = useState<boolean>(true); // State for loading
-  const [error, setError] = useState<string | null>(null); // State for error message
-  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
-  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({});
+  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true);
 
   const handlePostClick = (post: Post) => {
-    // Navigate to the profile page and pass userID via state
-    navigate('/profile', { state: { userID: post.userID } });
-
-    // Optionally, you can keep handling the selected post as well if needed
-    const mappedPost = {
-      postID: post.id, // Ensure this is correct if you are expecting postID and not id
+    // Set the selected post for the modal
+    setSelectedPost({
+      postID: post.postID,
       userID: post.userID,
       caption: post.caption,
       createdDate: post.createdDate,
       images: post.images.map((image, index) => ({
-        imageID: index, // You can use a unique identifier here, like index or another unique value
+        imageID: index,
         imageURL: image.imageURL,
       })),
-    };
-    setSelectedPost(mappedPost);
+    });
   };
 
   useEffect(() => {
@@ -122,8 +115,13 @@ const Feed = () => {
                     justifyContent: 'center', // Centers the post card
                   }}
                 >
-                  <PostCard images={imageURL} username={username} caption={post.caption} onPostClick={handlePostClick} // Pass the function as a prop
-                    post={post} />
+                  <PostCard
+                    images={imageURL}
+                    username={username}
+                    caption={post.caption}
+                    onPostClick={handlePostClick} // Pass the function as a prop
+                    post={post}
+                  />
                 </Box>
               </Grid>
             );
@@ -135,7 +133,6 @@ const Feed = () => {
         )}
       </Grid>
       <ViewPostModal selectedPost={selectedPost} onClose={() => setSelectedPost(null)} />
-
     </Box>
   );
 };

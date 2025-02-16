@@ -11,7 +11,7 @@ from datetime import date, datetime
 # so going to ask team if we need this
 
 def updatePost(post_id, caption, created_date):
-    # Try to get all posts
+    
     try:
         # Create the session
         session = create_session()

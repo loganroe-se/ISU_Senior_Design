@@ -6,7 +6,7 @@ from dripdrop_orm_objects import User
 
 def handler(event, context):
     try:
-        # Call another function to get all posts
+        # Call another function to get all users
         status_code, message = getUsers()
 
         # Return message
@@ -33,7 +33,7 @@ def getUsers():
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "User.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:

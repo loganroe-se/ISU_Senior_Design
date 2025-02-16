@@ -1,0 +1,18 @@
+meta {
+  name: Mark Posts As Seen
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://api.dripdropco.com/hasSeen
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "userID": 2,
+    "postIDs": [1, 2]
+  }
+}

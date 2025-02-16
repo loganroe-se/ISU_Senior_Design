@@ -23,7 +23,7 @@ def handler(event, context):
     
     except Exception as e:
         print(f"Error: {e}")
-        return create_response(500, f"Error getting posts: {str(e)}")
+        return create_response(500, f"Error getting post: {str(e)}")
     
 
 def getPostById(post_id):
@@ -54,6 +54,7 @@ def getPostById(post_id):
                     {"imageID": image.imageID, "imageURL": image.imageURL}
                     for image in post.images
                 ],
+                "numLikes": len(post.likes),
             }
 
             return 200, post_data
@@ -62,7 +63,7 @@ def getPostById(post_id):
 
     except Exception as e:
         # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Post.py")
+        code, msg = handle_exception(e, "Error accessing database")
         return code, msg
 
     finally:
