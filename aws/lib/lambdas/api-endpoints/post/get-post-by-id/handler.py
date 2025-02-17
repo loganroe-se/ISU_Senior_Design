@@ -55,6 +55,7 @@ def getPostById(post_id):
                     for image in post.images
                 ],
                 "numLikes": len(post.likes),
+                "numComments": len(post.comments),
             }
 
             return 200, post_data
