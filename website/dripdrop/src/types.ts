@@ -18,6 +18,7 @@ export interface Post {
   createdDate: string;
   clothesUrl: string;
   numLikes: number;
+  numComments: number;
 }
 
 export interface Following {
