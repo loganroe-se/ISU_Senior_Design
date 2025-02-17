@@ -44,15 +44,14 @@ export const fetchAllPosts = async (): Promise<Post[]> => {
   }
 };
 
-// Fetch user by userID to get the username
-export const fetchUserById = async (userID: number): Promise<string | null> => {
+export const fetchUserById = async (userID: number): Promise<User | null> => {
   try {
     const response = await fetch(`https://api.dripdropco.com/users/${userID}`);
     if (!response.ok) {
       throw new Error('Failed to fetch user');
     }
     const userData = await response.json();
-    return userData.username; // Return the username
+    return userData; // Return the full user object
   } catch (error) {
     console.error('Error fetching user:', error);
     return null; // Return null if user fetching fails

@@ -46,7 +46,8 @@ const Feed = () => {
 
         const usernamesMap: { [key: string]: string } = {};
         postsData.forEach((post, index) => {
-          const username = usernamesData[index] || 'Unknown User';
+          const user = usernamesData[index]; // Get the User object or null
+          const username = user ? user.username : 'Unknown User';
           usernamesMap[index] = username;
         });
 
