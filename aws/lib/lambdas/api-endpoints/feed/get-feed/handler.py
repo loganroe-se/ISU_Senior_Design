@@ -78,6 +78,7 @@ def getFeed(userID, limit: int = 20):
                     for image in post.images
                 ],
                 "numLikes": len(post.likes),
+                "numComments": len(post.comments),
             } for post in feed_posts
         ]
 
