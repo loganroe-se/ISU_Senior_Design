@@ -33,7 +33,7 @@ def check_endpoint():
 
 # Map YOLO classes to clothing items
 def map_to_clothing_label(id):
-    attributes_file = f"json/attributes.json"
+    attributes_file = f"attributes.json"
 
     with open(attributes_file, "r") as f:
         attributes_f = json.load(f)
@@ -54,10 +54,6 @@ def classify_segment(segmented_items):
 
     check_endpoint()
     
-    items = []
-
-    logger.info(f"Inference Time = {infer_end_time - infer_start_time:0.4f} seconds")
-
     for item in segmented_items["clothing_items"]:
         cropped_img_array = np.array(item["cropped_image"], dtype=np.uint8)
         pil_image = Image.fromarray(cv2.cvtColor(cropped_img_array, cv2.COLOR_BGR2RGB))
