@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 sm_client = boto3.client(service_name="sagemaker")
 
 # Restore the endpoint name stored in the 2_DeployEndpoint.ipynb notebook
-ENDPOINT_NAME = "yolov11-segmentation-model-2025-02-14-01-23-44-327340"
+ENDPOINT_NAME = "yolov11-segmentation-model-2025-02-19-08-39-10-178747"
 logger.info(f"Endpoint Name: {ENDPOINT_NAME}")
 
 

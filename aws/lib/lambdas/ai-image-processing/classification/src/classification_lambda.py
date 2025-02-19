@@ -36,33 +36,13 @@ def handler(event, context):
             s3.get_object(Bucket=bucket_name, Key=s3_key)["Body"].read()
         )
 
-        print("res: ", segmentation_result)
         # Perform classification (dummy classification here)
         print("Classifying")
         classified_output = classify_segment(segmentation_result)
 
-        # Generate unique image ID
-        image_id = str(uuid.uuid4())
-
-        s3_key = f"classify_results/{image_id}.json"
-        s3.put_object(
-            Bucket=BUCKET_NAME,
-            Key=s3_key,
-            Body=json.dumps(classified_output),
-            ContentType="application/json"
-        )
-
-        s3_url = f"https://{BUCKET_NAME}.s3.amazonaws.com/{s3_key}"
-
-        # Store metadata in DynamoDB
-        table.put_item(Item={
-            "image_id": image_id,
-            "classify_s3_url": s3_url
-        })
-
         return {
             "statusCode": 200,
-            "body": json.dumps({"image_id": image_id, "classify_s3_url": s3_url})
+            "body": json.dumps({"image_id": image_id, "clothing_items": json.dumps(classified_output)})
         }
 
     except Exception as e:

@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 sm_client = boto3.client(service_name="sagemaker")
 
 # Restore the endpoint name stored in the 2_DeployEndpoint.ipynb notebook
-ENDPOINT_NAME = "yolov11-slight-improved-classify-2025-02-14-01-27-16-984130"
+ENDPOINT_NAME = "yolov11-slight-improved-classify-2025-02-19-08-43-13-147666"
 logger.info(f'Endpoint Name: {ENDPOINT_NAME}')
 
 def check_endpoint():
@@ -56,28 +56,47 @@ def classify_segment(segmented_items):
     
     for item in segmented_items["clothing_items"]:
         cropped_img_array = np.array(item["cropped_image"], dtype=np.uint8)
-        pil_image = Image.fromarray(cv2.cvtColor(cropped_img_array, cv2.COLOR_BGR2RGB))
 
         infer_start_time = time.time()
 
         runtime= boto3.client('runtime.sagemaker')
-        payload = base64.b64encode(pil_image).decode('utf-8')
+        # Decode the image array into an OpenCV image
+        orig_image = cv2.cvtColor(cropped_img_array, cv2.COLOR_BGR2RGB)
 
+        # Calculate the parameters for image resizing
+        model_height, model_width = 640, 640
+
+        # Resize the image as numpy array
+        resized_image = cv2.resize(orig_image, (model_height, model_width))
+        # Conver the array into jpeg
+        resized_jpeg = cv2.imencode('.jpg', resized_image)[1]
+        # Serialize the jpg using base 64
+        payload = base64.b64encode(resized_jpeg).decode('utf-8')
         response = runtime.invoke_endpoint(EndpointName=ENDPOINT_NAME,
                                                 ContentType='text/csv',
                                                 Body=payload)
         response_body = response['Body'].read()
         classification_result = json.loads(response_body.decode('ascii'))
 
+        print("Result: ", classification_result)
+
         infer_end_time = time.time()
 
         logger.info(f"Inference Time = {infer_end_time - infer_start_time:0.4f} seconds")
+    
+        # Ensure 'probs' exist and extract top-5 predictions safely
+        if "probs" in classification_result and "top5_indices" in classification_result["probs"]:
+            predicted_class_names = [
+                map_to_clothing_label(idx) for idx in classification_result["probs"]["top5_indices"]
+            ]
+        else:
+            logger.warning("Missing 'probs' or 'top5' key in classification result.")
+            predicted_class_names = []
 
-        predicted_class_names = [
-            map_to_clothing_label(idx) for idx in classification_result[0].probs.top5
-        ]
-
+        # Store the predicted attributes
         item["attributes"] = predicted_class_names
+        item.pop("cropped_image")
+
         results.append(item)
 
-    return {"clothing_items": results}
+    return results
