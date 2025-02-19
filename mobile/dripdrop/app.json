@@ -3,7 +3,7 @@
     "name": "dripdrop",
     "slug": "dripdrop",
     "version": "1.0.0",
-    "newArchEnabled":true,
+    "newArchEnabled": true,
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "myapp",
@@ -35,6 +35,13 @@
           "fonts": [
             "node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"
           ]
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends.",
+          "cameraPermission": "The app accesses your camera to let you take photos."
         }
       ]
     ],
