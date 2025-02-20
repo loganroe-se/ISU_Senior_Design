@@ -2,8 +2,8 @@ import json
 from image import save_image_to_db
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
-from dripdrop_orm_objects import Post, User
-from datetime import date
+from dripdrop_orm_objects import Post, User, ProfilePic
+from sqlalchemy import select
 
 def handler(event, context):
     try:
@@ -40,6 +40,15 @@ def updateProfilePic(userID, image):
 
         if not user_exists:
             raise Exception("409", f"User with userID: {userID} does not exist")
+        
+        # Remove the profile pic from database
+        if image == "":
+            # Fetch the profile pic
+            profile_pic = session.execute(select(ProfilePic).where(userID == userID)).scalars().first()
+
+            session.delete(user)
+            session.commit()
+            return 200, f'Profile pic for user: {userID} was deleted successfully'
 
         # Create a new post
         new_post = Post(userID=user_id, caption=caption, createdDate=createdDate)

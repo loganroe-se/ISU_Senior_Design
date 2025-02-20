@@ -25,6 +25,7 @@ class ProfilePic(Base):
     __tablename__ = 'profile_pics'
     profilePicID = Column(Integer, primary_key=True)
     imageURL = Column(String(2000), nullable=False)
+    userID = Column(Integer, ForeignKey('users.userID'), unique=True)
     #Establish relationship with user
     user = relationship("User", back_populates="profilePic")
 
