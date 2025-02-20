@@ -9,8 +9,14 @@
     "jsx": "react-native",
     "strict": true,
     "paths": {
-      "@/*": ["./*"]
-    }
+      "@/*": [
+        "./*"
+      ]
+    },
+    "esModuleInterop": true,
+    "module": "esnext",
+    "target": "esnext",
+    "moduleResolution": "node",
   },
   "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],
   "exclude": ["node_modules"]
