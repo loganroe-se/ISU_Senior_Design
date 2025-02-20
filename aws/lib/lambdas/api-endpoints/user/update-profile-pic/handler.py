@@ -1,9 +1,16 @@
 import json
-from image import save_image_to_db
 from sqlalchemy_utils import create_session
 from utils import create_response, handle_exception
-from dripdrop_orm_objects import Post, User, ProfilePic
+from dripdrop_orm_objects import User
 from sqlalchemy import select
+import uuid
+import boto3
+import base64
+
+# S3 configuration
+S3_BUCKET = ""
+S3_REGION = "us-east-1"
+s3_client = boto3.client("s3", region_name=S3_REGION)
 
 def handler(event, context):
     try:
@@ -36,28 +43,30 @@ def updateProfilePic(userID, image):
         session = create_session()
 
         # Verify if userID exists in the User table
-        user_exists = session.query(User).filter_by(userID=userID).first()
+        user = session.query(User).filter_by(userID=userID).first()
 
-        if not user_exists:
+        if not user:
             raise Exception("409", f"User with userID: {userID} does not exist")
         
-        # Remove the profile pic from database
-        if image == "":
-            # Fetch the profile pic
-            profile_pic = session.execute(select(ProfilePic).where(userID == userID)).scalars().first()
+        # If user does not want a profile pic
+        if image == "" or image == "None":
+            user.profilePicURL = "None"
+        # If user uploaded a profile pic
+        else:
+            # Decode the image and put into the S3 bucket
+            decoded_image = base64.b64decode(image)
 
-            session.delete(user)
-            session.commit()
-            return 200, f'Profile pic for user: {userID} was deleted successfully'
+            image_id = str(uuid.uuid4())
+            s3_key = f"profilePics/{image_id}.jpg"
 
-        # Create a new post
-        new_post = Post(userID=user_id, caption=caption, createdDate=createdDate)
+            # Upload the image to S3
+            s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=decoded_image)
 
-        session.add(new_post)
-        session.commit()
-
-        # Call the function to save images to the database
-        save_image_to_db(session, new_post.postID, images)
+            user.profilePicURL = s3_key
+        
+        # Commit the changes to the database
+        session.add(user)
+        session.commit()  
 
         # Return success message after the transaction is committed
         return (

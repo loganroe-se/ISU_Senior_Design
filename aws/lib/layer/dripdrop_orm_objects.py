@@ -11,6 +11,7 @@ class User(Base):
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
+    profilePicURL = Column(String(2000), default="None")
     # Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
     following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")
@@ -18,16 +19,6 @@ class User(Base):
     has_seen = relationship("HasSeen", back_populates="user")
     likes = relationship("Like", back_populates="user", cascade="all, delete")
     comments = relationship("Comment", back_populates="user", cascade="all, delete")  # Add this line
-    profilePic = relationship("ProfilePic", uselist=False, back_populates="user")
-
-# ProfilePic table
-class ProfilePic(Base):
-    __tablename__ = 'profile_pics'
-    profilePicID = Column(Integer, primary_key=True)
-    imageURL = Column(String(2000), nullable=False)
-    userID = Column(Integer, ForeignKey('users.userID'), unique=True)
-    #Establish relationship with user
-    user = relationship("User", back_populates="profilePic")
 
 # Following table
 class Follow(Base):
