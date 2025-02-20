@@ -300,7 +300,10 @@ export class ApiConstruct extends Construct {
           DB_NAME: databaseName,
         },
         layers: [sharedLayer],
+        snapStart: lambda.SnapStartConf.ON_PUBLISHED_VERSIONS,
       });
+
+      const currentVersion = l.currentVersion;
 
       cluster.secret?.grantRead(l);
       return l;
