@@ -25,12 +25,14 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
     // Check if any of the fields are empty
     if (!username || !email || !password || !confirmPassword) {
       // Show an alert if any field is empty
+      console.log("Incomplete fields");
       Alert.alert("Incomplete Fields", "Please fill in all the fields", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
       return; // Stop execution if fields are not filled
     }
     if (password != confirmPassword) {
+      console.log("Passwords do not match");
       Alert.alert("Invalid Input", "Passwords do not match", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
@@ -47,12 +49,14 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
       });
       if (response.ok) {
         onSuccessfulSignUp(); // Notify SignIn of successful sign-up
+        console.log("Sign up successful");
         Alert.alert("Success", "Account succesfully created", [
           { text: "OK", onPress: () => console.log("Ok pressed") },
         ]);
         setIsSigningUp(false);
       } else {
         if (response.status === 409) {
+          console.log("409 error: account already exists");
           // Handle the specific case of a duplicate entry
           Alert.alert("Error", "An account with this email or username already exists", [
             { text: "Try Again", onPress: () => console.log("Try again pressed") },
@@ -61,6 +65,7 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
         } else {
           // Generic error handling for other status codes
           const errorData = await response.json();
+          console.log("Error" + errorData.error);
           Alert.alert("Error", errorData.error, [
             { text: "Try Again", onPress: () => console.log("Try again pressed") },
           ]);
@@ -69,6 +74,7 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
       }
     } catch (error) {
       if (error instanceof Error){
+        console.log("Unexpected error");
         Alert.alert("Error", "An unexpected error occured", [
           { text: "OK", onPress: () => console.log("OK Pressed") },
         ]);
@@ -76,11 +82,10 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
       }
   };
   };
-
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
+        source={require("../public/dripdrop_logo.png")} // Replace with the actual image path
         style={styles.logo}
       />
       <Text style={styles.header}>dripdrop</Text>
