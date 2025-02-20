@@ -45,8 +45,7 @@ def getCommentsForPost(post_id):
         comments_list = [
             {
                 "commentID": comment.commentID,
-                "userID": comment.userID,
-                "postID": comment.postID,
+                "username": comment.user.username,
                 "content": comment.content,
                 "createdDate": comment.createdDate.isoformat()
             }

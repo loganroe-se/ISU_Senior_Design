@@ -133,6 +133,9 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
         >
           <CommentIcon />
         </IconButton>
+        <Typography variant="body2" color="text.secondary">
+          {post.numComments}
+        </Typography>
       </CardActions>
     </Card>
   );

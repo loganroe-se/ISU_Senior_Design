@@ -20,7 +20,13 @@ import ViewPostModal from '../components/ViewPostModal'; // Import the new compo
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
-import { fetchUserPosts, fetchAllPosts, fetchFollowers, fetchFollowing } from '../api/api';
+import {
+  fetchUserById,
+  fetchUserPosts,
+  fetchAllPosts,
+  fetchFollowers,
+  fetchFollowing,
+} from '../api/api';
 import CreatePostModal from '../components/CreatePostModal';
 
 interface ProfileProps {
@@ -53,10 +59,11 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     setUserLoading(true);
     if (!userID) return; // If there's no userID, do nothing
     try {
-      const response = await fetch(`https://api.dripdropco.com/users/${userID}`);
-      const data = await response.json();
-      setEmail(data.email);
-      setUsername(data.username);
+      const data = await fetchUserById(userID);
+      if (data) {
+        setEmail(data.email);
+        setUsername(data.username);
+      }
     } catch (error) {
       console.error('Error fetching user:', error);
     } finally {

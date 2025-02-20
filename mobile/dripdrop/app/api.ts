@@ -1,4 +1,4 @@
-import { User, Post, sendPost, Comment } from '../types';
+import { User, Post, sendPost, Comment } from './types';
 
 // Fetch all posts
 export const fetchPosts = async (): Promise<Post[]> => {
