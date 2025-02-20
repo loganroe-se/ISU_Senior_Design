@@ -8,20 +8,73 @@ import {
   Image,
   Alert,
 } from "react-native";
+interface SignUpProps {
+  setIsSigningUp: (isSigningUp: boolean) => void;
+  onSuccessfulSignUp: () => void; // New prop to indicate successful sign-up
+}
 
-const SignUpScreen = () => {
+const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignUp }) => {
+  // Define state for each input field
+  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
-  const showAlert = () => {
-    Alert.alert("Alert Title", "My Alert Msg", [
-      {
-        text: "Cancel",
-        onPress: () => console.log("Cancel Pressed"),
-        style: "cancel",
-      },
-      { text: "OK", onPress: () => console.log("OK Pressed") },
-    ]);
+  // Function to handle the sign-up process
+  const handleSignUp = async() => {
+    // Check if any of the fields are empty
+    if (!username || !email || !password || !confirmPassword) {
+      // Show an alert if any field is empty
+      Alert.alert("Incomplete Fields", "Please fill in all the fields", [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+      return; // Stop execution if fields are not filled
+    }
+    if (password != confirmPassword) {
+      Alert.alert("Invalid Input", "Passwords do not match", [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+      return; // Stop execution if fields are not filled
+    }
+
+    try {
+      const response = await fetch('https://api.dripdropco.com/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, email, password }),
+      });
+      if (response.ok) {
+        onSuccessfulSignUp(); // Notify SignIn of successful sign-up
+        Alert.alert("Success", "Account succesfully created", [
+          { text: "OK", onPress: () => console.log("Ok pressed") },
+        ]);
+        setIsSigningUp(false);
+      } else {
+        if (response.status === 409) {
+          // Handle the specific case of a duplicate entry
+          Alert.alert("Error", "An account with this email or username already exists", [
+            { text: "Try Again", onPress: () => console.log("Try again pressed") },
+          ]);
+          return; 
+        } else {
+          // Generic error handling for other status codes
+          const errorData = await response.json();
+          Alert.alert("Error", errorData.error, [
+            { text: "Try Again", onPress: () => console.log("Try again pressed") },
+          ]);
+          return; 
+        }
+      }
+    } catch (error) {
+      if (error instanceof Error){
+        Alert.alert("Error", "An unexpected error occured", [
+          { text: "OK", onPress: () => console.log("OK Pressed") },
+        ]);
+        return; 
+      }
+  };
   };
 
   return (
@@ -31,27 +84,41 @@ const SignUpScreen = () => {
         style={styles.logo}
       />
       <Text style={styles.header}>dripdrop</Text>
+
+      {/* Input fields with state handling */}
       <TextInput
         style={styles.input}
         placeholder="Username"
         placeholderTextColor="grey"
+        value={username}
+        onChangeText={setUsername} // Update username state
       />
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="grey"
+        value={email}
+        onChangeText={setEmail} // Update email state
       />
       <TextInput
         style={styles.input}
         placeholder="Password"
         placeholderTextColor="grey"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword} // Update password state
       />
       <TextInput
         style={styles.input}
         placeholder="Confirm Password"
         placeholderTextColor="grey"
+        value={confirmPassword}
+        secureTextEntry
+        onChangeText={setConfirmPassword} // Update confirmPassword state
       />
-      <Button title="Sign Up" onPress={showAlert}></Button>
+
+      {/* Sign-up Button */}
+      <Button title="Sign Up" onPress={handleSignUp} />
     </View>
   );
 };
@@ -77,20 +144,6 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     borderRadius: 5,
     color: "black",
-  },
-  button: {
-    marginBottom: 20,
-    backgroundColor: "#5271ff",
-    borderRadius: 40,
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    alignItems: "center",
-    justifyContent: "center",
-    elevation: 3, // Android shadow
-    shadowColor: "#000", // iOS shadow
-    shadowOffset: { width: 0, height: 4 }, // iOS shadow
-    shadowOpacity: 0.3, // iOS shadow
-    shadowRadius: 6, // iOS shadow
   },
   logo: {
     width: 100, // Adjust based on your image's dimensions
