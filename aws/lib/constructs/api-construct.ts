@@ -303,6 +303,8 @@ export class ApiConstruct extends Construct {
         snapStart: lambda.SnapStartConf.ON_PUBLISHED_VERSIONS,
       });
 
+      const currentVersion = l.currentVersion;
+
       cluster.secret?.grantRead(l);
       return l;
     };
