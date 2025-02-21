@@ -1,0 +1,1 @@
+return <Text>This is the home page</Text>
