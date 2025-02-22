@@ -8,7 +8,7 @@ import boto3
 import base64
 
 # S3 configuration
-S3_BUCKET = ""
+S3_BUCKET = "imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc"
 S3_REGION = "us-east-1"
 s3_client = boto3.client("s3", region_name=S3_REGION)
 
@@ -33,7 +33,7 @@ def handler(event, context):
     
     except Exception as e:
         print(f"Error: {e}")
-        return create_response(500, f"Error creating post: {str(e)}")
+        return create_response(500, f"Error updating profile picture: {str(e)}")
     
 
 def updateProfilePic(userID, image):
@@ -49,8 +49,8 @@ def updateProfilePic(userID, image):
             raise Exception("409", f"User with userID: {userID} does not exist")
         
         # If user does not want a profile pic
-        if image == "" or image == "None":
-            user.profilePicURL = "None"
+        if image == "" or image == "default":
+            user.profilePicURL = "default"
         # If user uploaded a profile pic
         else:
             # Decode the image and put into the S3 bucket
@@ -65,13 +65,12 @@ def updateProfilePic(userID, image):
             user.profilePicURL = s3_key
         
         # Commit the changes to the database
-        session.add(user)
         session.commit()  
 
         # Return success message after the transaction is committed
         return (
             201,
-            f"Post with postID: {new_post.postID} by user with userID: {user_id} was created successfully",
+            f"Profile picture for userID: {user_id} was updated successfully",
         )
 
     except Exception as e:

@@ -335,6 +335,11 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/api-endpoints/user/get-users",
       "handler"
     );
+    const updateProfilePicLambda = createLambda(
+      "UpdateProfilePicLambda",
+      "lib/lambdas/api-endpoints/user/update-profile-pic",
+      "handler"
+    );
     const updateUserLambda = createLambda(
       "UpdateUserLambda",
       "lib/lambdas/api-endpoints/user/update-user",
@@ -345,6 +350,12 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/api-endpoints/user/user-sign-in",
       "handler"
     );
+    // Add profile pic lambda permissions
+    updateProfilePicLambda.addToRolePolicy(new iam.PolicyStatement({
+      effect: iam.Effect.ALLOW,
+      resources: ["arn:aws:s3:::imageoptimizationstack-s3dripdroporiginalimagebuck-m18zpwypjbuc/*"],
+      actions: ["s3:PutObject"]
+    }))
 
     // Has Seen Lambdas
     const markAsSeenLambda = createLambda(
@@ -591,6 +602,15 @@ export class ApiConstruct extends Construct {
         operationName: "GetUserByUsername",
       }
     );
+
+    // Define the /profilePic resource
+    const profilePic = users.addResource("profilePic");
+    const profilePicID = profilePic.addResource("{id}");
+
+    // PUT users/profilePic/{id} - Update Profile Pic
+    profilePicID.addMethod("PUT", new apigateway.LambdaIntegration(updateProfilePicLambda), {
+        operationName: "UpdateProfilePic",
+    });
 
     // Define the /users/signIn resource
     const signIn = users.addResource("signIn");
