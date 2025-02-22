@@ -305,8 +305,13 @@ export class ApiConstruct extends Construct {
 
       const currentVersion = l.currentVersion;
 
+      const alias = new lambda.Alias(this, id + "Alias", {
+        aliasName: "prod",
+        version: currentVersion
+      });
+
       cluster.secret?.grantRead(l);
-      return l;
+      return alias;
     };
 
     // User Lambdas
