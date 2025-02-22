@@ -4,6 +4,7 @@ import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
+import { Provider as PaperProvider } from 'react-native-paper';
 
 import { useColorScheme } from '@/hooks/useColorScheme';
 
@@ -13,7 +14,8 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   const [loaded] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
+    SpaceMono: require('../../assets/fonts/SpaceMono-Regular.ttf'),
+    Inter: require('../../assets/fonts/Inter-Italic-VariableFont_opsz,wght.ttf')
   });
 
   useEffect(() => {
@@ -27,11 +29,14 @@ export default function RootLayout() {
   }
 
   return (
+    <PaperProvider>
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="create-post" options={{ title: 'Create Post' }} />
         <Stack.Screen name="+not-found" />
       </Stack>
     </ThemeProvider>
+    </PaperProvider>
   );
 }
