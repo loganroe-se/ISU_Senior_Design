@@ -12,15 +12,6 @@ import Post from '@/components/screens/Post';
 
 
 export default function Index() {
-  const router = useRouter();
-  const [isSigningUp, setIsSigningUp] = useState(false);
-
-  // Handle successful sign-up
-  const onSuccessfulSignUp = () => {
-    console.log("Sign up successful!");
-    router.push('/Login'); // Navigate Login page on successful signup
-  };
-
   const [pageName, setPageName] = useState("Signup");
 
   const renderPage = () => {
@@ -44,13 +35,8 @@ export default function Index() {
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
       {
         pageName == "Login" || pageName == "Signup" ? 
-        <SignUpScreen
-          setIsSigningUp={setIsSigningUp}
-          onSuccessfulSignUp={onSuccessfulSignUp}
-        /> 
-        
-        : 
-        
+        <SignUpScreen/> 
+        :
         <>
           {renderPage()}
           <Navbar setPageName={setPageName} />
