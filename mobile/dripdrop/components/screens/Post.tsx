@@ -4,7 +4,7 @@ import { View, Text, StyleSheet } from "react-native";
 export default function Post({}) {
   return (
     <View style={{...StyleSheet.absoluteFillObject, backgroundColor: '#f5f8fa', flex: 1, margin: 0, display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
-        
+        <Text>Post</Text>
     </View>
   );
 };
