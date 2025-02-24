@@ -8,6 +8,7 @@ import {
   StyleSheet,
   Image,
   Alert,
+  TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -64,6 +65,10 @@ export default function Login({}) {
     setPassword("123");
     await handleSignIn();
   };
+  const onGoToSignUp = async() => {
+    console.log("User wants to create new account");
+    router.push('/Signup');
+  }
 
   return (
     <View style={styles.container}>
@@ -92,6 +97,10 @@ export default function Login({}) {
 
       {/* Sign-up Button */}
       <Button title="Sign In" onPress={handleSignIn} />
+
+      <TouchableOpacity onPress={onGoToSignUp}>
+              <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
+      </TouchableOpacity>
     </View>
   );
 }
@@ -111,12 +120,14 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
+    width: "80%",
     borderColor: "grey",
     borderWidth: 1,
     marginBottom: 15,
     paddingLeft: 10,
     borderRadius: 5,
     color: "black",
+    alignSelf: "center",
   },
   logo: {
     width: 100, // Adjust based on your image's dimensions
@@ -124,4 +135,10 @@ const styles = StyleSheet.create({
     marginBottom: 10, // Space between the image and the text
     alignSelf: "center", // To center the image horizontally
   },
+  signUpText: {
+    color: "blue",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 14,
+  }
 });

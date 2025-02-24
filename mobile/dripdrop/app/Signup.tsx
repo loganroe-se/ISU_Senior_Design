@@ -157,12 +157,14 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
+    width: "80%",
     borderColor: "grey",
     borderWidth: 1,
     marginBottom: 15,
     paddingLeft: 10,
     borderRadius: 5,
     color: "black",
+    alignSelf: "center",
   },
   logo: {
     width: 100, // Adjust based on your image's dimensions
