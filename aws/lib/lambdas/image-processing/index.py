@@ -2,7 +2,7 @@ import base64
 import os
 import io
 import boto3
-from PIL import Image, ImageOps, UnidentifiedImageError
+from PIL import Image, UnidentifiedImageError
 
 # Initialize S3 client
 s3_client = boto3.client('s3')
@@ -11,7 +11,18 @@ s3_client = boto3.client('s3')
 S3_ORIGINAL_IMAGE_BUCKET = os.getenv('originalImageBucketName')
 S3_TRANSFORMED_IMAGE_BUCKET = os.getenv('transformedImageBucketName')
 TRANSFORMED_IMAGE_CACHE_TTL = os.getenv('transformedImageCacheTTL', 'max-age=3600')
-MAX_IMAGE_SIZE = int(os.getenv('maxImageSize', '6291456'))  # default of 6MB
+MAX_IMAGE_SIZE = int(os.getenv('maxImageSize', '6291456'))  # 6MB max size
+TARGET_SIZE = 1048576  # 1MB target size
+
+# Supported image formats
+FORMAT_MAP = {
+    'jpeg': 'JPEG',
+    'jpg': 'JPEG',
+    'gif': 'GIF',
+    'webp': 'WEBP',
+    'png': 'PNG',
+    'avif': 'AVIF'
+}
 
 def handler(event, context):
     # Validate if this is a GET request
@@ -28,55 +39,72 @@ def handler(event, context):
         response = s3_client.get_object(Bucket=S3_ORIGINAL_IMAGE_BUCKET, Key=original_image_path)
         original_image_body = response['Body'].read()
         content_type = response['ContentType']
+
     except Exception as e:
         return send_error(500, 'Error downloading original image', e)
 
-    # Perform transformations
+    # Process and transform the image
     try:
         image = Image.open(io.BytesIO(original_image_body))
         operations = dict(op.split('=') for op in operations_prefix.split(','))
 
-        # Resize if requested
-        resize_options = {k: int(v) for k, v in operations.items() if k in ['width', 'height']}
-        if resize_options:
-            image = ImageOps.fit(image, (resize_options.get('width', image.width),
-                                         resize_options.get('height', image.height)))
+        # Get requested resize parameters
+        width = int(operations.get('width', image.width))
+        height = int(operations.get('height', image.height))
 
-        # Convert format if requested
-        if 'format' in operations:
-            format_map = {
-                'jpeg': 'JPEG',
-                'gif': 'GIF',
-                'webp': 'WEBP',
-                'png': 'PNG',
-                'avif': 'AVIF'
-            }
-            requested_format = operations['format']
-            image_format = format_map.get(requested_format, 'JPEG')
-            content_type = f'image/{requested_format}'
-            image = image.convert('RGB') if image_format in ['JPEG', 'WEBP', 'AVIF'] else image
-        else:
-            image_format = 'PNG' if content_type == 'image/svg+xml' else image.format
+        # **Aggressive downscaling while maintaining aspect ratio**
+        if len(original_image_body) > 2 * TARGET_SIZE:  # If original image is > 2MB
+            width = max(width // 2, 800)  # Reduce width by 50%, min width = 800px
+            height = max(height // 2, 600)  # Reduce height by 50%, min height = 600px
+            image.thumbnail((width, height), Image.LANCZOS)  # Preserves aspect ratio
 
-        # Convert to bytes
+        # Resize to user-specified width/height if provided (while keeping aspect ratio)
+        image.thumbnail((width, height), Image.LANCZOS)
+
+        # Determine output format
+        requested_format = operations.get('format', '').lower()
+        image_format = FORMAT_MAP.get(requested_format, image.format)
+        content_type = f'image/{requested_format}' if requested_format else content_type
+
+        # Ensure correct color mode
+        if image_format in ['JPEG', 'WEBP', 'AVIF'] and image.mode not in ['RGB', 'RGBA']:
+            image = image.convert('RGB')
+
+        # Convert image to bytes
         transformed_image = io.BytesIO()
-        quality = int(operations.get('quality', 75)) if 'quality' in operations else None
-        if quality is not None:
-            image.save(transformed_image, format=image_format, quality=quality)
-        else:
-            image.save(transformed_image, format=image_format)
+        quality = int(operations.get('quality', 75)) if 'quality' in operations else 75
+        save_params = {'format': image_format, 'quality': quality} if image_format in ['JPEG', 'WEBP', 'AVIF'] else {'format': image_format}
 
+        if image_format == 'PNG':
+            save_params['optimize'] = True
 
+        image.save(transformed_image, **save_params)
         transformed_image.seek(0)
 
-        # Check size
-        if len(transformed_image.getvalue()) > MAX_IMAGE_SIZE:
-            return send_error(403, 'Requested transformed image is too big')
+        # **Progressive Reduction (Quality & Size) Until Below 1MB
+        while transformed_image.getbuffer().nbytes > TARGET_SIZE and quality > 30:
+            transformed_image = io.BytesIO()
+            quality -= 10  # Reduce quality step-by-step
+            image.save(transformed_image, format=image_format, quality=quality)
+            transformed_image.seek(0)
+
+        # **Final Resizing if Still Too Big (Maintaining Aspect Ratio)
+        while transformed_image.getbuffer().nbytes > TARGET_SIZE and width > 500 and height > 400:
+            width = max(width - 100, 500)  # Reduce width but keep aspect ratio
+            height = int((width / image.width) * image.height)  # Adjust height to maintain aspect ratio
+            image.thumbnail((width, height), Image.LANCZOS)
+            transformed_image = io.BytesIO()
+            image.save(transformed_image, format=image_format, quality=quality)
+            transformed_image.seek(0)
+
+        # Final Check
+        if transformed_image.getbuffer().nbytes > MAX_IMAGE_SIZE:
+            return send_error(403, 'Final transformed image is still too large')
 
     except UnidentifiedImageError as e:
         return send_error(500, 'Error processing image', e)
 
-    # Upload transformed image back to S3 if required
+    # **Upload transformed image to S3
     try:
         s3_client.put_object(
             Bucket=S3_TRANSFORMED_IMAGE_BUCKET,
@@ -88,7 +116,7 @@ def handler(event, context):
     except Exception as e:
         log_error('Could not upload transformed image to S3', e)
 
-    # Return the transformed image
+    # Return transformed image
     return {
         'statusCode': 200,
         'body': base64.b64encode(transformed_image.getvalue()).decode('utf-8'),

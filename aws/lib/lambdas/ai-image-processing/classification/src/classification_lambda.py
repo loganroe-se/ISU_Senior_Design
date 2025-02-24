@@ -42,7 +42,7 @@ def handler(event, context):
 
         return {
             "statusCode": 200,
-            "body": json.dumps({"image_id": image_id, "clothing_items": json.dumps(classified_output)})
+            "body": json.dumps({"image_id": image_id, "clothing_items": classified_output})
         }
 
     except Exception as e:

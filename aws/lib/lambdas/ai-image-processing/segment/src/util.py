@@ -1,34 +1,17 @@
 import numpy as np
-import time, json, cv2, boto3
-import json, logging, requests, base64
+import time, json, cv2
+import json, logging, requests
+import torch
+from ultralytics import YOLO
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-sm_client = boto3.client(service_name="sagemaker")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Restore the endpoint name stored in the 2_DeployEndpoint.ipynb notebook
-ENDPOINT_NAME = "yolov11-segmentation-model-2025-02-19-08-39-10-178747"
-logger.info(f"Endpoint Name: {ENDPOINT_NAME}")
-
-
-def check_endpoint():
-    endpoint_created = False
-    while True:
-        response = sm_client.list_endpoints()
-        for ep in response["Endpoints"]:
-            logger.info(f"Endpoint Status = {ep['EndpointStatus']}")
-            if (
-                ep["EndpointName"] == ENDPOINT_NAME
-                and ep["EndpointStatus"] == "InService"
-            ):
-                endpoint_created = True
-                break
-        if endpoint_created:
-            break
-        time.sleep(5)
-
+model = YOLO("segmentation-model.pt")
+model.to(device)
 
 def map_to_category_label(id):
     categories_file = f"categories.json"
@@ -72,13 +55,31 @@ def get_image(image_path):
     
     return response.content
         
+def output_fn(prediction_output):
+    print("Executing output_fn from inference...")
+    infer = {}
+    for result in prediction_output:
+        if 'boxes' in result._keys and result.boxes is not None:
+            infer['boxes'] = result.boxes.cpu().numpy().data.tolist()
+        if 'masks' in result._keys and result.masks is not None:
+            infer['masks'] = result.masks.cpu().numpy().data.tolist()
+        if 'keypoints' in result._keys and result.keypoints is not None:
+            infer['keypoints'] = result.keypoints.cpu().numpy().data.tolist()
+        if 'probs' in result._keys and result.probs is not None:
+            # Extract top-5 class indices and their confidence scores
+            top5_indices = result.probs.top5
+            top5_scores = result.probs.top5conf.tolist()
+            # Store in the output dictionary
+            infer['probs'] = {
+                "top5_indices": top5_indices,
+                "top5_scores": top5_scores
+            }
 
+    return infer
 
 
 def segment_image(image_path):
     """Runs segmentation on the input image and returns detected objects."""
-    check_endpoint()
-
     infer_start_time = time.time()
     
     print("Fetching image")
@@ -86,10 +87,10 @@ def segment_image(image_path):
     print("Image fetched")
 
     # Convert the response content into a NumPy array
-    image_array = np.frombuffer(image, np.uint8)
+    image_array = np.frombuffer(image, dtype=np.uint8)
 
     # Decode the image array into an OpenCV image
-    orig_image = cv2.imdecode(image_array, cv2.IMREAD_COLOR)
+    orig_image = cv2.imdecode(image_array, flags=-1)
     # orig_image = cv2.imread('outfit.jpg')
 
     # Calculate the parameters for image resizing
@@ -97,17 +98,12 @@ def segment_image(image_path):
 
     # Resize the image as numpy array
     resized_image = cv2.resize(orig_image, (model_height, model_width))
-    # Conver the array into jpeg
-    resized_jpeg = cv2.imencode('.jpg', resized_image)[1]
-    # Serialize the jpg using base 64
-    payload = base64.b64encode(resized_jpeg).decode('utf-8')
 
-    runtime= boto3.client('runtime.sagemaker')
-    response = runtime.invoke_endpoint(EndpointName=ENDPOINT_NAME,
-                                            ContentType='text/csv',
-                                            Body=payload)
-    response_body = response['Body'].read()
-    detection_results = json.loads(response_body.decode('ascii'))
+    with torch.no_grad():
+        print("Running Inference")
+        result = model(resized_image)
+    
+    detection_results = output_fn(result)
 
     infer_end_time = time.time()
 

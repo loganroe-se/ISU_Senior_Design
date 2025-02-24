@@ -1,35 +1,17 @@
 import numpy as np
-import json
-import cv2 
-from PIL import Image
-import logging
-import boto3
+import json, cv2, logging
 import time
-import base64
+import torch
+from ultralytics import YOLO
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-sm_client = boto3.client(service_name="sagemaker")
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-# Restore the endpoint name stored in the 2_DeployEndpoint.ipynb notebook
-ENDPOINT_NAME = "yolov11-slight-improved-classify-2025-02-19-08-43-13-147666"
-logger.info(f'Endpoint Name: {ENDPOINT_NAME}')
-
-def check_endpoint():
-    endpoint_created = False
-    while True:
-        response = sm_client.list_endpoints()
-        for ep in response['Endpoints']:
-            logger.info(f"Endpoint Status = {ep['EndpointStatus']}")
-            if ep['EndpointName']==ENDPOINT_NAME and ep['EndpointStatus']=='InService':
-                endpoint_created = True
-                break
-        if endpoint_created:
-            break
-        time.sleep(5)
-
+model = YOLO("slight-improved-classify.pt")
+model.to(device)
 
 # Map YOLO classes to clothing items
 def map_to_clothing_label(id):
@@ -48,18 +30,37 @@ def map_to_clothing_label(id):
 
     return attributes.get(id, id)
 
+def output_fn(prediction_output):
+    print("Executing output_fn from inference...")
+    infer = {}
+    for result in prediction_output:
+        if 'boxes' in result._keys and result.boxes is not None:
+            infer['boxes'] = result.boxes.cpu().numpy().data.tolist()
+        if 'masks' in result._keys and result.masks is not None:
+            infer['masks'] = result.masks.cpu().numpy().data.tolist()
+        if 'keypoints' in result._keys and result.keypoints is not None:
+            infer['keypoints'] = result.keypoints.cpu().numpy().data.tolist()
+        if 'probs' in result._keys and result.probs is not None:
+            # Extract top-5 class indices and their confidence scores
+            top5_indices = result.probs.top5
+            top5_scores = result.probs.top5conf.tolist()
+            # Store in the output dictionary
+            infer['probs'] = {
+                "top5_indices": top5_indices,
+                "top5_scores": top5_scores
+            }
+
+    return infer
+
 def classify_segment(segmented_items):
     """Runs classification on the segmented images."""
     results = []
-
-    check_endpoint()
     
     for item in segmented_items["clothing_items"]:
         cropped_img_array = np.array(item["cropped_image"], dtype=np.uint8)
 
         infer_start_time = time.time()
 
-        runtime= boto3.client('runtime.sagemaker')
         # Decode the image array into an OpenCV image
         orig_image = cv2.cvtColor(cropped_img_array, cv2.COLOR_BGR2RGB)
 
@@ -68,17 +69,11 @@ def classify_segment(segmented_items):
 
         # Resize the image as numpy array
         resized_image = cv2.resize(orig_image, (model_height, model_width))
-        # Conver the array into jpeg
-        resized_jpeg = cv2.imencode('.jpg', resized_image)[1]
-        # Serialize the jpg using base 64
-        payload = base64.b64encode(resized_jpeg).decode('utf-8')
-        response = runtime.invoke_endpoint(EndpointName=ENDPOINT_NAME,
-                                                ContentType='text/csv',
-                                                Body=payload)
-        response_body = response['Body'].read()
-        classification_result = json.loads(response_body.decode('ascii'))
 
-        print("Result: ", classification_result)
+        with torch.no_grad():
+            result = model(resized_image)
+    
+        classification_result = output_fn(result)
 
         infer_end_time = time.time()
 

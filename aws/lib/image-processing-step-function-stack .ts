@@ -56,7 +56,7 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
         ),
         memorySize: 1024,
         architecture: lambda.Architecture.X86_64,
-        timeout: cdk.Duration.seconds(30),
+        timeout: cdk.Duration.seconds(900),
       }
     );
 

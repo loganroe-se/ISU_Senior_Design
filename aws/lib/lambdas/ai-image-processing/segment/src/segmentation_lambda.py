@@ -10,6 +10,7 @@ table = dynamodb.Table("ImageProcessingTable")
 BUCKET_NAME = "ai-image-processing-results"
 
 def handler(event, context):
+    print("Running Handler")
     """AWS Lambda handler for segmentation."""
     try:
         image_path = event.get("image_path")
