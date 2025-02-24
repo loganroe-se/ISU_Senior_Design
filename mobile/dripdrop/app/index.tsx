@@ -22,7 +22,7 @@ export default function Index() {
     router.push('/Login'); // Navigate Login page on successful signup
   };
 
-  const [pageName, setPageName] = useState("");
+  const [pageName, setPageName] = useState("Signup");
 
   const renderPage = () => {
     switch (pageName) {
@@ -43,13 +43,19 @@ export default function Index() {
 
   return (
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <SignUpScreen
-        setIsSigningUp={setIsSigningUp}
-        onSuccessfulSignUp={onSuccessfulSignUp}
-      />
-
       {
-        pageName != "Login" && <Navbar setPageName={setPageName} />
+        pageName == "Login" || pageName == "Signup" ? 
+        <SignUpScreen
+          setIsSigningUp={setIsSigningUp}
+          onSuccessfulSignUp={onSuccessfulSignUp}
+        /> 
+        
+        : 
+        
+        <>
+          {renderPage()}
+          <Navbar setPageName={setPageName} />
+        </>
       }
     </View>
   );
