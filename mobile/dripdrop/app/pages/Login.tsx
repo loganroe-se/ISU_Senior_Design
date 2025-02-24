@@ -73,7 +73,7 @@ export default function Login({}) {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../public/dripdrop_logo.png")} // Replace with the actual image path
+        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
         style={styles.logo}
       />
       <Text style={styles.header}>dripdrop</Text>
@@ -101,6 +101,12 @@ export default function Login({}) {
       <TouchableOpacity onPress={onGoToSignUp}>
               <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={handleAutoLogin}>
+              <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
+      </TouchableOpacity>
+
+
     </View>
   );
 }

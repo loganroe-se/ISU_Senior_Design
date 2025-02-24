@@ -87,7 +87,7 @@ const SignUpScreen = () => {
   return (
     <View style={styles.container}>
       <Image
-        source={require("../public/dripdrop_logo.png")} // Replace with the actual image path
+        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
         style={styles.logo}
       />
       <Text style={styles.header}>dripdrop</Text>
@@ -95,7 +95,7 @@ const SignUpScreen = () => {
       {/* Input fields with state handling */}
       <TextInput
         style={styles.input}
-        placeholder="Username"
+        placeholder="Username" 
         placeholderTextColor="grey"
         value={username}
         onChangeText={setUsername} // Update username state
