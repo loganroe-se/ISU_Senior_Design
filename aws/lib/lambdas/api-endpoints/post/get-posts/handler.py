@@ -26,7 +26,7 @@ def getPosts():
         # Fetch all posts with their related images
         posts_result = (
             session.query(Post)
-            .options(joinedload(Post.images), joinedload(Post.likes))
+            .options(joinedload(Post.images), joinedload(Post.likes), joinedload(Post.comments))
             .all()
         )
 
@@ -46,6 +46,7 @@ def getPosts():
                     for image in post.images
                 ],
                 "numLikes": len(post.likes),
+                "numComments": len(post.comments),
             }
             for post in posts_result
         ]

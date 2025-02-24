@@ -1,14 +1,27 @@
-import { Text, View } from "react-native";
-import { useState, useEffect } from "react";
-import Login from "@/components/screens/Login";
-import Home from "@/components/screens/Home";
-import Navbar from "@/components/navigation/Navbar";
-import Profile from "@/components/screens/Profile";
-import Search from "@/components/screens/Search";
-import Post from "@/components/screens/Post";
-import Bookmarks from "@/components/screens/Bookmarks";
+import React, { useState } from 'react';
+import { View } from 'react-native';
+import { useRouter } from 'expo-router';
+import SignUpScreen from './Signup';
+import "react-native-get-random-values";
+import "react-native-url-polyfill/auto";
+import Navbar from '@/components/navigation/Navbar';
+import Home from '@/components/screens/Home';
+import Bookmarks from '@/components/screens/Bookmarks';
+import Profile from '@/components/screens/Profile';
+import Search from '@/components/screens/Search';
+import Post from '@/components/screens/Post';
+
 
 export default function Index() {
+  const router = useRouter();
+  const [isSigningUp, setIsSigningUp] = useState(false);
+
+  // Handle successful sign-up
+  const onSuccessfulSignUp = () => {
+    console.log("Sign up successful!");
+    router.push('/Login'); // Navigate Login page on successful signup
+  };
+
   const [pageName, setPageName] = useState("");
 
   const renderPage = () => {
@@ -29,9 +42,15 @@ export default function Index() {
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      {renderPage()} 
-      <Navbar setPageName={setPageName} />
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+      <SignUpScreen
+        setIsSigningUp={setIsSigningUp}
+        onSuccessfulSignUp={onSuccessfulSignUp}
+      />
+
+      {
+        pageName != "Login" && <Navbar setPageName={setPageName} />
+      }
     </View>
   );
 }

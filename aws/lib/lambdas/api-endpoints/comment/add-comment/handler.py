@@ -54,7 +54,7 @@ def createComment(userId, postId, content):
         session.commit()
 
         # Successful return message
-        return 201, f"User {userId} commented on post {postId} successfully."
+        return 201, f"User {userId} made comment on post {postId} successfully."
 
     except Exception as e:
         # Handle exception

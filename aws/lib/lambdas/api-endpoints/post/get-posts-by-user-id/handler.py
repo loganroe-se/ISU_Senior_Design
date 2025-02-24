@@ -53,6 +53,7 @@ def getPostsByUserId(user_id):
                         for image in post.images
                     ],
                     "numLikes": len(post.likes),
+                    "numComments": len(post.comments),
                 }
                 for post in posts_result
             ]

@@ -223,7 +223,7 @@ const ViewPostModal: React.FC<ViewPostModalProps> = ({ selectedPost, onClose }) 
                   {/* Use commentID as the key */}
                   <ListItemText
                     primary={comment.content}
-                    secondary={`User ID: ${comment.userID} - ${comment.createdDate}`}
+                    secondary={`${comment.username} - ${comment.createdDate}`}
                   />
                 </ListItem>
               ))}
