@@ -1,22 +1,21 @@
 import React from "react";
 import { View, Dimensions, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
+import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get('window');
-
-interface NavbarProps {
-    setPageName: React.Dispatch<React.SetStateAction<string>>;
-}
+const router = useRouter();
 
 interface NavItemProps {
     name: string;
     pageName: string;
-    setPageName: React.Dispatch<React.SetStateAction<string>>;
 }
 
-function NavItem({name, pageName, setPageName} : NavItemProps) {
+function NavItem({name, pageName} : NavItemProps) {
     function onPress() {
-        setPageName(pageName)
+        let route = `/pages/${pageName}`; 
+
+        router.push(route);
     }
 
     return (
@@ -26,14 +25,14 @@ function NavItem({name, pageName, setPageName} : NavItemProps) {
     )
 }
 
-export default function Navbar({setPageName} : NavbarProps) {
+export default function Navbar({}) {
   return (
     <View style={styles.navbar}>
-        <NavItem name="home-outline" pageName="Home" setPageName={setPageName} />
-        <NavItem name="search-outline" pageName="Search" setPageName={setPageName} />
-        <NavItem name="create-outline" pageName="Post" setPageName={setPageName} />
-        <NavItem name="bookmarks-outline" pageName="Bookmarks" setPageName={setPageName} />
-        <NavItem name="person-circle-outline" pageName="Profile" setPageName={setPageName} />
+        <NavItem name="home-outline" pageName="Home" />
+        <NavItem name="search-outline" pageName="Search" />
+        <NavItem name="create-outline" pageName="Post" />
+        <NavItem name="bookmarks-outline" pageName="Bookmarks" />
+        <NavItem name="person-circle-outline" pageName="Profile" />
     </View>
   );
 };

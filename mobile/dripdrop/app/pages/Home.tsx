@@ -1,10 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import SearchScreen from '../components/Searchbar';
+import NavScreen from './NavScreen';
 
 const HomePage = () => {
   return (
-    <SearchScreen/>
+    <NavScreen>
+      <Text>Home</Text>
+    </NavScreen>
   );
 };
 
