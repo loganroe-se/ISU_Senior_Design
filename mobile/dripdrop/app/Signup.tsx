@@ -7,7 +7,9 @@ import {
   StyleSheet,
   Image,
   Alert,
+  TouchableOpacity,
 } from "react-native";
+import { useRouter } from 'expo-router';
 interface SignUpProps {
   setIsSigningUp: (isSigningUp: boolean) => void;
   onSuccessfulSignUp: () => void; // New prop to indicate successful sign-up
@@ -15,6 +17,7 @@ interface SignUpProps {
 
 const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignUp }) => {
   // Define state for each input field
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -82,6 +85,10 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
       }
   };
   };
+  const onGoToSignIn = async() => {
+    console.log("User already has account, go to login page");
+    router.push('/Login');
+  }
   return (
     <View style={styles.container}>
       <Image
@@ -124,6 +131,13 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
 
       {/* Sign-up Button */}
       <Button title="Sign Up" onPress={handleSignUp} />
+
+
+      {/* Clickable Text for Existing Users */}
+      <TouchableOpacity onPress={onGoToSignIn}>
+        <Text style={styles.signInText}>Already have an account? Sign In</Text>
+      </TouchableOpacity>
+
     </View>
   );
 };
@@ -156,6 +170,12 @@ const styles = StyleSheet.create({
     marginBottom: 10, // Space between the image and the text
     alignSelf: "center", // To center the image horizontally
   },
+  signInText: {
+    color: "blue",
+    textAlign: "center",
+    marginTop: 20,
+    fontSize: 14,
+  }
 });
 
 export default SignUpScreen;

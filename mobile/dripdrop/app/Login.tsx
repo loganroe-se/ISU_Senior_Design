@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import axios from "axios";
+import React, { useState } from "react";
 import {
   View,
   Text,
@@ -8,72 +9,92 @@ import {
   Image,
   Alert,
 } from "react-native";
-import { useRouter } from 'expo-router';
+import { useRouter } from "expo-router";
 
 export default function Login({}) {
   const router = useRouter();
-
-  const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
 
-
-  const handleSignIn = async() => {
-    if (!username || !password) {
+  const handleSignIn = async () => {
+    if (!email || !password) {
       // Show an alert if any field is empty
       console.log("Incomplete fields");
       Alert.alert("Incomplete Fields", "Please fill in all the fields", [
-      { text: "OK", onPress: () => console.log("OK Pressed") },
+        { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
       return; // Stop execution if fields are not filled
     }
     try {
-      await signIn(email, password); // Use the signIn method from context
-      router.push('/Login');
-    } catch (err: unknown) {
-      if (err instanceof Error) setError(err.message || 'Sign-in failed. Please try again.');
-    } finally {
-      setLoading(false);
+      const response = await fetch("https://api.dripdropco.com/users/signIn", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+      if (response.ok) {
+        console.log("Login Successful");
+        router.push('/home');
+      } else {
+          // Generic error handling for other status codes
+          const errorData = await response.json();
+          console.log("Error" + errorData.error);
+          Alert.alert("Login Failed", errorData.error, [
+            {
+              text: "Try Again",
+              onPress: () => console.log("Try again pressed"),
+            },
+          ]);
+          return;
+        }
+    } catch (error) {
+      if (error instanceof Error) {
+        console.log("Unexpected error");
+        Alert.alert("Error", "An unexpected error occured", [
+          { text: "OK", onPress: () => console.log("OK Pressed") },
+        ]);
+        return;
+      }
     }
-  }
+  };
 
   const handleAutoLogin = async () => {
-    setEmail('hi@test.com');
-    setPassword('123');
+    setEmail("hi@test.com");
+    setPassword("123");
     await handleSignIn();
   };
 
   return (
-      <View style={styles.container}>
-        <Image
-          source={require("../public/dripdrop_logo.png")} // Replace with the actual image path
-          style={styles.logo}
-        />
-        <Text style={styles.header}>dripdrop</Text>
-  
-        {/* Input fields with state handling */}
-        <TextInput
-          style={styles.input}
-          placeholder="Username"
-          placeholderTextColor="grey"
-          value={username}
-          onChangeText={setUsername} // Update username state
-        />
-        <TextInput
-          style={styles.input}
-          placeholder="Password"
-          placeholderTextColor="grey"
-          value={password}
-          secureTextEntry
-          onChangeText={setPassword} // Update password state
-        />
-  
-        {/* Sign-up Button */}
-        <Button title="Sign In" onPress={handleSignIn} />
-      </View>
-    );
-};
+    <View style={styles.container}>
+      <Image
+        source={require("../public/dripdrop_logo.png")} // Replace with the actual image path
+        style={styles.logo}
+      />
+      <Text style={styles.header}>dripdrop</Text>
+
+      {/* Input fields with state handling */}
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="grey"
+        value={email}
+        onChangeText={setEmail} // Update username state
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="grey"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword} // Update password state
+      />
+
+      {/* Sign-up Button */}
+      <Button title="Sign In" onPress={handleSignIn} />
+    </View>
+  );
+}
 
 const styles = StyleSheet.create({
   container: {
@@ -104,4 +125,3 @@ const styles = StyleSheet.create({
     alignSelf: "center", // To center the image horizontally
   },
 });
-
