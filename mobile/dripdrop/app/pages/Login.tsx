@@ -36,7 +36,7 @@ export default function Login({}) {
       });
       if (response.ok) {
         console.log("Login Successful");
-        router.push('/home');
+        router.push('/pages/Home');
       } else {
           // Generic error handling for other status codes
           const errorData = await response.json();
@@ -67,13 +67,13 @@ export default function Login({}) {
   };
   const onGoToSignUp = async() => {
     console.log("User wants to create new account");
-    router.push('/Signup');
+    router.push('/pages/Signup');
   }
 
   return (
     <View style={styles.container}>
       <Image
-        source={require("../public/dripdrop_logo.png")} // Replace with the actual image path
+        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
         style={styles.logo}
       />
       <Text style={styles.header}>dripdrop</Text>
@@ -101,6 +101,12 @@ export default function Login({}) {
       <TouchableOpacity onPress={onGoToSignUp}>
               <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
+
+      <TouchableOpacity onPress={handleAutoLogin}>
+              <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
+      </TouchableOpacity>
+
+
     </View>
   );
 }
