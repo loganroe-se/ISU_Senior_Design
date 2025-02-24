@@ -1,80 +1,94 @@
-from util import detect_dominant_color, map_to_clothing_label, detect
 import torch
 from torchvision import transforms
 from PIL import Image
 import cv2
 import json
+import numpy as np
 from ultralytics import YOLO
 
-# Setting up device 
+from util import detect_dominant_color, map_to_clothing_label, map_to_category_label
+
+# Setting up device
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # Load a COCO-pretrained YOLO11n model
-model = YOLO("yolo11n.pt")
+detection_model = YOLO("./trained_models/segmentation_model.pt")
+classification_model = YOLO("./trained_models/slight_improved_classify.pt")
 
-#Temp categories for image classification as model is not trained
-with open("imagenet_classes.txt", "r") as f:
-    categories = [s.strip() for s in f.readlines()]
+# Transform for classification model input
+transform = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),  # Match classification model's input size
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+    ]
+)
 
-classification_model = torch.hub.load('pytorch/vision:v0.10.0', 'resnet50', pretrained=True)
-classification_model.fc = torch.nn.Linear(classification_model.fc.in_features, len(categories))  # Modify last layer for multi-label classification
-classification_model = classification_model.to(device)
-
-
-# Transform for input image
-transform = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
-])
-
-
-# Load the image
-image_path = 'outfit.jpg'
-img = cv2.imread(image_path)
-
-detected_objects = detect(model=model, img=img, thres=50)
-# Extract relevant information
+# Run batched inference for detection and segmentation on a list of images
+images = ["outfit2.jpg"]
+detection_results = detection_model(images)  # Returns a list of Results objects
+detection_results[0].save()
 items = []
-i = 0 
-for _, row in detected_objects.iterrows():
-    xmin, ymin, xmax, ymax = int(row['xmin']), int(row['ymin']), int(row['xmax']), int(row['ymax'])
-    clothing_item = (img[ymin:ymax, xmin:xmax])
-  
-    dominant_color = detect_dominant_color(clothing_item)
+# Process each result
+for result in detection_results:
+    boxes = result.boxes  # Bounding boxes output
+    masks = result.masks  # Segmentation masks output, if available
 
-    # Preprocess the cropped image for texture/pattern classification
-    image = Image.fromarray(clothing_item)
-    input_tensor = transform(image).unsqueeze(0).to(device)
+    # Load the original image
+    img = cv2.imread(result.path)
 
-    # Predict texture/pattern
-    classification_model.eval()
-    with torch.no_grad():
-        output = classification_model(input_tensor)
+    # Iterate over detected objects
+    for i, box in enumerate(boxes):
+        # Get bounding box coordinates
+        xmin, ymin, xmax, ymax = map(int, box.xyxy[0])
+        conf = round(box.conf[0].item(), 2)  # Extract confidence score
+        cls_id = box.cls[0].item()  # Extract class ID
+
+        # Crop the detected object from the image
+        cropped_img = img[ymin:ymax, xmin:xmax]
+        dominant_color = detect_dominant_color(cropped_img)
+
+        image = Image.fromarray(cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB))
         
-        probabilities = torch.nn.functional.softmax(output[0], dim=0)
+        # Apply segmentation mask if available
+        # Apply segmentation mask if available
+        if masks is not None:
+            # Ensure the mask is a NumPy array
+            mask = masks.data[i]
+            if not isinstance(mask, np.ndarray):
+                mask = np.array(mask.cpu().numpy())
 
-        # Show top categories per image
-        top5_prob, top5_catid = torch.topk(probabilities, 5)
+            # Resize mask to fit cropped area
+            mask_resized = cv2.resize(mask, (xmax - xmin, ymax - ymin))
 
-        # Get class names for all predicted indices
-        predicted_class_names = [categories[idx] for idx in top5_catid]
-        # print(f"Predicted classes: {predicted_class_names}")
+            # Convert the mask to a binary format if necessary
+            _, mask_binary = cv2.threshold(mask_resized, 0.5, 1, cv2.THRESH_BINARY)
 
-    item = {
-        "item": map_to_clothing_label(row['name']),
-        "confidence": row['confidence'],
-        "color": dominant_color,
-        "coordinates": {
-            "xmin": row['xmin'],
-            "ymin": row['ymin'],
-            "xmax": row['xmax'],
-            "ymax": row['ymax']
-        }, 
-        "attributes": predicted_class_names
-    }
-    items.append(item)
-    
+            # Apply mask to the cropped image
+            cropped_img = cv2.bitwise_and(
+                cropped_img, cropped_img, mask=mask_binary.astype(np.uint8)
+            )
+
+        # Prepare the cropped image for classification
+        pil_image = Image.fromarray(cv2.cvtColor(cropped_img, cv2.COLOR_BGR2RGB))
+        classification_result = classification_model(pil_image)
+
+        # Retrieve classification probabilities
+        attributes = classification_result[
+            0
+        ].probs.top5  # Contains predicted attributes
+
+        predicted_class_names = [map_to_clothing_label(idx) for idx in attributes]
+
+        item = {
+            "item": map_to_category_label(cls_id),
+            "confidence": conf,
+            "color": dominant_color,
+            "coordinates": {"xmin": xmin, "ymin": ymin, "xmax": xmax, "ymax": ymax},
+            "attributes": predicted_class_names,
+        }
+        items.append(item)
+
 # Convert to JSON format
 json_output = json.dumps({"clothing_items": items}, indent=4)
 print(json_output)
