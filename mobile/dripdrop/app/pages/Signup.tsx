@@ -10,12 +10,8 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from 'expo-router';
-interface SignUpProps {
-  setIsSigningUp: (isSigningUp: boolean) => void;
-  onSuccessfulSignUp: () => void; // New prop to indicate successful sign-up
-}
 
-const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignUp }) => {
+const SignUpScreen = () => {
   // Define state for each input field
   const router = useRouter();
   const [username, setUsername] = useState("");
@@ -51,12 +47,11 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
         body: JSON.stringify({ username, email, password }),
       });
       if (response.ok) {
-        onSuccessfulSignUp(); // Notify SignIn of successful sign-up
         console.log("Sign up successful");
         Alert.alert("Success", "Account succesfully created", [
           { text: "OK", onPress: () => console.log("Ok pressed") },
         ]);
-        setIsSigningUp(false);
+        router.push("/pages/Login");
       } else {
         if (response.status === 409) {
           console.log("409 error: account already exists");
@@ -87,7 +82,7 @@ const SignUpScreen: React.FC<SignUpProps> = ({ setIsSigningUp, onSuccessfulSignU
   };
   const onGoToSignIn = async() => {
     console.log("User already has account, go to login page");
-    router.push('/Login');
+    router.push('/pages/Login');
   }
   return (
     <View style={styles.container}>

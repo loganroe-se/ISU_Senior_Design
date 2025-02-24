@@ -36,7 +36,7 @@ export default function Login({}) {
       });
       if (response.ok) {
         console.log("Login Successful");
-        router.push('/home');
+        router.push('/pages/Home');
       } else {
           // Generic error handling for other status codes
           const errorData = await response.json();
@@ -67,7 +67,7 @@ export default function Login({}) {
   };
   const onGoToSignUp = async() => {
     console.log("User wants to create new account");
-    router.push('/Signup');
+    router.push('/pages/Signup');
   }
 
   return (
