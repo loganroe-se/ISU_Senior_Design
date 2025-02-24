@@ -6,25 +6,24 @@ import { Post } from '../types';
 import { v4 as uuidv4 } from 'uuid';
 import ViewPostModal from './ViewPostModal';
 
-
 const Feed = () => {
   const [posts, setPosts] = useState<Post[]>([]); // State for posts
   const [selectedPost, setSelectedPost] = useState<{
     postID: number;
     userID: number;
     caption: string;
-    createdDate: String;
+    createdDate: string;
     images: { imageID: number; imageURL: string }[];
   } | null>(null); // State for selected post with correct type
-  const [loading, setLoading] = useState<boolean>(true); // State for loading
-  const [error, setError] = useState<string | null>(null); // State for error message
-  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({}); // State for storing usernames
-  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true); // Loading state for usernames
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [usernamesMap, setUsernamesMap] = useState<{ [key: string]: string }>({});
+  const [usernamesLoading, setUsernamesLoading] = useState<boolean>(true);
 
   const handlePostClick = (post: Post) => {
     // Set the selected post for the modal
     setSelectedPost({
-      postID: post.id,
+      postID: post.postID,
       userID: post.userID,
       caption: post.caption,
       createdDate: post.createdDate,
@@ -34,7 +33,6 @@ const Feed = () => {
       })),
     });
   };
-
 
   useEffect(() => {
     const loadPostsAndUsernames = async () => {
@@ -48,7 +46,8 @@ const Feed = () => {
 
         const usernamesMap: { [key: string]: string } = {};
         postsData.forEach((post, index) => {
-          const username = usernamesData[index] || 'Unknown User';
+          const user = usernamesData[index]; // Get the User object or null
+          const username = user ? user.username : 'Unknown User';
           usernamesMap[index] = username;
         });
 
@@ -117,8 +116,13 @@ const Feed = () => {
                     justifyContent: 'center', // Centers the post card
                   }}
                 >
-                  <PostCard images={imageURL} username={username} caption={post.caption} onPostClick={handlePostClick} // Pass the function as a prop
-                    post={post} />
+                  <PostCard
+                    images={imageURL}
+                    username={username}
+                    caption={post.caption}
+                    onPostClick={handlePostClick} // Pass the function as a prop
+                    post={post}
+                  />
                 </Box>
               </Grid>
             );
@@ -130,7 +134,6 @@ const Feed = () => {
         )}
       </Grid>
       <ViewPostModal selectedPost={selectedPost} onClose={() => setSelectedPost(null)} />
-
     </Box>
   );
 };

@@ -98,7 +98,6 @@ const Sidebar: React.FC<SidebarProps> = ({ showSearch, setShowSearch }) => {
         </Box>
 
         {/* Footer */}
-
         <MenuItem
           component={NavLink}
           to="/profile"

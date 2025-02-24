@@ -20,6 +20,14 @@ import ViewPostModal from '../components/ViewPostModal'; // Import the new compo
 import { useUserContext } from '../Auth/UserContext';
 import { useNavigate, useLocation } from 'react-router';
 import { Post } from '../types';
+import {
+  fetchUserById,
+  fetchUserPosts,
+  fetchAllPosts,
+  fetchFollowers,
+  fetchFollowing,
+} from '../api/api';
+import CreatePostModal from '../components/CreatePostModal';
 
 interface ProfileProps {
   initialTabIndex?: number;
@@ -38,6 +46,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   const [userLoading, setUserLoading] = useState(true);
   const [followers, setFollowers] = useState<number>(0);
   const [following, setFollowing] = useState<number>(0);
+  const [isCreatePostModalOpen, setCreatePostModalOpen] = useState(false);
   const [postStats, setPostStats] = useState<Record<number, { likes: number; comments: number }>>(
     {}
   );
@@ -50,10 +59,11 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     setUserLoading(true);
     if (!userID) return; // If there's no userID, do nothing
     try {
-      const response = await fetch(`https://api.dripdropco.com/users/${userID}`);
-      const data = await response.json();
-      setEmail(data.email);
-      setUsername(data.username);
+      const data = await fetchUserById(userID);
+      if (data) {
+        setEmail(data.email);
+        setUsername(data.username);
+      }
     } catch (error) {
       console.error('Error fetching user:', error);
     } finally {
@@ -68,12 +78,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   const fetchPosts = useCallback(async () => {
     setLoading(true);
     try {
-      const endpoint =
-        tabIndex === 0
-          ? `https://api.dripdropco.com/posts/user/${userID}`
-          : 'https://api.dripdropco.com/posts';
-      const response = await fetch(endpoint);
-      const data = await response.json();
+      const data: Post[] = tabIndex === 0 ? await fetchUserPosts(userID) : await fetchAllPosts();
       setPosts(data);
     } catch (error) {
       console.error('Error fetching posts:', error);
@@ -82,13 +87,39 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     }
   }, [tabIndex, userID]);
 
+  // Fetch followers and following
+  const getFollowersAndFollowing = useCallback(async () => {
+    if (!user) return;
+    try {
+      const [followersCount, followingCount] = await Promise.all([
+        fetchFollowers(userID),
+        fetchFollowing(userID),
+      ]);
+
+      setFollowers(followersCount);
+      setFollowing(followingCount);
+    } catch (error) {
+      console.error('Error fetching followers or following:', error);
+    }
+  }, [user, userID]);
+
+  useEffect(() => {
+    if (userID) {
+      fetchPosts();
+    }
+  }, [fetchPosts]);
+
   useEffect(() => {
     if (userID) {
       getUser();
-      fetchPosts();
+    }
+  }, [getUser]);
+
+  useEffect(() => {
+    if (userID) {
       getFollowersAndFollowing();
     }
-  }, [userID, tabIndex, getUser]);
+  }, [getFollowersAndFollowing]);
 
   useEffect(() => {
     // Set the tabIndex from the state passed via the navigation
@@ -129,10 +160,10 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
 
   // Function to initialize random stats for posts
   useEffect(() => {
-    if (posts.length > 0 && Object.keys(postStats).length === 0) {
+    if (Array.isArray(posts) && posts.length > 0 && Object.keys(postStats).length === 0) {
       const stats = posts.reduce(
         (acc, post) => {
-          acc[post.id] = {
+          acc[post.postID] = {
             likes: Math.floor(Math.random() * 500), // Random likes
             comments: Math.floor(Math.random() * 100), // Random comments
           };
@@ -144,29 +175,9 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
     }
   }, [posts, postStats]);
 
-  // Fetch followers and following
-  const getFollowersAndFollowing = useCallback(async () => {
-    if (!user) return;
-    try {
-      const followersResponse = await fetch(
-        `https://api.dripdropco.com/follow/${userID}/followers`
-      );
-      const followersData = await followersResponse.json();
-      setFollowers(followersData.length);
-
-      const followingResponse = await fetch(
-        `https://api.dripdropco.com/follow/${userID}/following`
-      );
-      const followingData = await followingResponse.json();
-      setFollowing(followingData.length);
-    } catch (error) {
-      console.error('Error fetching followers or following:', error);
-    }
-  }, [user, userID]);
-
   const transformedPost = selectedPost
     ? {
-        postID: selectedPost.id, // Map id to postID if required
+        postID: selectedPost.postID, // Map id to postID if required
         userID: selectedPost.userID,
         caption: selectedPost.caption,
         createdDate: selectedPost.createdDate,
@@ -260,72 +271,181 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
       <Box mt={3}>
         <Tabs value={tabIndex} onChange={handleTabChange} centered>
           <Tab label="Posts" />
-          <Tab label="Drafts" />
+          {userID === user?.id && <Tab label="Drafts" />}
         </Tabs>
+
         {loading ? (
           <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
             <CircularProgress />
           </Box>
         ) : (
           <Box mt={3}>
-            <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
-              {posts.map((post, index) => (
-                <ImageListItem
-                  key={index}
-                  onMouseEnter={() => {
-                    handlePostHover(index);
-                  }}
-                  onMouseLeave={() => {
-                    handlePostHoverAway();
-                  }}
-                  onClick={() => {
-                    handlePostClick(post);
-                  }}
-                  sx={{ cursor: 'pointer', position: 'relative' }}
-                >
-                  <img
-                    src={
-                      post.images[0]
-                        ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                        : 'default_image.png'
-                    }
-                    alt={post.caption}
-                    loading="lazy"
-                  />
-                  {hoveredPost === index && (
-                    <Box
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        left: 0,
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        color: 'white',
-                      }}
-                    >
-                      <Box display="flex" gap={2}>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <FavoriteIcon />
-                          <Typography>{postStats[post.id]?.likes || 0}</Typography>
-                        </Box>
-                        <Box display="flex" alignItems="center" gap={0.5}>
-                          <CommentIcon />
-                          <Typography>{postStats[post.id]?.comments || 0}</Typography>
+            {Array.isArray(posts) && posts.length > 0 ? (
+              <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
+                {posts.map((post, index) => (
+                  <ImageListItem
+                    key={index}
+                    onMouseEnter={() => {
+                      handlePostHover(index);
+                    }}
+                    onMouseLeave={() => {
+                      handlePostHoverAway();
+                    }}
+                    onClick={() => {
+                      handlePostClick(post);
+                    }}
+                    sx={{ cursor: 'pointer', position: 'relative' }}
+                  >
+                    <img
+                      src={
+                        post.images[0]
+                          ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+                          : 'default_image.png'
+                      }
+                      alt={post.caption}
+                      loading="lazy"
+                    />
+                    {hoveredPost === index && (
+                      <Box
+                        sx={{
+                          position: 'absolute',
+                          top: 0,
+                          left: 0,
+                          width: '100%',
+                          height: '100%',
+                          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          color: 'white',
+                        }}
+                      >
+                        <Box display="flex" gap={2}>
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <FavoriteIcon />
+                            <Typography>{postStats[post.postID]?.likes || 0}</Typography>
+                          </Box>
+                          <Box display="flex" alignItems="center" gap={0.5}>
+                            <CommentIcon />
+                            <Typography>{postStats[post.postID]?.comments || 0}</Typography>
+                          </Box>
                         </Box>
                       </Box>
-                    </Box>
-                  )}
-                </ImageListItem>
-              ))}
-            </ImageList>
+                    )}
+                  </ImageListItem>
+                ))}
+              </ImageList>
+            ) : (
+              <Box mt={3}>
+                {Array.isArray(posts) && posts.length > 0 ? (
+                  <ImageList sx={{ width: '100%', height: 'auto' }} cols={3} gap={16}>
+                    {posts.map((post, index) => (
+                      <ImageListItem
+                        key={index}
+                        onMouseEnter={() => {
+                          handlePostHover(index);
+                        }}
+                        onMouseLeave={() => {
+                          handlePostHoverAway();
+                        }}
+                        onClick={() => {
+                          handlePostClick(post);
+                        }}
+                        sx={{ cursor: 'pointer', position: 'relative' }}
+                      >
+                        <img
+                          src={
+                            post.images[0]
+                              ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
+                              : 'default_image.png'
+                          }
+                          alt={post.caption}
+                          loading="lazy"
+                        />
+                        {hoveredPost === index && (
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              color: 'white',
+                            }}
+                          >
+                            <Box display="flex" gap={2}>
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <FavoriteIcon />
+                                <Typography>{postStats[post.postID]?.likes || 0}</Typography>
+                              </Box>
+                              <Box display="flex" alignItems="center" gap={0.5}>
+                                <CommentIcon />
+                                <Typography>{postStats[post.postID]?.comments || 0}</Typography>
+                              </Box>
+                            </Box>
+                          </Box>
+                        )}
+                      </ImageListItem>
+                    ))}
+                  </ImageList>
+                ) : (
+                  <Box
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="center"
+                    justifyContent="center"
+                    textAlign="center"
+                    sx={{
+                      p: 4,
+                      border: '1px dashed grey',
+                      borderRadius: '8px',
+                      backgroundColor: '#f9f9f9',
+                    }}
+                  >
+                    <i
+                      className="bi bi-camera"
+                      style={{ width: '150px', marginBottom: '1rem' }}
+                    ></i>
+
+                    <Typography variant="h6" color="textSecondary" gutterBottom>
+                      No Posts Yet
+                    </Typography>
+                    {userID == user?.id && (
+                      <>
+                        <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
+                          Share your first post and let the world see your creativity!
+                        </Typography>
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          onClick={() => setCreatePostModalOpen(true)} // Open the CreatePostModal
+                          sx={{
+                            borderRadius: '20px',
+                            padding: '0.5rem 2rem',
+                            textTransform: 'none',
+                            fontSize: '1rem',
+                          }}
+                        >
+                          Create Your First Post
+                        </Button>
+                      </>
+                    )}
+                  </Box>
+                )}
+              </Box>
+            )}
           </Box>
         )}
       </Box>
       <ViewPostModal selectedPost={transformedPost} onClose={closePostModal} />
+      <CreatePostModal
+        isOpen={isCreatePostModalOpen}
+        onClose={() => setCreatePostModalOpen(false)}
+      />
     </Paper>
   );
 };

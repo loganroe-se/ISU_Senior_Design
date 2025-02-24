@@ -47,7 +47,7 @@ const Searchbar: React.FC<SearchbarProps> = ({
         setIsAnimating(true);
         setTimeout(() => {
           setShowSearchBar(false);
-        }, 300); // Match this duration with the animation duration
+        }, 300);
       }
     };
 

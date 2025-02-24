@@ -1,3 +1,4 @@
+import { useUserContext } from '../Auth/UserContext';
 import React, { useEffect, useState } from 'react';
 import {
   Card,
@@ -8,10 +9,9 @@ import {
   IconButton,
   Box,
 } from '@mui/material';
-import { fetchUserByUsername } from '../api/api';
-import { User } from '../types';
+import { fetchUserByUsername, likePost, unlikePost } from '../api/api';
+import { User, Post } from '../types';
 import FavoriteIcon from '@mui/icons-material/Favorite';
-import BookmarkIcon from '@mui/icons-material/Bookmark';
 import CommentIcon from '@mui/icons-material/Comment';
 import { NavLink } from 'react-router-dom';
 
@@ -19,36 +19,57 @@ interface PostCardProps {
   images: string;
   username: string;
   caption: string;
-  onPostClick: (post: any) => void;
-  post: any;
+  onPostClick: (post: Post) => void;
+  post: Post;
 }
 
 const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostClick, post }) => {
-  const [liked, setLiked] = useState(false);
-  const [saved, setSaved] = useState(false);
-
-  const handleLike = () => {
-    setLiked(!liked);
-  };
-
-  const handleSave = () => {
-    setSaved(!saved);
-  };
-
-  const [user, setUser] = useState<User>({ id: 0, username: '', email: '' });
-
-  const linkProps = {
-    user: user, // Pass full user object
-  };
-
-  async function getUser(username: string) {
-    const testUser = await fetchUserByUsername(username);
-    setUser(testUser);
-  }
+  const { user } = useUserContext(); // Get the logged-in user from context
+  const [numLikes, setNumLikes] = useState(post.numLikes);
+  const [userProfile, setUserProfile] = useState<User>({ id: 0, username: '', email: '' });
+  const [likedPosts, setLikedPosts] = useState<Record<number, boolean>>({});
 
   useEffect(() => {
-    getUser(username);
+    async function getUser() {
+      const testUser = await fetchUserByUsername(username);
+      setUserProfile(testUser);
+    }
+    getUser();
   }, [username]);
+
+  const handleLike = async (postID: number) => {
+    if (!user || !user.id) {
+      console.error('User ID not found in context');
+      return;
+    }
+
+    // Toggle the like state in UI immediately
+    setLikedPosts((prevLikes) => ({
+      ...prevLikes,
+      [postID]: !prevLikes[postID],
+    }));
+
+    const isCurrentlyLiked = likedPosts[postID] || false;
+    const updatedLikes = isCurrentlyLiked ? numLikes - 1 : numLikes + 1;
+    setNumLikes(updatedLikes);
+
+    try {
+      if (isCurrentlyLiked) {
+        await unlikePost(user.id, postID);
+      } else {
+        await likePost(user.id, postID);
+      }
+    } catch (error) {
+      console.error('Error updating like:', error);
+
+      // Revert state if there's an error
+      setLikedPosts((prevLikes) => ({
+        ...prevLikes,
+        [postID]: isCurrentlyLiked,
+      }));
+      setNumLikes(isCurrentlyLiked ? numLikes + 1 : numLikes - 1);
+    }
+  };
 
   return (
     <Card
@@ -59,53 +80,27 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
         borderRadius: '12px',
         position: 'relative',
         overflow: 'hidden',
-        cursor:'pointer',
+        cursor: 'pointer',
         '&:hover': {
-          backgroundColor: '#f0f0f0', // Same hover color for the card background
+          backgroundColor: '#f0f0f0',
           '& .image-overlay': {
-            backgroundColor: 'rgba(0, 0, 0, 0.3)', // Darken overlay when hovered
+            backgroundColor: 'rgba(0, 0, 0, 0.3)',
           },
           '& .card-content': {
-            backgroundColor: '#f0f0f0', // Light background for content on hover
+            backgroundColor: '#f0f0f0',
           },
+          '& img': { opacity: 0.7 }, // Apply hover effect to the image itself
         },
       }}
       onClick={() => onPostClick(post)}
     >
-      {/* Image section */}
-      <CardMedia
-        component="img"
-        image={images}
-        alt="Post image"
-        sx={{
-          transition: '0.3s ease', // Smooth transition for image change
-          '&:hover': {
-            filter: 'brightness(0.5)', // Darken the image on hover
-          },
-        }}
-      />
+      <CardMedia component="img" image={images} alt="Post image" />
 
-      {/* Dark overlay for image (on hover) */}
-      <Box
-        className="image-overlay"
-        sx={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0)', // Default state (transparent)
-          zIndex: 1, // Ensure it sits on top of the image
-          transition: 'background-color 0.3s ease', // Smooth transition
-        }}
-      />
-
-      {/* Content of the post */}
-      <CardContent className="card-content" sx={{ zIndex: 2 }}>
+      <CardContent className="card-content">
         <Box sx={{ display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
           <NavLink
             to={{ pathname: '/profile' }}
-            state={linkProps}
+            state={{ user: userProfile }}
             style={{ textDecoration: 'none', color: 'black' }}
           >
             {username}
@@ -117,17 +112,30 @@ const PostCard: React.FC<PostCardProps> = ({ images, username, caption, onPostCl
         </Typography>
       </CardContent>
 
-      {/* Action buttons for the post */}
       <CardActions>
-        <IconButton onClick={handleLike} color={liked ? 'secondary' : 'default'}>
-          <FavoriteIcon />
+        <IconButton
+          onClick={(event) => {
+            event.stopPropagation();
+            handleLike(post.postID);
+          }}
+          color={likedPosts ? 'secondary' : 'default'}
+        >
+          <FavoriteIcon sx={{ color: likedPosts[post.postID] ? 'red' : 'gray' }} />
         </IconButton>
-        <IconButton onClick={handleSave} color={saved ? 'primary' : 'default'}>
-          <BookmarkIcon />
-        </IconButton>
-        <IconButton>
+        <Typography variant="body2" color="text.secondary">
+          {numLikes}
+        </Typography>
+        <IconButton
+          onClick={(event) => {
+            event.stopPropagation();
+            onPostClick(post);
+          }}
+        >
           <CommentIcon />
         </IconButton>
+        <Typography variant="body2" color="text.secondary">
+          {post.numComments}
+        </Typography>
       </CardActions>
     </Card>
   );
