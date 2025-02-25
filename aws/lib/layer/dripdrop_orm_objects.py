@@ -12,6 +12,8 @@ class User(Base):
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     profilePicURL = Column(String(2000), default="default")
+    accountType = Column(String(20), nullable=False, default="FREE_USER")
+    dob = Column(Date, nullable=False)
     # Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
     following = relationship("Follow", foreign_keys="Follow.followerId", back_populates="follower", cascade="all, delete")

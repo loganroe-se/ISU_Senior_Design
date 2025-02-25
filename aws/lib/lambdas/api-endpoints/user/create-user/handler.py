@@ -4,6 +4,7 @@ from sqlalchemy_utils import create_session
 from utils import handle_exception, create_response
 from dripdrop_orm_objects import User
 from passlib.hash import bcrypt
+from datetime import date
 
 def handler(event, context):
     try:
@@ -14,13 +15,14 @@ def handler(event, context):
         username = body.get('username')
         email = body.get('email')
         password = body.get('password')
+        dob = body.get('dob')
 
         # Check for missing, required values
-        if not username or not email or not password:
+        if not username or not email or not password or not dob:
             return create_response(400, 'Missing required field')
         
         # Call another function to create the user
-        status_code, message = createUser(username, email, password)
+        status_code, message = createUser(username, email, password, dob)
 
         # Return message
         return create_response(status_code, message)
@@ -30,7 +32,7 @@ def handler(event, context):
         return create_response(500, f"Error creating user: {str(e)}")
     
 
-def createUser(username, email, password):
+def createUser(username, email, password, dob):
     # Try to create the user
     try:
         # Create the session
@@ -39,8 +41,10 @@ def createUser(username, email, password):
         # Hash the password
         hashed_password = bcrypt.hash(password)
 
+        dob = date.fromisoformat(dob)
+
         # Create a new user
-        new_user = User(username=username, email=email, password=hashed_password)
+        new_user = User(username=username, email=email, password=hashed_password, dob=dob)
 
         # Add the user to the db
         session.add(new_user)

@@ -37,7 +37,9 @@ def getUserByUsername(username):
             user_data = {
                 'id': user.userID,
                 'username': user.username,
-                'email': user.email
+                'email': user.email,
+                'profilePic': user.profilePicURL,
+                'dob': user.dob
             }
 
             return 200, user_data
