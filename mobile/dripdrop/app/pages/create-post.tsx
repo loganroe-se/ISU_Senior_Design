@@ -4,8 +4,8 @@ import { Button, TextInput, Snackbar } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system'; // Import expo-file-system
 import { useRouter } from 'expo-router';
-import { Colors } from '../constants/Colors';
-import { createPost } from './api';
+import { Colors } from '../../constants/Colors';
+import { createPost } from '../api';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function CreatePost() {

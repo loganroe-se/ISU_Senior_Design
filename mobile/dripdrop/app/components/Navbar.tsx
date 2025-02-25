@@ -4,19 +4,22 @@ import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter } from "expo-router";
 
 const { width } = Dimensions.get('window');
-const router = useRouter();
+
+type ValidPageName = "Home" | "Search" | "Post" | "Profile"; 
 
 interface NavItemProps {
     name: string;
-    pageName: string;
+    pageName: ValidPageName;
 }
 
 function NavItem({name, pageName} : NavItemProps) {
+    const router = useRouter();
     function onPress() {
         let route = `/pages/${pageName}`; 
 
         router.push(route);
     }
+    
 
     return (
         <TouchableOpacity onPress={onPress}>
@@ -31,7 +34,6 @@ export default function Navbar({}) {
         <NavItem name="home-outline" pageName="Home" />
         <NavItem name="search-outline" pageName="Search" />
         <NavItem name="create-outline" pageName="Post" />
-        <NavItem name="bookmarks-outline" pageName="Bookmarks" />
         <NavItem name="person-circle-outline" pageName="Profile" />
     </View>
   );

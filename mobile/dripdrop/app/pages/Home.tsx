@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, Alert, Text, StyleSheet } from 'react-native';
-import SearchScreen from '../components/Searchbar';
 import NavScreen from './NavScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
 
