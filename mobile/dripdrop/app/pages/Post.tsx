@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, Image, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import { View, StyleSheet, Image, ScrollView, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { Button, TextInput, Snackbar, Card } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
-import { createPost } from '../api';
+import { createPost } from '../lib/api';
 import { Ionicons } from '@expo/vector-icons';
 import NavScreen from "./NavScreen";
 
@@ -90,10 +90,8 @@ export default function Post() {
         images: [`data:image/jpeg;base64,${base64Image}`],
       };
 
-      console.log('Creating post with payload:', JSON.stringify(newPost));
-
       const createdPost = await createPost(newPost);
-      console.log('Post created successfully:', createdPost);
+      console.log('Post Created by user ' + newPost.userID + ' created successfully:');
 
       setSnackbarVisible(true);
       setCaption('');
@@ -109,65 +107,74 @@ export default function Post() {
 
   return (
     <NavScreen>
-      <ScrollView contentContainerStyle={styles.container}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <ScrollView contentContainerStyle={styles.scrollViewContent}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={28} color="black" />
+          </TouchableOpacity>
 
-        <Card style={styles.cardContainer}>
-          {image ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: image }} style={styles.image} />
-              <Button mode="contained" onPress={removeImage} style={styles.removeButton}>
-                Remove Image
+          <Card style={styles.cardContainer}>
+            {image ? (
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: image }} style={styles.image} />
+                <Button mode="contained" onPress={removeImage} style={[styles.button, styles.removeButton]}>
+                  Remove Image
+                </Button>
+              </View>
+            ) : (
+              <Button mode="contained" onPress={pickImage} style={[styles.button, styles.uploadButton]}>
+                Upload Image
               </Button>
-            </View>
-          ) : (
-            <Button mode="contained" onPress={pickImage} style={styles.uploadButton}>
-              Upload Image
-            </Button>
-          )}
-        </Card>
+            )}
+          </Card>
 
-        <TextInput
-          label="Caption"
-          value={caption}
-          onChangeText={setCaption}
-          mode="outlined"
-          style={styles.input}
-          multiline
-          numberOfLines={4}
-          placeholder="Write a caption..."
-        />
+          <TextInput
+            label="Caption"
+            value={caption}
+            onChangeText={setCaption}
+            mode="outlined"
+            style={styles.input}
+            multiline
+            numberOfLines={4}
+            placeholder="Write a caption..."
+          />
 
-        <Button
-          mode="contained"
-          onPress={handleCreatePost}
-          loading={loading}
-          disabled={loading || !image}
-          style={styles.createButton}
-        >
-          {loading ? 'Creating Post...' : 'Create Post'}
-        </Button>
+          <Button
+            mode="contained"
+            onPress={handleCreatePost}
+            loading={loading}
+            disabled={loading || !image}
+            style={[styles.button, styles.createButton]}
+          >
+            {loading ? 'Creating Post...' : 'Create Post'}
+          </Button>
 
-        <Snackbar
-          visible={snackbarVisible}
-          onDismiss={() => setSnackbarVisible(false)}
-          duration={3000}
-        >
-          Post created successfully!
-        </Snackbar>
-      </ScrollView>
+          <Snackbar
+            visible={snackbarVisible}
+            onDismiss={() => setSnackbarVisible(false)}
+            duration={3000}
+          >
+            Post created successfully!
+          </Snackbar>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </NavScreen>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
+  },
+  scrollViewContent: {
     flexGrow: 1,
     padding: 20,
-    backgroundColor: '#fff',
     alignItems: 'center',
+    justifyContent: 'center', // Ensure center alignment for content
   },
   backButton: {
     position: 'absolute',
@@ -179,32 +186,37 @@ const styles = StyleSheet.create({
     width: '90%',
     padding: 20,
     alignItems: 'center',
-    marginVertical: 10,
+    marginVertical: 20, // More spacing for a cleaner look
+    borderRadius: 12, // Rounded corners for the card
+    elevation: 5, // Shadow effect for the card
   },
   imageContainer: {
     alignItems: 'center',
+    marginBottom: 15,
   },
   image: {
-    width: 300,
-    height: 300,
+    width: 250,
+    height: 250,
     borderRadius: 10,
-    marginBottom: 10,
+    marginBottom: 15,
+  },
+  button: {
+    width: '90%',
+    paddingVertical: 10, // More padding to make buttons larger
   },
   uploadButton: {
-    width: '100%',
     backgroundColor: Colors.light.primary,
   },
   removeButton: {
-    marginTop: 10,
     backgroundColor: 'red',
   },
   input: {
     width: '90%',
     marginBottom: 20,
-    backgroundColor: '#fff',
+    borderRadius: 8,
   },
   createButton: {
-    width: '90%',
     backgroundColor: Colors.light.primary,
+    color: 'white'
   },
 });

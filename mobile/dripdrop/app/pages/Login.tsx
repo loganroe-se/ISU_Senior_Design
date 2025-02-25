@@ -14,6 +14,7 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
   Keyboard,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -21,12 +22,16 @@ export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false); // Loading state
 
   const handleSignIn = async () => {
     if (!email || !password) {
       Alert.alert("Incomplete Fields", "Please fill in all the fields");
       return;
     }
+
+    setLoading(true); // Set loading to true before API call
+
     try {
       const response = await fetch("https://api.dripdropco.com/users/signIn", {
         method: "POST",
@@ -35,6 +40,9 @@ export default function Login() {
         },
         body: JSON.stringify({ email, password }),
       });
+
+      setLoading(false); // Set loading to false after the API call finishes
+
       if (response.ok) {
         console.log("Login Successful");
         router.push("/pages/Home");
@@ -43,13 +51,14 @@ export default function Login() {
         Alert.alert("Login Failed", errorData.error);
       }
     } catch (error) {
+      setLoading(false); // Set loading to false if there's an error
       Alert.alert("Error", "An unexpected error occurred");
     }
   };
 
   const handleAutoLogin = async () => {
-    setEmail("hi@test.com");
-    setPassword("123");
+    setEmail("test");
+    setPassword("test");
     await handleSignIn();
   };
 
@@ -85,7 +94,14 @@ export default function Login() {
               secureTextEntry
               onChangeText={setPassword}
             />
-            <Button title="Sign In" onPress={handleSignIn} />
+
+            {/* Show loading indicator when API is being called */}
+            {loading ? (
+              <ActivityIndicator size="large" color="#5271ff" style={styles.loadingIndicator} />
+            ) : (
+              <Button title="Sign In" onPress={handleSignIn} disabled={loading} />
+            )}
+
             <TouchableOpacity onPress={onGoToSignUp}>
               <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
             </TouchableOpacity>
@@ -142,5 +158,8 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     fontSize: 14,
+  },
+  loadingIndicator: {
+    marginBottom: 20, // Add spacing between the loader and buttons
   },
 });
