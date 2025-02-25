@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { useState } from "react";
 import {
   View,
@@ -9,22 +8,24 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+  SafeAreaView,
+  ScrollView,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from "react-native";
 import { useRouter } from "expo-router";
 
-export default function Login({}) {
+export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      // Show an alert if any field is empty
-      console.log("Incomplete fields");
-      Alert.alert("Incomplete Fields", "Please fill in all the fields", [
-        { text: "OK", onPress: () => console.log("OK Pressed") },
-      ]);
-      return; // Stop execution if fields are not filled
+      Alert.alert("Incomplete Fields", "Please fill in all the fields");
+      return;
     }
     try {
       const response = await fetch("https://api.dripdropco.com/users/signIn", {
@@ -36,27 +37,13 @@ export default function Login({}) {
       });
       if (response.ok) {
         console.log("Login Successful");
-        router.push('/pages/Home');
+        router.push("/pages/Home");
       } else {
-          // Generic error handling for other status codes
-          const errorData = await response.json();
-          console.log("Error" + errorData.error);
-          Alert.alert("Login Failed", errorData.error, [
-            {
-              text: "Try Again",
-              onPress: () => console.log("Try again pressed"),
-            },
-          ]);
-          return;
-        }
-    } catch (error) {
-      if (error instanceof Error) {
-        console.log("Unexpected error");
-        Alert.alert("Error", "An unexpected error occured", [
-          { text: "OK", onPress: () => console.log("OK Pressed") },
-        ]);
-        return;
+        const errorData = await response.json();
+        Alert.alert("Login Failed", errorData.error);
       }
+    } catch (error) {
+      Alert.alert("Error", "An unexpected error occurred");
     }
   };
 
@@ -65,57 +52,66 @@ export default function Login({}) {
     setPassword("123");
     await handleSignIn();
   };
-  const onGoToSignUp = async() => {
-    console.log("User wants to create new account");
-    router.push('/pages/Signup');
-  }
+
+  const onGoToSignUp = () => {
+    router.push("/pages/Signup");
+  };
 
   return (
-    <View style={styles.container}>
-      <Image
-        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
-        style={styles.logo}
-      />
-      <Text style={styles.header}>dripdrop</Text>
-
-      {/* Input fields with state handling */}
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="grey"
-        value={email}
-        onChangeText={setEmail} // Update username state
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="grey"
-        value={password}
-        secureTextEntry
-        onChangeText={setPassword} // Update password state
-      />
-
-      {/* Sign-up Button */}
-      <Button title="Sign In" onPress={handleSignIn} />
-
-      <TouchableOpacity onPress={onGoToSignUp}>
+    <SafeAreaView style={styles.safeArea}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.container}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <ScrollView contentContainerStyle={styles.scrollView}>
+            <Image
+              source={require("../../public/dripdrop_logo.png")}
+              style={styles.logo}
+            />
+            <Text style={styles.header}>dripdrop</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Email"
+              placeholderTextColor="grey"
+              value={email}
+              onChangeText={setEmail}
+            />
+            <TextInput
+              style={styles.input}
+              placeholder="Password"
+              placeholderTextColor="grey"
+              value={password}
+              secureTextEntry
+              onChangeText={setPassword}
+            />
+            <Button title="Sign In" onPress={handleSignIn} />
+            <TouchableOpacity onPress={onGoToSignUp}>
               <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={handleAutoLogin}>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleAutoLogin}>
               <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
-      </TouchableOpacity>
-
-
-    </View>
+            </TouchableOpacity>
+          </ScrollView>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
     justifyContent: "center",
     padding: 20,
+  },
+  scrollView: {
+    alignItems: "center",
+    justifyContent: "center",
+    flexGrow: 1,
   },
   header: {
     fontSize: 24,
@@ -136,15 +132,15 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   logo: {
-    width: 100, // Adjust based on your image's dimensions
-    height: 100, // Adjust based on your image's dimensions
-    marginBottom: 10, // Space between the image and the text
-    alignSelf: "center", // To center the image horizontally
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+    alignSelf: "center",
   },
   signUpText: {
     color: "blue",
     textAlign: "center",
     marginTop: 20,
     fontSize: 14,
-  }
+  },
 });
