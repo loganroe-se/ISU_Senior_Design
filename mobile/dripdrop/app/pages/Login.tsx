@@ -9,6 +9,7 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  ActivityIndicator
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -17,6 +18,8 @@ export default function Login({}) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false); //Loading state
+  
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -27,6 +30,7 @@ export default function Login({}) {
       ]);
       return; // Stop execution if fields are not filled
     }
+    setIsLoading(true); 
     try {
       const response = await fetch("https://api.dripdropco.com/users/signIn", {
         method: "POST",
@@ -67,6 +71,8 @@ export default function Login({}) {
         ]);
         return;
       }
+    } finally {
+      setIsLoading(false); 
     }
   };
 
@@ -115,7 +121,12 @@ export default function Login({}) {
               <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
       </TouchableOpacity>
 
-
+    {/* Loading Spinner */}
+          {isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#5271ff" />
+            </View>
+          )}
     </View>
   );
 }
@@ -155,5 +166,16 @@ const styles = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
     fontSize: 14,
-  }
+  },
+  loadingContainer: { 
+    position: "absolute", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    justifyContent: "center", 
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
+    zIndex: 1, // Ensure it's above all other content
+  },
 });
