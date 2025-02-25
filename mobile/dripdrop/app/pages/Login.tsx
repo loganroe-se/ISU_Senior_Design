@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import { useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login({}) {
   const router = useRouter();
@@ -36,6 +37,15 @@ export default function Login({}) {
       });
       if (response.ok) {
         console.log("Login Successful");
+
+         // Save email and username (assuming you get a username as part of the response)
+         const responseData = await response.json(); 
+         const username = responseData.username; // Adjust this based on actual response structure
+ 
+         // Store email and username in AsyncStorage
+         await AsyncStorage.setItem('email', email);
+         await AsyncStorage.setItem('username', username);
+
         router.push('/pages/Home');
       } else {
           // Generic error handling for other status codes
@@ -63,7 +73,6 @@ export default function Login({}) {
   const handleAutoLogin = async () => {
     setEmail("hi@test.com");
     setPassword("123");
-    await handleSignIn();
   };
   const onGoToSignUp = async() => {
     console.log("User wants to create new account");

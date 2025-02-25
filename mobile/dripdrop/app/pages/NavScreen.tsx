@@ -1,7 +1,5 @@
 import React from "react";
 import { View, Dimensions, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
-import Icon from 'react-native-vector-icons/Ionicons';
-import { useRouter } from "expo-router";
 import Navbar from "@/components/navigation/Navbar";
 
 interface NavScreenProps {

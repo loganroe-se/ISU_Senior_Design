@@ -1,178 +1,147 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  Image,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
+import { View, Text, TextInput, Button, StyleSheet, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
+import Modal from 'react-native-modal';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 const SignUpScreen = () => {
-  // Define state for each input field
   const router = useRouter();
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [birthday, setBirthday] = useState(new Date()); // Store birthday as Date object
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false); //Loading state
 
-  // Function to handle the sign-up process
-  const handleSignUp = async() => {
-    // Check if any of the fields are empty
+  const handleSignUp = async () => {
     if (!username || !email || !password || !confirmPassword) {
-      // Show an alert if any field is empty
-      console.log("Incomplete fields");
       Alert.alert("Incomplete Fields", "Please fill in all the fields", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
-      return; // Stop execution if fields are not filled
+      return;
     }
-    if (password != confirmPassword) {
-      console.log("Passwords do not match");
+
+    if (password !== confirmPassword) {
       Alert.alert("Invalid Input", "Passwords do not match", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
-      return; // Stop execution if fields are not filled
+      return;
     }
 
-    try {
-      const response = await fetch('https://api.dripdropco.com/users', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, email, password }),
-      });
-      if (response.ok) {
-        console.log("Sign up successful");
-        Alert.alert("Success", "Account succesfully created", [
-          { text: "OK", onPress: () => console.log("Ok pressed") },
-        ]);
-        router.push("/pages/Login");
-      } else {
-        if (response.status === 409) {
-          console.log("409 error: account already exists");
-          // Handle the specific case of a duplicate entry
-          Alert.alert("Error", "An account with this email or username already exists", [
-            { text: "Try Again", onPress: () => console.log("Try again pressed") },
+    setModalVisible(true); // Show the modal to select birthday
+  };
+
+  const handleBirthdaySelect = async () => {
+    const formattedBirthday = birthday.toISOString().split('T')[0]; // Format as 'YYYY-MM-DD'
+    
+    const birthDate = new Date(formattedBirthday);
+    const age = new Date().getFullYear() - birthDate.getFullYear();
+    const monthDifference = new Date().getMonth() - birthDate.getMonth();
+
+    if (age > 13 || (age === 13 && monthDifference >= 0)) {
+      setModalVisible(false);
+      setIsLoading(true); 
+      try {
+        const response = await fetch('https://api.dripdropco.com/users', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, email, password, birthday: formattedBirthday }),
+        });
+
+        if (response.ok) {
+          console.log("Sign up successful");
+          Alert.alert("Success", "Account successfully created", [
+            { text: "OK", onPress: () => console.log("Ok pressed") },
           ]);
-          return; 
+          router.push("/pages/Login"); // Navigate to the login page
         } else {
-          // Generic error handling for other status codes
           const errorData = await response.json();
-          console.log("Error" + errorData.error);
           Alert.alert("Error", errorData.error, [
             { text: "Try Again", onPress: () => console.log("Try again pressed") },
           ]);
-          return; 
         }
-      }
-    } catch (error) {
-      if (error instanceof Error){
-        console.log("Unexpected error");
-        Alert.alert("Error", "An unexpected error occured", [
+      } catch (error) {
+        Alert.alert("Error", "An unexpected error occurred", [
           { text: "OK", onPress: () => console.log("OK Pressed") },
         ]);
-        return; 
       }
+      setIsLoading(false);
+      
+    } else {
+      Alert.alert("Age Restriction", "Must be 13 years or older to use this application", [
+        { text: "OK", onPress: () => setModalVisible(false) },
+      ]);
+    }
   };
-  };
-  const onGoToSignIn = async() => {
-    console.log("User already has account, go to login page");
+
+  const onGoToSignIn = () => {
+    console.log("User already has an account, go to login page");
     router.push('/pages/Login');
-  }
+  };
+
   return (
     <View style={styles.container}>
-      <Image
-        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
-        style={styles.logo}
-      />
+      <Image source={require("../../public/dripdrop_logo.png")} style={styles.logo} />
       <Text style={styles.header}>dripdrop</Text>
 
-      {/* Input fields with state handling */}
-      <TextInput
-        style={styles.input}
-        placeholder="Username" 
-        placeholderTextColor="grey"
-        value={username}
-        onChangeText={setUsername} // Update username state
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        placeholderTextColor="grey"
-        value={email}
-        onChangeText={setEmail} // Update email state
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="grey"
-        value={password}
-        secureTextEntry
-        onChangeText={setPassword} // Update password state
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm Password"
-        placeholderTextColor="grey"
-        value={confirmPassword}
-        secureTextEntry
-        onChangeText={setConfirmPassword} // Update confirmPassword state
-      />
+      <TextInput style={styles.input} placeholder="Username" placeholderTextColor="grey" value={username} onChangeText={setUsername} />
+      <TextInput style={styles.input} placeholder="Email" placeholderTextColor="grey" value={email} onChangeText={setEmail} />
+      <TextInput style={styles.input} placeholder="Password" placeholderTextColor="grey" secureTextEntry value={password} onChangeText={setPassword} />
+      <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="grey" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
-      {/* Sign-up Button */}
       <Button title="Sign Up" onPress={handleSignUp} />
-
-
-      {/* Clickable Text for Existing Users */}
       <TouchableOpacity onPress={onGoToSignIn}>
         <Text style={styles.signInText}>Already have an account? Sign In</Text>
       </TouchableOpacity>
 
+      <Modal isVisible={isModalVisible}>
+        <View style={styles.modalContent}>
+          <Text style={styles.modalText}>Select Your Birthday</Text>
+          <DateTimePicker
+            style={styles.datePicker}
+            value={birthday}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              const currentDate = selectedDate || birthday;
+              setBirthday(currentDate); // Update state with selected date
+            }}
+          />
+          <Button title="Cancel" onPress={() => setModalVisible(false)} />
+          <Button title="Confirm" onPress={handleBirthdaySelect} />
+        </View>
+      </Modal>
+      {/* Loading Spinner */}
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5271ff" />
+        </View>
+      )}
     </View>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
+  container: { flex: 1, justifyContent: "center", padding: 20 },
+  header: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#5271ff" },
+  input: { height: 40, width: "80%", borderColor: "grey", borderWidth: 1, marginBottom: 15, paddingLeft: 10, borderRadius: 5, color: "black", alignSelf: "center" },
+  logo: { width: 100, height: 100, marginBottom: 10, alignSelf: "center" },
+  signInText: { color: "blue", textAlign: "center", marginTop: 20, fontSize: 14 },
+  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
+  modalText: { fontSize: 18, marginBottom: 10 },
+  datePicker: { width: "80%", marginBottom: 20 },
+  loadingContainer: { 
+    position: "absolute", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    justifyContent: "center", 
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
+    zIndex: 1, // Ensure it's above all other content
   },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#5271ff",
-  },
-  input: {
-    height: 40,
-    width: "80%",
-    borderColor: "grey",
-    borderWidth: 1,
-    marginBottom: 15,
-    paddingLeft: 10,
-    borderRadius: 5,
-    color: "black",
-    alignSelf: "center",
-  },
-  logo: {
-    width: 100, // Adjust based on your image's dimensions
-    height: 100, // Adjust based on your image's dimensions
-    marginBottom: 10, // Space between the image and the text
-    alignSelf: "center", // To center the image horizontally
-  },
-  signInText: {
-    color: "blue",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 14,
-  }
 });
 
 export default SignUpScreen;
