@@ -104,21 +104,15 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
   }, [user, userID]);
 
   useEffect(() => {
-    if (userID) {
-      fetchPosts();
-    }
+    fetchPosts();
   }, [fetchPosts]);
 
   useEffect(() => {
-    if (userID) {
-      getUser();
-    }
+    getUser();
   }, [getUser]);
 
   useEffect(() => {
-    if (userID) {
-      getFollowersAndFollowing();
-    }
+    getFollowersAndFollowing();
   }, [getFollowersAndFollowing]);
 
   useEffect(() => {
@@ -414,7 +408,7 @@ const Profile: React.FC<ProfileProps> = ({ initialTabIndex }) => {
                     <Typography variant="h6" color="textSecondary" gutterBottom>
                       No Posts Yet
                     </Typography>
-                    {userID == user?.id && (
+                    {userID === user?.id && (
                       <>
                         <Typography variant="body1" color="textSecondary" sx={{ mb: 2 }}>
                           Share your first post and let the world see your creativity!
