@@ -79,6 +79,7 @@ def getFeed(userID, limit: int = 20):
                 ],
                 "numLikes": len(post.likes),
                 "numComments": len(post.comments),
+                "userHasLiked": userID in {like.userID for like in post.likes},
             } for post in feed_posts
         ]
 

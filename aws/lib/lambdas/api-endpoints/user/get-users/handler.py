@@ -26,7 +26,7 @@ def getUsers():
         users_result = session.execute(select(User)).scalars().all()  # Get a list of user objects
 
         # Create a list of user dictionaries directly
-        users_list = [{'username': user.username, 'email': user.email, 'id': user.userID, 'dob': user.dob, 'accountType': user.accountType} for user in users_result]
+        users_list = [{'username': user.username, 'email': user.email, 'id': user.userID, 'dob': user.dob.isoformat(), 'accountType': user.accountType} for user in users_result]
         
         # Return message
         return 200, users_list

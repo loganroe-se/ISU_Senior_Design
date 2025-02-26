@@ -39,7 +39,7 @@ def getUserByUsername(username):
                 'username': user.username,
                 'email': user.email,
                 'profilePic': user.profilePicURL,
-                'dob': user.dob,
+                'dob': user.dob.isoformat(),
                 'accountType': user.accountType
             }
 
