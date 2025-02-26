@@ -71,7 +71,7 @@ export default function Post() {
     setImage(null);
   };
 
-  const handleCreatePost = async () => {
+  const handleContinue = async () => {
     if (!image) {
       alert('Please select an image first!');
       return;
@@ -90,13 +90,22 @@ export default function Post() {
         images: [`data:image/jpeg;base64,${base64Image}`],
       };
 
-      const createdPost = await createPost(newPost);
-      console.log('Post Created by user ' + newPost.userID + ' created successfully:');
+      await createPost(newPost);
+      console.log('Post Created by user ' + newPost.userID + ' successfully.');
 
       setSnackbarVisible(true);
       setCaption('');
       setImage(null);
-      router.back();
+
+      // Navigate to ProcessingScreen
+      router.push({
+        pathname: '/pages/ProcessingPost',
+        params: {
+          caption: caption,
+          image: image,
+        },
+      });
+
     } catch (error) {
       console.error('Error creating post:', error);
       alert('Failed to create post. Please try again.');
@@ -104,6 +113,7 @@ export default function Post() {
       setLoading(false);
     }
   };
+
 
   return (
     <NavScreen>
@@ -142,16 +152,23 @@ export default function Post() {
             numberOfLines={4}
             placeholder="Write a caption..."
           />
-
           <Button
             mode="contained"
-            onPress={handleCreatePost}
+            onPress={handleContinue}
             loading={loading}
-            disabled={loading || !image}
-            style={[styles.button, styles.createButton]}
+            disabled={loading || !image || caption.trim() === ''}
+            style={[
+              styles.button,
+              {
+                backgroundColor: loading || !image || caption.trim() === ''
+                  ? 'gray' // Disabled state color
+                  : Colors.light.primary, // Primary color when enabled
+              },
+            ]}
           >
             {loading ? 'Loading...' : 'Continue'}
           </Button>
+
 
           <Snackbar
             visible={snackbarVisible}
@@ -172,9 +189,10 @@ const styles = StyleSheet.create({
   },
   scrollViewContent: {
     flexGrow: 1,
+    flex: 1, // Ensures it fills available space
     padding: 20,
     alignItems: 'center',
-    justifyContent: 'center', // Ensure center alignment for content
+    justifyContent: 'center', // Centers content vertically
   },
   backButton: {
     position: 'absolute',
@@ -186,9 +204,9 @@ const styles = StyleSheet.create({
     width: '90%',
     padding: 20,
     alignItems: 'center',
-    marginVertical: 20, // More spacing for a cleaner look
-    borderRadius: 12, // Rounded corners for the card
-    elevation: 5, // Shadow effect for the card
+    marginVertical: 20, // Keeps spacing consistent
+    borderRadius: 12,
+    elevation: 5,
   },
   imageContainer: {
     alignItems: 'center',
@@ -201,8 +219,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   button: {
-    width: '90%',
-    paddingVertical: 10, // More padding to make buttons larger
+    width: '100%',
+    paddingVertical: 10,
   },
   uploadButton: {
     backgroundColor: Colors.light.primary,
@@ -215,8 +233,5 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderRadius: 8,
   },
-  createButton: {
-    backgroundColor: Colors.light.primary,
-    color: 'white'
-  },
 });
+
