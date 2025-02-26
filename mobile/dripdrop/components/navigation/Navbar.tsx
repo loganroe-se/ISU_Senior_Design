@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Dimensions, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
+import { View, Dimensions, StyleSheet, TouchableOpacity } from "react-native";
 import Icon from 'react-native-vector-icons/Ionicons';
 import { useRouter } from "expo-router";
 
@@ -15,7 +15,7 @@ function NavItem({name, pageName} : NavItemProps) {
     function onPress() {
         let route = `/pages/${pageName}`; 
 
-        router.push(route);
+        router.push(route as any);
     }
 
     return (
