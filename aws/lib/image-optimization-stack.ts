@@ -37,7 +37,7 @@ var S3_TRANSFORMED_IMAGE_EXPIRATION_DURATION = "90";
 var S3_TRANSFORMED_IMAGE_CACHE_TTL = "max-age=31622400";
 // Max image size in bytes. If generated images are stored on S3, bigger images are generated, stored on S3
 // and request is redirect to the generated image. Otherwise, an application error is sent.
-var MAX_IMAGE_SIZE = "4700000";
+var MAX_IMAGE_SIZE = "6291456";
 // Lambda Parameters
 var LAMBDA_MEMORY = "1500";
 var LAMBDA_TIMEOUT = "60";
@@ -91,11 +91,6 @@ export class ImageOptimizationStack extends Stack {
         autoDeleteObjects: true,
       }
     );
-
-    new CfnOutput(this, "OriginalImagesS3Bucket", {
-      description: "S3 bucket where original images are stored",
-      value: originalImageBucket.bucketName,
-    });
 
     transformedImageBucket = new s3.Bucket(
       this,
@@ -296,5 +291,12 @@ export class ImageOptimizationStack extends Stack {
       description: "Domain name of image delivery",
       value: imageDelivery.distributionDomainName,
     });
+
+    new CfnOutput(this, "OriginalImagesS3BucketOutput", {
+      description: "S3 bucket where original images are stored",
+      value: originalImageBucket.bucketArn,
+      exportName: "OriginalImagesS3Bucket"
+    });
+    
   }
 }
