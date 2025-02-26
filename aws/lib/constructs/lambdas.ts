@@ -125,6 +125,14 @@ export class LambdasConstruct extends Construct {
       ),
     };
 
+    this.userLambdas["updateUserLambda"].addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        resources: [Fn.importValue("OriginalImagesS3Bucket")],
+        actions: ["s3:PutObject"],
+      })
+    );
+
     this.hasSeenLambdas = {
       markAsSeenLambda: createLambda(
         "MarkAsSeenLambda",

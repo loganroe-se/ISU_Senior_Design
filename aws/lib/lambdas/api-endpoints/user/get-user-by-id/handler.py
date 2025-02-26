@@ -38,7 +38,8 @@ def getUserById(user_id):
                 'username': user.username,
                 'email': user.email,
                 'profilePic': user.profilePicURL,
-                'dob': user.dob
+                'dob': user.dob,
+                'accountType': user.accountType
             }
             return 200, user_data
         else:
