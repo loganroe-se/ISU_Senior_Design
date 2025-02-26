@@ -1,6 +1,5 @@
 // lib/api-stack.ts
 import * as cdk from "aws-cdk-lib";
-import { ApiConstruct } from "./constructs/api-construct";
 import { DnsConstruct } from "./constructs/dns";
 import { VpcConstruct } from "./constructs/vpc";
 import { DatabaseConstruct } from "./constructs/database";
