@@ -1,20 +1,4 @@
 import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  StyleSheet,
-  Image,
-  Alert,
-  TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
-  SafeAreaView,
-} from "react-native";
-import { useRouter } from "expo-router";
 import { View, Text, TextInput, Button, StyleSheet, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import Modal from 'react-native-modal';
@@ -31,17 +15,12 @@ const SignUpScreen = () => {
   const [isLoading, setIsLoading] = useState(false); //Loading state
 
   const handleSignUp = async () => {
-  const handleSignUp = async () => {
     if (!username || !email || !password || !confirmPassword) {
-      console.log("Incomplete fields");
       Alert.alert("Incomplete Fields", "Please fill in all the fields", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
       ]);
       return;
-      return;
     }
-    if (password !== confirmPassword) {
-      console.log("Passwords do not match");
 
     if (password !== confirmPassword) {
       Alert.alert("Invalid Input", "Passwords do not match", [
@@ -50,45 +29,19 @@ const SignUpScreen = () => {
       return;
     }
 
-    try {
-      const response = await fetch("https://api.dripdropco.com/users", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, email, password }),
-      });
-
-      if (response.ok) {
-        console.log("Sign up successful");
-        Alert.alert("Success", "Account successfully created", [
-          { text: "OK", onPress: () => console.log("Ok pressed") },
-        ]);
-        router.push("/pages/Login");
-      } else {
-        if (response.status === 409) {
-          console.log("409 error: account already exists");
-          Alert.alert(
-            "Error",
-            "An account with this email or username already exists",
-            [{ text: "Try Again", onPress: () => console.log("Try again pressed") }]
-          );
-      return;
-    }
-
     setModalVisible(true); // Show the modal to select birthday
   };
 
   const handleBirthdaySelect = async () => {
     const formattedBirthday = birthday.toISOString().split('T')[0]; // Format as 'YYYY-MM-DD'
-    
+
     const birthDate = new Date(formattedBirthday);
     const age = new Date().getFullYear() - birthDate.getFullYear();
     const monthDifference = new Date().getMonth() - birthDate.getMonth();
 
     if (age > 13 || (age === 13 && monthDifference >= 0)) {
       setModalVisible(false);
-      setIsLoading(true); 
+      setIsLoading(true);
       try {
         const response = await fetch('https://api.dripdropco.com/users', {
           method: 'POST',
@@ -108,21 +61,13 @@ const SignUpScreen = () => {
             { text: "Try Again", onPress: () => console.log("Try again pressed") },
           ]);
         }
-      }
-    } catch (error) {
-      console.log("Unexpected error");
-      Alert.alert("Error", "An unexpected error occurred", [
-        { text: "OK", onPress: () => console.log("OK Pressed") },
-      ]);
-    }
-        }
       } catch (error) {
         Alert.alert("Error", "An unexpected error occurred", [
           { text: "OK", onPress: () => console.log("OK Pressed") },
         ]);
       }
       setIsLoading(false);
-      
+
     } else {
       Alert.alert("Age Restriction", "Must be 13 years or older to use this application", [
         { text: "OK", onPress: () => setModalVisible(false) },
@@ -132,41 +77,19 @@ const SignUpScreen = () => {
 
   const onGoToSignIn = () => {
     console.log("User already has an account, go to login page");
-    router.push("/pages/Login");
-  };
-
-
-  const onGoToSignIn = () => {
-    console.log("User already has an account, go to login page");
     router.push('/pages/Login');
   };
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.container}>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <View style={styles.inner}>
-            <Image source={require("../../public/dripdrop_logo.png")} style={styles.logo} />
-            <Text style={styles.header}>dripdrop</Text>
+    <View style={styles.container}>
+      <Image source={require("../../public/dripdrop_logo.png")} style={styles.logo} />
+      <Text style={styles.header}>dripdrop</Text>
 
-            <TextInput style={styles.input} placeholder="Username" placeholderTextColor="grey" value={username} onChangeText={setUsername} />
-            <TextInput style={styles.input} placeholder="Email" placeholderTextColor="grey" value={email} onChangeText={setEmail} />
-            <TextInput style={styles.input} placeholder="Password" placeholderTextColor="grey" value={password} secureTextEntry onChangeText={setPassword} />
-            <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="grey" value={confirmPassword} secureTextEntry onChangeText={setConfirmPassword} />
       <TextInput style={styles.input} placeholder="Username" placeholderTextColor="grey" value={username} onChangeText={setUsername} />
       <TextInput style={styles.input} placeholder="Email" placeholderTextColor="grey" value={email} onChangeText={setEmail} />
       <TextInput style={styles.input} placeholder="Password" placeholderTextColor="grey" secureTextEntry value={password} onChangeText={setPassword} />
       <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="grey" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
-            <Button title="Sign Up" onPress={handleSignUp} />
-
-            <TouchableOpacity onPress={onGoToSignIn}>
-              <Text style={styles.signInText}>Already have an account? Sign In</Text>
-            </TouchableOpacity>
-          </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
       <Button title="Sign Up" onPress={handleSignUp} />
       <TouchableOpacity onPress={onGoToSignIn}>
         <Text style={styles.signInText}>Already have an account? Sign In</Text>
@@ -200,51 +123,6 @@ const SignUpScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#fff",
-    width: '100%',
-  },
-  container: {
-    flex: 1,
-    justifyContent: "center",
-    padding: 20,
-  },
-  inner: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-    color: "#5271ff",
-  },
-  input: {
-    height: 40,
-    width: "80%",
-    borderColor: "grey",
-    borderWidth: 1,
-    marginBottom: 15,
-    paddingLeft: 10,
-    borderRadius: 5,
-    color: "black",
-    alignSelf: "center",
-  },
-  logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 10,
-    alignSelf: "center",
-  },
-  signInText: {
-    color: "blue",
-    textAlign: "center",
-    marginTop: 20,
-    fontSize: 14,
-  },
   container: { flex: 1, justifyContent: "center", padding: 20 },
   header: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#5271ff" },
   input: { height: 40, width: "80%", borderColor: "grey", borderWidth: 1, marginBottom: 15, paddingLeft: 10, borderRadius: 5, color: "black", alignSelf: "center" },
@@ -253,13 +131,13 @@ const styles = StyleSheet.create({
   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
   modalText: { fontSize: 18, marginBottom: 10 },
   datePicker: { width: "80%", marginBottom: 20 },
-  loadingContainer: { 
-    position: "absolute", 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    bottom: 0, 
-    justifyContent: "center", 
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
     zIndex: 1, // Ensure it's above all other content

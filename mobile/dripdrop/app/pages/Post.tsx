@@ -99,7 +99,7 @@ export default function Post() {
 
       // Navigate to ProcessingScreen
       router.push({
-        pathname: '/pages/ProcessingPost',
+        pathname: '/pages/ProcessingPost' as any,
         params: {
           caption: caption,
           image: image,

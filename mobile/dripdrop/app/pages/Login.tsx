@@ -1,5 +1,7 @@
+import axios from "axios";
 import React, { useState } from "react";
 import {
+  View,
   Text,
   TextInput,
   Button,
@@ -8,23 +10,16 @@ import {
   Alert,
   TouchableOpacity,
   ActivityIndicator
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  ScrollView,
-  TouchableWithoutFeedback,
-  Keyboard,
-  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-export default function Login() {
+export default function Login({ }) {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false); //Loading state
-  
+
 
   const handleSignIn = async () => {
     if (!email || !password) {
@@ -35,7 +30,7 @@ export default function Login() {
       ]);
       return; // Stop execution if fields are not filled
     }
-    setIsLoading(true); 
+    setIsLoading(true);
     try {
       const response = await fetch("https://api.dripdropco.com/users/signIn", {
         method: "POST",
@@ -44,24 +39,29 @@ export default function Login() {
         },
         body: JSON.stringify({ email, password }),
       });
-
-      setLoading(false); // Set loading to false after the API call finishes
-
       if (response.ok) {
         console.log("Login Successful");
 
-         // Save email and username (assuming you get a username as part of the response)
-         const responseData = await response.json(); 
-         const username = responseData.username; // Adjust this based on actual response structure
- 
-         // Store email and username in AsyncStorage
-         await AsyncStorage.setItem('email', email);
-         await AsyncStorage.setItem('username', username);
+        // Save email and username (assuming you get a username as part of the response)
+        const responseData = await response.json();
+        const username = responseData.username; // Adjust this based on actual response structure
+
+        // Store email and username in AsyncStorage
+        await AsyncStorage.setItem('email', email);
+        await AsyncStorage.setItem('username', username);
 
         router.push('/pages/Home');
       } else {
+        // Generic error handling for other status codes
         const errorData = await response.json();
-        Alert.alert("Login Failed", errorData.error);
+        console.log("Error" + errorData.error);
+        Alert.alert("Login Failed", errorData.error, [
+          {
+            text: "Try Again",
+            onPress: () => console.log("Try again pressed"),
+          },
+        ]);
+        return;
       }
     } catch (error) {
       if (error instanceof Error) {
@@ -72,85 +72,70 @@ export default function Login() {
         return;
       }
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
     }
   };
 
   const handleAutoLogin = async () => {
-    setEmail("test");
-    setPassword("test");
+    setEmail("hi@test.com");
+    setPassword("123");
   };
-
-  const onGoToSignUp = () => {
-    router.push("/pages/Signup");
-  };
+  const onGoToSignUp = async () => {
+    console.log("User wants to create new account");
+    router.push('/pages/Signup');
+  }
 
   return (
-    <SafeAreaView style={styles.safeArea}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.container}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={styles.scrollView}>
-            <Image
-              source={require("../../public/dripdrop_logo.png")}
-              style={styles.logo}
-            />
-            <Text style={styles.header}>dripdrop</Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor="grey"
-              value={email}
-              onChangeText={setEmail}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Password"
-              placeholderTextColor="grey"
-              value={password}
-              secureTextEntry
-              onChangeText={setPassword}
-            />
+    <View style={styles.container}>
+      <Image
+        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
+        style={styles.logo}
+      />
+      <Text style={styles.header}>dripdrop</Text>
 
-            {/* Show loading indicator when API is being called */}
-            {loading ? (
-              <ActivityIndicator size="large" color="#5271ff" style={styles.loadingIndicator} />
-            ) : (
-              <Button title="Sign In" onPress={handleSignIn} disabled={loading} />
-            )}
+      {/* Input fields with state handling */}
+      <TextInput
+        style={styles.input}
+        placeholder="Email"
+        placeholderTextColor="grey"
+        value={email}
+        onChangeText={setEmail} // Update username state
+      />
+      <TextInput
+        style={styles.input}
+        placeholder="Password"
+        placeholderTextColor="grey"
+        value={password}
+        secureTextEntry
+        onChangeText={setPassword} // Update password state
+      />
 
-            <TouchableOpacity onPress={onGoToSignUp}>
-              <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleAutoLogin}>
-              <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
+      {/* Sign-up Button */}
+      <Button title="Sign In" onPress={handleSignIn} />
+
+      <TouchableOpacity onPress={onGoToSignUp}>
+        <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
 
-    {/* Loading Spinner */}
-          {isLoading && (
-            <View style={styles.loadingContainer}>
-              <ActivityIndicator size="large" color="#5271ff" />
-            </View>
-          )}
+      <TouchableOpacity onPress={handleAutoLogin}>
+        <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
+      </TouchableOpacity>
+
+      {/* Loading Spinner */}
+      {isLoading && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5271ff" />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
     justifyContent: "center",
     padding: 20,
-  },
-  scrollView: {
-    alignItems: "center",
-    justifyContent: "center",
-    flexGrow: 1,
   },
   header: {
     fontSize: 24,
@@ -171,10 +156,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   logo: {
-    width: 100,
-    height: 100,
-    marginBottom: 10,
-    alignSelf: "center",
+    width: 100, // Adjust based on your image's dimensions
+    height: 100, // Adjust based on your image's dimensions
+    marginBottom: 10, // Space between the image and the text
+    alignSelf: "center", // To center the image horizontally
   },
   signUpText: {
     color: "blue",
@@ -182,13 +167,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 14,
   },
-  loadingContainer: { 
-    position: "absolute", 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    bottom: 0, 
-    justifyContent: "center", 
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
     zIndex: 1, // Ensure it's above all other content
