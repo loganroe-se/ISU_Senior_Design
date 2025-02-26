@@ -6,7 +6,7 @@ from sqlalchemy_utils import create_db_engine, get_connection_string, get_db_cre
 from dripdrop_orm_objects import Base
 
 # Fetch environment variables
-DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
+DB_ENDPOINT = os.getenv("DB_ENDPOINT")
 DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")
