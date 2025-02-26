@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet } from "react-native";
+import { View, Dimensions, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
 import Navbar from "@/components/navigation/Navbar";
 import { SafeAreaView } from 'react-native';
 

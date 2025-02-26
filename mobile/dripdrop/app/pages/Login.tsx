@@ -7,6 +7,7 @@ import {
   Image,
   Alert,
   TouchableOpacity,
+  ActivityIndicator
   KeyboardAvoidingView,
   Platform,
   SafeAreaView,
@@ -16,21 +17,25 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function Login() {
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false); // Loading state
+  const [isLoading, setIsLoading] = useState(false); //Loading state
+  
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      Alert.alert("Incomplete Fields", "Please fill in all the fields");
-      return;
+      // Show an alert if any field is empty
+      console.log("Incomplete fields");
+      Alert.alert("Incomplete Fields", "Please fill in all the fields", [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+      return; // Stop execution if fields are not filled
     }
-
-    setLoading(true); // Set loading to true before API call
-
+    setIsLoading(true); 
     try {
       const response = await fetch("https://api.dripdropco.com/users/signIn", {
         method: "POST",
@@ -44,21 +49,36 @@ export default function Login() {
 
       if (response.ok) {
         console.log("Login Successful");
-        router.push("/pages/Home");
+
+         // Save email and username (assuming you get a username as part of the response)
+         const responseData = await response.json(); 
+         const username = responseData.username; // Adjust this based on actual response structure
+ 
+         // Store email and username in AsyncStorage
+         await AsyncStorage.setItem('email', email);
+         await AsyncStorage.setItem('username', username);
+
+        router.push('/pages/Home');
       } else {
         const errorData = await response.json();
         Alert.alert("Login Failed", errorData.error);
       }
     } catch (error) {
-      setLoading(false); // Set loading to false if there's an error
-      Alert.alert("Error", "An unexpected error occurred");
+      if (error instanceof Error) {
+        console.log("Unexpected error");
+        Alert.alert("Error", "An unexpected error occured", [
+          { text: "OK", onPress: () => console.log("OK Pressed") },
+        ]);
+        return;
+      }
+    } finally {
+      setIsLoading(false); 
     }
   };
 
   const handleAutoLogin = async () => {
     setEmail("test");
     setPassword("test");
-    await handleSignIn();
   };
 
   const onGoToSignUp = () => {
@@ -106,11 +126,15 @@ export default function Login() {
             </TouchableOpacity>
             <TouchableOpacity onPress={handleAutoLogin}>
               <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+      </TouchableOpacity>
+
+    {/* Loading Spinner */}
+          {isLoading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color="#5271ff" />
+            </View>
+          )}
+    </View>
   );
 }
 
@@ -158,7 +182,15 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 14,
   },
-  loadingIndicator: {
-    marginBottom: 20, // Add spacing between the loader and buttons
+  loadingContainer: { 
+    position: "absolute", 
+    top: 0, 
+    left: 0, 
+    right: 0, 
+    bottom: 0, 
+    justifyContent: "center", 
+    alignItems: "center",
+    backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
+    zIndex: 1, // Ensure it's above all other content
   },
 });

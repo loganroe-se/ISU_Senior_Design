@@ -48,7 +48,7 @@ build website:
       - website/dripdrop/build/ 
     when: always
   rules:
-    - if: $CI_COMMIT_REF_NAME
+    - if: '$CI_COMMIT_REF_NAME == "master"'
       changes:
         - website/dripdrop/**/*
         - aws/lib/constructs/static-site.ts
@@ -164,55 +164,3 @@ aws-cdk-deploy-api:
       changes:
         - aws/lib/constructs/api-construct.ts
         - aws/lib/layer/api-stack.ts
-
-# BRANCH DEPLOY
-
-aws_cdk_deploy_branch:
-  image: $BUILD_IMAGE
-  stage: aws-cdk-deploy
-  environment:
-    name: branch/${CI_COMMIT_BRANCH}
-    url: https://${CI_COMMIT_BRANCH}.dripdropco.com
-    on_stop: stop_branch_deploy
-  dependencies:
-    - build website
-  id_tokens:
-    ID_TOKEN:
-      aud: sdmay25-25-s3-deploy
-  before_script:
-    - cd ${AWS_ROOT} 
-  script:
-    - !reference [.setup, script]
-    - !reference [.assume_role, script]
-    - npm run build
-    - cdk deploy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH}  --require-approval never
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      changes:
-        paths:
-          - website/dripdrop/**/*
-        compare_to: 'refs/heads/master'
-
-stop_branch_deploy:
-  stage: aws-cdk-stop-branch
-  image: $BUILD_IMAGE
-  id_tokens:
-    ID_TOKEN:
-      aud: sdmay25-25-s3-deploy
-  rules:
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      changes:
-        paths:
-          - website/dripdrop/**/*
-        compare_to: 'refs/heads/master'
-      when: manual
-  environment:
-    name: branch/${CI_COMMIT_BRANCH}
-    action: stop
-  before_script:
-    - cd ${AWS_ROOT}  
-  script:
-    - !reference [.setup, script]
-    - !reference [.assume_role, script]
-    - npm run build
-    - cdk destroy ${CI_COMMIT_BRANCH} -c websiteStackName=${CI_COMMIT_BRANCH}
