@@ -92,11 +92,6 @@ export class ImageOptimizationStack extends Stack {
       }
     );
 
-    new CfnOutput(this, "OriginalImagesS3Bucket", {
-      description: "S3 bucket where original images are stored",
-      value: originalImageBucket.bucketName,
-    });
-
     transformedImageBucket = new s3.Bucket(
       this,
       "s3-dripdrop-transformed-image-bucket",
@@ -296,5 +291,12 @@ export class ImageOptimizationStack extends Stack {
       description: "Domain name of image delivery",
       value: imageDelivery.distributionDomainName,
     });
+
+    new CfnOutput(this, "OriginalImagesS3BucketOutput", {
+      description: "S3 bucket where original images are stored",
+      value: originalImageBucket.bucketArn,
+      exportName: "OriginalImagesS3Bucket"
+    });
+    
   }
 }
