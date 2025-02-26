@@ -463,14 +463,7 @@ export class ApiConstruct extends Construct {
       "lib/lambdas/api-endpoints/comment/get-comments",
       "handler"
     );
-
-    // Testing lambda
-    const testFunctionsLambda = createLambda(
-      "TestFunctionsLambda",
-      "lib/lambdas/test-functions",
-      "handler"
-    );
-
+    
     // API Gateway setup with custom domain
     const api = new apigateway.RestApi(this, "UserApi", {
       restApiName: "User Service",
