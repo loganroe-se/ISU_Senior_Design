@@ -5,7 +5,7 @@ import * as ImagePicker from 'expo-image-picker';
 import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
-import { createPost } from '../lib/api';
+import { createPost } from '../../__lib/api';
 import { Ionicons } from '@expo/vector-icons';
 import NavScreen from "./NavScreen";
 
@@ -150,7 +150,7 @@ export default function Post() {
             disabled={loading || !image}
             style={[styles.button, styles.createButton]}
           >
-            {loading ? 'Creating Post...' : 'Create Post'}
+            {loading ? 'Loading...' : 'Continue'}
           </Button>
 
           <Snackbar

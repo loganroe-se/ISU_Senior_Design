@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import SearchScreen from '../components/Searchbar';
+import { Text, StyleSheet } from 'react-native';
 import NavScreen from './NavScreen';
 
 const HomePage = () => {
