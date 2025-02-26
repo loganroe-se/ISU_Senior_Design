@@ -77,8 +77,8 @@ export default function Login({ }) {
   };
 
   const handleAutoLogin = async () => {
-    setEmail("hi@test.com");
-    setPassword("123");
+    setEmail("test");
+    setPassword("test");
   };
   const onGoToSignUp = async () => {
     console.log("User wants to create new account");
