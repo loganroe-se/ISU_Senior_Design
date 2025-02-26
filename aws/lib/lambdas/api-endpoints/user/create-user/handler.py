@@ -41,7 +41,11 @@ def createUser(username, email, password, dob):
         # Hash the password
         hashed_password = bcrypt.hash(password)
 
-        dob = date.fromisoformat(dob)
+        # Validate date format
+        try:
+            dob = date.fromisoformat(dob)
+        except ValueError:
+            return 400, "Invalid date format. Expected YYYY-MM-DD."
 
         # Create a new user
         new_user = User(username=username, email=email, password=hashed_password, dob=dob)
