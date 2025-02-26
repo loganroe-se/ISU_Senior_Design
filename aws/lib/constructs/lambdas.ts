@@ -128,7 +128,7 @@ export class LambdasConstruct extends Construct {
     this.userLambdas["updateUserLambda"].addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
-        resources: [`arn:aws:s3:::${Fn.importValue("OriginalImagesS3Bucket")}/*`],
+        resources: [Fn.importValue("OriginalImagesS3Bucket")],
         actions: ["s3:PutObject"],
       })
     );
@@ -195,7 +195,7 @@ export class LambdasConstruct extends Construct {
     this.postLambdas["createPostLambda"].addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
-        resources: [`arn:aws:s3:::${Fn.importValue("OriginalImagesS3Bucket")}/*`],
+        resources: [Fn.importValue("OriginalImagesS3Bucket")],
         actions: ["s3:PutObject"],
       })
     );
