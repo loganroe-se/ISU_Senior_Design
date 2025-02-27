@@ -12,7 +12,7 @@ class User(Base):
     email = Column(String(50), nullable=False, unique=True)
     password = Column(String(100), nullable=False)
     profilePicURL = Column(String(2000), default="default")
-    accountType = Column(String(10), nullable=False, default="USER_FREE")
+    accountType = Column(String(10), nullable=False, default="profilePics/default.jpg")
     dob = Column(Date, nullable=False)
     # Relationships
     posts = relationship("Post", order_by="Post.postID", back_populates="userRel", cascade="all, delete")
