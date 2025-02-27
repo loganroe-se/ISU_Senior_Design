@@ -1,3 +1,4 @@
+import { Text, StyleSheet, View, Alert } from 'react-native';
 import React, { useState, useEffect } from "react";
 import { View, Alert, Text, StyleSheet } from 'react-native';
 import NavScreen from './NavScreen';

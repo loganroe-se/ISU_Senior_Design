@@ -10,11 +10,8 @@ import { CfnOutput, Duration, RemovalPolicy, Stack } from "aws-cdk-lib";
 import * as iam from "aws-cdk-lib/aws-iam";
 import { Construct } from "constructs";
 import fs = require("fs");
+import { StaticSiteProps } from "../interfaces/staticProps.interface";
 
-export interface StaticSiteProps {
-  domainName: string;
-  siteSubDomain: string;
-}
 
 /**
  * Static site infrastructure, which deploys site content to an S3 bucket.

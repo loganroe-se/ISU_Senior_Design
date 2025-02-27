@@ -34,14 +34,14 @@ const SignUpScreen = () => {
 
   const handleBirthdaySelect = async () => {
     const formattedBirthday = birthday.toISOString().split('T')[0]; // Format as 'YYYY-MM-DD'
-    
+
     const birthDate = new Date(formattedBirthday);
     const age = new Date().getFullYear() - birthDate.getFullYear();
     const monthDifference = new Date().getMonth() - birthDate.getMonth();
 
     if (age > 13 || (age === 13 && monthDifference >= 0)) {
       setModalVisible(false);
-      setIsLoading(true); 
+      setIsLoading(true);
       try {
         const response = await fetch('https://api.dripdropco.com/users', {
           method: 'POST',
@@ -67,7 +67,7 @@ const SignUpScreen = () => {
         ]);
       }
       setIsLoading(false);
-      
+
     } else {
       Alert.alert("Age Restriction", "Must be 13 years or older to use this application", [
         { text: "OK", onPress: () => setModalVisible(false) },
@@ -131,13 +131,13 @@ const styles = StyleSheet.create({
   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
   modalText: { fontSize: 18, marginBottom: 10 },
   datePicker: { width: "80%", marginBottom: 20 },
-  loadingContainer: { 
-    position: "absolute", 
-    top: 0, 
-    left: 0, 
-    right: 0, 
-    bottom: 0, 
-    justifyContent: "center", 
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
     alignItems: "center",
     backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
     zIndex: 1, // Ensure it's above all other content
