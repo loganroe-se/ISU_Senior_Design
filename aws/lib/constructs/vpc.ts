@@ -30,6 +30,7 @@ export class VpcConstruct extends Construct {
   public readonly lambdaSecurityGroup: SecurityGroup;
   public readonly dbSecurityGroup: SecurityGroup;
   public readonly bastionHost: Instance;
+  public readonly rdsIAMRole: Role;
 
   constructor(scope: Construct, id: string) {
     super(scope, id);
@@ -53,15 +54,15 @@ export class VpcConstruct extends Construct {
       ],
     });
 
+    this.dbSecurityGroup = new SecurityGroup(this, "DBSecurityGroup", {
+      vpc: this.vpc,
+      allowAllOutbound: true,
+    });
+
     // Security Group for Lambda to access Aurora
     this.lambdaSecurityGroup = new SecurityGroup(this, "LambdaSG", {
       vpc: this.vpc,
       description: "Allow Lambda functions to access Aurora",
-      allowAllOutbound: true,
-    });
-
-    this.dbSecurityGroup = new SecurityGroup(this, "DBSecurityGroup", {
-      vpc: this.vpc,
       allowAllOutbound: true,
     });
 
@@ -76,18 +77,17 @@ export class VpcConstruct extends Construct {
     );
 
     this.dbSecurityGroup.addIngressRule(
-        this.lambdaSecurityGroup,
-        Port.tcp(3306),
-        "Lambda to database"
-      );
-  
+      this.lambdaSecurityGroup,
+      Port.tcp(3306),
+      "Lambda to database"
+    );
+
     // Allow the bastion to access the Aurora RDS
     this.dbSecurityGroup.addIngressRule(
       bastionSecurityGroup,
       Port.tcp(3306),
       "Allow bastion to access RDS on port 3306"
     );
-
 
     // Add a Gateway VPC Endpoint for S3
     this.vpc.addGatewayEndpoint("S3GatewayEndpoint", {
@@ -139,40 +139,34 @@ export class VpcConstruct extends Construct {
       }),
     });
 
-    // Create the IAM Role
-    const ssmRole = new Role(this, "AmazonSSMRoleForInstancesQuickSetup", {
-      assumedBy: new CompositePrincipal(
-        new ServicePrincipal("ec2.amazonaws.com"),
-        new ArnPrincipal("arn:aws:iam::626635444817:user/ekriegel"),
-        new ArnPrincipal("arn:aws:iam::626635444817:user/kadenwin"),
-        new ArnPrincipal("arn:aws:iam::626635444817:user/kolbykuc"),
-        new ArnPrincipal("arn:aws:iam::626635444817:user/lroe"),
-        new ArnPrincipal("arn:aws:iam::626635444817:user/grich02"),
-        new ArnPrincipal("arn:aws:iam::626635444817:user/zdfoote")
-      ),
-      roleName: "AmazonSSMRoleForInstancesQuickSetup",
-    });
-
-    // Attach Managed Policies
-    ssmRole.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
-    );
-    ssmRole.addManagedPolicy(
-      ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMPatchAssociation")
-    );
-
-    // Define an inline policy with ssm:StartSession permission
-    const ssmStartSessionPolicy = new Policy(this, "SSMStartSessionPolicy", {
-      statements: [
-        new PolicyStatement({
-          actions: ["ssm:*"],
-          resources: ["*"], // Adjust resource as necessary
-        }),
+    // IAM Role for RDS IAM Authentication
+    this.rdsIAMRole = new Role(this, "RDSIAMAuthRole", {
+      assumedBy: new ServicePrincipal("rds.amazonaws.com"),
+      managedPolicies: [
+        ManagedPolicy.fromAwsManagedPolicyName("AmazonRDSFullAccess"),
       ],
     });
 
-    // Attach the inline policy to the role
-    ssmRole.attachInlinePolicy(ssmStartSessionPolicy);
+    // IAM Role for Bastion Host (Including SSM + RDS IAM Auth)
+    const bastionRole = new Role(this, "BastionHostIAMRole", {
+      assumedBy: new ServicePrincipal("ec2.amazonaws.com"),
+    });
+
+    bastionRole.addManagedPolicy(
+      ManagedPolicy.fromAwsManagedPolicyName("AmazonSSMManagedInstanceCore")
+    );
+
+    // Inline policy to allow RDS IAM authentication
+    bastionRole.attachInlinePolicy(
+      new Policy(this, "BastionRDSIAMPolicy", {
+        statements: [
+          new PolicyStatement({
+            actions: ["rds-db:connect"],
+            resources: ["*"], // Adjust for specific DB resources
+          }),
+        ],
+      })
+    );
 
     this.bastionHost = new Instance(this, "BastionHost", {
       instanceType: InstanceType.of(InstanceClass.T3, InstanceSize.MICRO),
@@ -182,7 +176,7 @@ export class VpcConstruct extends Construct {
         subnetType: SubnetType.PRIVATE_WITH_EGRESS,
       }),
       securityGroup: bastionSecurityGroup,
-      role: ssmRole,
+      role: bastionRole,
     });
   }
 }

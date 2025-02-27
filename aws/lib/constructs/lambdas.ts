@@ -11,7 +11,6 @@ import {
   LayerVersion,
   Code,
   Runtime,
-  SnapStartConf,
   Function,
 } from "aws-cdk-lib/aws-lambda";
 import { Construct } from "constructs";
@@ -35,19 +34,32 @@ export class LambdasConstruct extends Construct {
   ) {
     super(scope, id);
 
-    // IAM Role for Lambda functions
+    // IAM Role for Lambda functions with IAM-based RDS Proxy authentication
     const lambdaRole = new Role(this, "LambdaRole", {
       assumedBy: new ServicePrincipal("lambda.amazonaws.com"),
       managedPolicies: [
         ManagedPolicy.fromAwsManagedPolicyName(
           "service-role/AWSLambdaBasicExecutionRole"
         ),
-        ManagedPolicy.fromAwsManagedPolicyName("AmazonRDSDataFullAccess"),
         ManagedPolicy.fromAwsManagedPolicyName(
           "service-role/AWSLambdaVPCAccessExecutionRole"
         ),
       ],
     });
+
+    // Grant Lambda the ability to connect to the RDS Proxy using IAM authentication
+    databaseConstuct.dbProxy.grantConnect(lambdaRole);
+
+    // Ensure Lambda can authenticate with RDS Proxy using IAM
+    lambdaRole.addToPolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["rds-db:connect"],
+        resources: [
+          `arn:aws:rds:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:db-proxy/${databaseConstuct.dbProxy.dbProxyName}`,
+        ],
+      })
+    );
 
     // Lambda Layer
     const sharedLayer = new LayerVersion(this, "shared-layer", {
@@ -74,11 +86,13 @@ export class LambdasConstruct extends Construct {
         }),
         securityGroups: [vpcConstruct.lambdaSecurityGroup],
         environment: {
-          DB_ENDPOINT: databaseConstuct.dbInstance.dbInstanceEndpointAddress,
+          DB_ENDPOINT: databaseConstuct.dbInstance.dbInstanceEndpointAddress, // Use RDS Proxy instead of direct DB
           DB_SECRET_ARN:
             databaseConstuct.dbInstance.secret?.secretFullArn || "",
-          DB_PORT: databaseConstuct.dbInstance.dbInstanceEndpointPort,
+          DB_PORT: "3306",
           DB_NAME: databaseConstuct.databaseName,
+          REGION: process.env.CDK_DEFAULT_REGION || "us-east-1",
+          SSL_CERT_FILE: "/opt/python/etc/ssl/certs/global-bundle.pem"
         },
         layers: [sharedLayer],
       });
@@ -133,8 +147,8 @@ export class LambdasConstruct extends Construct {
     this.userLambdas["updateUserLambda"].addToRolePolicy(
       new PolicyStatement({
         effect: Effect.ALLOW,
-        resources: [Fn.importValue("OriginalImagesS3Bucket")],
-        actions: ["s3:PutObject"],
+        resources: [`${Fn.importValue("OriginalImagesS3Bucket")}/*`],
+        actions: ["s3:*"],
       })
     );
 
