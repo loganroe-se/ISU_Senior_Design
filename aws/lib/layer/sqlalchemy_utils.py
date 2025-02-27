@@ -3,6 +3,7 @@ import json
 import boto3
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from dripdrop_orm_objects import Base
 
 # Fetch environment variables
 DB_ENDPOINT = os.getenv("DB_ENDPOINT")
@@ -37,12 +38,14 @@ def create_db_engine(db_conn_string, debug_mode=False):
 def create_db_session(engine):
     global Session
     if not Session:
+        Base.metadata.create_all(engine)
         Session = sessionmaker(bind=engine)
         # todo: setup connection pooling properties
     return Session()
 
 def create_sqlalchemy_engine(user, password, db_endpoint, dp_port, dp_name, debug_mode = False):
     db_url = get_connection_string(user, password, db_endpoint, dp_port, dp_name)
+    print("DB URL: ", db_url)
     engine = create_db_engine(db_url, debug_mode)
     Session = create_db_session(engine=engine)
     return Session
