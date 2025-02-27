@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Dimensions, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
-import Navbar from "@/components/navigation/Navbar";
-import { SafeAreaView } from 'react-native';
+import Navbar from "@/app/components/Navbar";
 
 interface NavScreenProps {
     children: React.ReactNode;
