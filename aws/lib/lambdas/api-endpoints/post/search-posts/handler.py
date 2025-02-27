@@ -2,7 +2,7 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select
 from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import User
+from dripdrop_orm_objects import Post
 
 def handler(event, context):
     try:
@@ -31,16 +31,34 @@ def searchUsers(search_string):
         session = create_session()
 
         # Select the username and userID of first 20 users that match the search string
-        users = session.execute(
-            select(User.username, User.userID)
-            .filter(User.username.ilike(f"%{search_string}%"))
+        posts = session.execute(
+            select(Post)
+            .filter(Post.caption.ilike(f"%{search_string}%"))
             .limit(20)
         ).fetchall()
 
-        # Create a list of user dictionaries directly
-        users_list = [{"username": row[0], "userID": row[1]} for row in users]
+        # Create a list of post dictionaries directly
+        posts_list = [
+            {
+                "postID": post.postID,
+                "userID": post.userID,
+                "caption": post.caption,
+                "createdDate": (
+                    post.createdDate.isoformat()
+                    if isinstance(post.createdDate, (datetime, date))
+                    else post.createdDate
+                ),
+                "images": [
+                    {"imageID": image.imageID, "imageURL": image.imageURL}
+                    for image in post.images
+                ],
+                "numLikes": len(post.likes),
+                "numComments": len(post.comments),
+            }
+                for post in posts
+        ]
 
-        return 200, users_list
+        return 200, posts_list
 
     except Exception as e:
         # Call a helper to handle the exception
