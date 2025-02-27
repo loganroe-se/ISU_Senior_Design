@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View } from 'react-native';
 import SignUpScreen from './pages/Signup';
 import "react-native-get-random-values";
 import "react-native-url-polyfill/auto";
-
 
 
 export default function Index() {

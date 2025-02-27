@@ -7,7 +7,7 @@ from dripdrop_orm_objects import Post
 from utils import create_response
 
 # Fetch environment variables
-DB_ENDPOINT = os.getenv("DB_ENDPOINT_ADDRESS")
+DB_ENDPOINT = os.getenv("DB_ENDPOINT")
 DB_PORT = os.getenv("DB_PORT")
 DB_NAME = os.getenv("DB_NAME")
 DB_SECRET_ARN = os.getenv("DB_SECRET_ARN")

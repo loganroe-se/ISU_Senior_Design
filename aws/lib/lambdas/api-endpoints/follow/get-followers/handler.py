@@ -39,7 +39,6 @@ def getFollowers(user_id):
             {
                 "userID": follow.follower.userID,
                 "username": follow.follower.username,
-                "email": follow.follower.email,
             }
             for follow in user.followers
         ]
