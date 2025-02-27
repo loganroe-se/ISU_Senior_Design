@@ -48,7 +48,7 @@ def createUser(username, email, password, dob):
             return 400, "Invalid date format. Expected YYYY-MM-DD."
 
         # Create a new user
-        new_user = User(username=username, email=email, password=hashed_password, dob=dob, profilePicURL="profilePics/default.jpg")
+        new_user = User(username=username, email=email, password=hashed_password, dob=dob)
 
         # Add the user to the db
         session.add(new_user)
