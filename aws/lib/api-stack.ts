@@ -5,6 +5,7 @@ import { VpcConstruct } from "./constructs/vpc";
 import { DatabaseConstruct } from "./constructs/database";
 import { LambdasConstruct } from "./constructs/lambdas";
 import { ApigatewayConstruct } from "./constructs/apigateway";
+import { IAMConstruct } from "./constructs/ssm";
 
 export class ApiStack extends cdk.Stack {
   constructor(parent: cdk.App, name: string, props: cdk.StackProps) {
@@ -29,6 +30,8 @@ export class ApiStack extends cdk.Stack {
       vpcConstruct,
       databaseConstuct
     );
+
+    new IAMConstruct(this, "SSMiamConstruct"); 
 
     new ApigatewayConstruct(
       this,
