@@ -67,6 +67,7 @@ def getFeed(userID, limit: int = 20):
             {
                 "postID": post.postID,
                 "userID": post.userID,
+                "username": post.userRel.username,
                 "caption": post.caption,
                 "createdDate": (
                     post.createdDate.isoformat()

@@ -42,13 +42,15 @@ export default function Login({ }) {
       if (response.ok) {
         console.log("Login Successful");
 
-        // Save email and username (assuming you get a username as part of the response)
+        // Save email, username, and userID (assuming you get a username as part of the response)
         const responseData = await response.json();
         const username = responseData.username; // Adjust this based on actual response structure
+        const userID = responseData.id;
 
         // Store email and username in AsyncStorage
         await AsyncStorage.setItem('email', email);
         await AsyncStorage.setItem('username', username);
+        await AsyncStorage.setItem('userID', userID.toString());
 
         router.push('/pages/Home');
       } else {

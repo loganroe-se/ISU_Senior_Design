@@ -286,3 +286,23 @@ export const deleteComment = async (commentID: number): Promise<void> => {
     throw error;
   }
 };
+
+// Get the feed for a given userID
+export const getFeed = async (userID: number): Promise<any> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/feed/${userID}`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error (`Error fetching the feed for user: ${userID}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+// Mark a post as having been seen
