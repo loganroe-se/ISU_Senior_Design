@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Dimensions, StyleSheet, TouchableOpacity, useColorScheme, SafeAreaView } from "react-native";
 import { useRouter } from "expo-router";
+import { Colors } from '../../constants/Colors';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { width } = Dimensions.get('window');
@@ -51,6 +52,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1.5,
         justifyContent: "space-around",
         alignItems: "center",
+        backgroundColor: Colors.light.background,
     },
     navItem: {
         flex: 1,

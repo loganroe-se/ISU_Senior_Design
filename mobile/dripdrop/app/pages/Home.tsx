@@ -1,11 +1,14 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions } from 'react-native';
-import React, { useState, useEffect } from "react";
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Animated } from 'react-native';
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import NavScreen from './NavScreen';
 import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import { getFeed } from '../../__lib/api';
+import { getFeed, likePost, unlikePost } from '../../__lib/api';
+import { Colors } from '../../constants/Colors';
 import Icon from 'react-native-vector-icons/FontAwesome'
 
 const windowWidth = Dimensions.get('window').width * 0.95;
+const navbarHeight = 60; // TODO: Change this to either dynamic or change it when the navbar is changed
+const headerHeight = 40;
 
 export default function Home({ }) {
   const [email, setEmail] = useState<string | null>(null);
@@ -82,9 +85,40 @@ export default function Home({ }) {
   }
 
   // Handle a like
-  const handleLike = (postID: number) => {
-    // TODO
-  };
+  const handleLike = useCallback(async (postID: number) => {
+    if (!userID) return;
+
+    try {
+      // Check if it has already been liked
+      const hasLiked = feedData.some((post) => post.postID === postID && post.userHasLiked);
+
+      // If the post is already called, unlike it, else like it
+      if (hasLiked) {
+        // Update local state
+        setFeedData((prevFeedData) => 
+          prevFeedData.map((post) =>
+            post.postID === postID ? { ...post, userHasLiked: false, numLikes: post.numLikes - 1 } : post
+          )
+        );
+
+        // Unlike the post
+        await unlikePost(userID, postID);
+      } else {
+        // Update local state
+        setFeedData((prevFeedData) => 
+          prevFeedData.map((post) =>
+            post.postID === postID ? { ...post, userHasLiked: true, numLikes: post.numLikes + 1 } : post
+          )
+        );
+
+        // Like the post
+        await likePost(userID, postID);
+      }
+    } catch (error) {
+      console.error('Error handling like: ', error);
+      Alert.alert('Error', 'Failed to update like status')
+    }
+  }, [feedData, userID]);
 
   // Handle a comment
   const handleComment = (postID: number) => {
@@ -107,8 +141,14 @@ export default function Home({ }) {
   return (
     <NavScreen>
       <View style={styles.container}>
+          {/* Animated header */}
+          <View style={styles.header}>
+            <Text style={styles.headerText}>dripdrop</Text>
+          </View>
+
           {/* Render the feed */}
           <FlatList 
+            contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
             data={feedData}
             keyExtractor={(item) => item.postID.toString()}
             renderItem={({ item }) => {
@@ -129,21 +169,23 @@ export default function Home({ }) {
                   )}
 
                   {/* Buttons for liking and commenting */}
-                  <View style={styles.buttonContainer}>
+                  <View style={styles.iconContainer}>
                     <Icon 
-                      name="heart"
+                      name={ item.userHasLiked ? 'heart' : 'heart-o' }
                       size={30}
-                      color={item.userHasLiked ? 'red' : 'gray'}
+                      color={ item.userHasLiked ? 'red' : Colors.light.contrast }
                       onPress={() => handleLike(item.postID)}
-                      style={styles.button}
+                      style={styles.icon}
                     />
+                    <Text style={styles.iconCount}>{item.numLikes}</Text>
                     <Icon 
-                      name="comment"
+                      name="comment-o"
                       size={30}
-                      color="gray"
+                      color={Colors.light.contrast}
                       onPress={() => handleComment(item.postID)}
-                      style={styles.button}
+                      style={styles.icon}
                     />
+                    <Text style={styles.iconCount}>{item.numComments}</Text>
                   </View>
 
                   {/* Display the caption */}
@@ -166,12 +208,25 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: Colors.light.background,
   },
   header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: headerHeight,
+    backgroundColor: Colors.light.background,
+    justifyContent: 'flex-start',
+    paddingTop: 5,
+    paddingLeft: 15,
+    zIndex: 1,
+  },
+  headerText: {
+    color: Colors.light.primary,
     fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
   },
   text: {
     fontSize: 18,
@@ -185,7 +240,7 @@ const styles = StyleSheet.create({
   feedItem: {
     marginBottom: 15,
     padding: 10,
-    backgroundColor: '#f2f2f2',
+    backgroundColor: Colors.light.background,
     borderRadius: 8,
     width: '100%'
   },
@@ -201,13 +256,18 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'gray',
   },
-  buttonContainer: {
+  iconContainer: {
     flexDirection: 'row',
     justifyContent: 'flex-start',
+    alignItems: 'center',
     marginBottom: 10,
-    marginLeft: 5,
   },
-  button: {
+  icon: {
+    marginRight: 10,
+  },
+  iconCount: {
+    fontSize: 12,
+    color: Colors.light.contrast,
     marginRight: 20,
-  },
+  }
 });
