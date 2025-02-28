@@ -188,8 +188,8 @@ export default function Home({ }) {
                     <Text style={styles.iconCount}>{item.numComments}</Text>
                   </View>
 
-                  {/* Display the caption */}
-                  <Text style={styles.caption}>{item.caption}</Text>
+                  {/* Display the username & caption */}
+                  <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
 
                   {/* Display the post date */}
                   <Text style={styles.date}>{item.createdDate}</Text>
@@ -236,6 +236,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginBottom: 10,
+  },
+  usernameInline: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 5,
   },
   feedItem: {
     marginBottom: 15,
