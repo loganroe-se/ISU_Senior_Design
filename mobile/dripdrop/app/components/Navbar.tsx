@@ -12,15 +12,12 @@ interface NavItemProps {
     pageName: ValidPageName;
 }
 
-function NavItem({name, pageName} : NavItemProps) {
+function NavItem({ name, pageName }: NavItemProps) {
     const router = useRouter();
-    function onPress() {
-        let route = `/pages/${pageName}`; 
 
     function onPress() {
-        router.push(`/pages/${pageName}` as any);
+        router.push(`/pages/${pageName}` as any);  // Navigate to the respective page
     }
-    
 
     return (
         <TouchableOpacity onPress={onPress} style={styles.navItem}>
@@ -29,33 +26,18 @@ function NavItem({name, pageName} : NavItemProps) {
     );
 }
 
-export default function Navbar({}) {
-  return (
-    <View style={styles.navbar}>
-        <NavItem name="home-outline" pageName="Home" />
-        <NavItem name="search-outline" pageName="Search" />
-        <NavItem name="create-outline" pageName="Post" />
-        <NavItem name="person-circle-outline" pageName="Profile" />
-    </View>
-  );
-};
-
+export default function Navbar() {
     return (
-
-            <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
-                <NavItem name="home" pageName="Home" />
-                <NavItem name="magnify" pageName="Search" />
-                <NavItem name="plus-circle" pageName="Post" />
-                <NavItem name="bookmark-outline" pageName="Bookmarks" />
-                <NavItem name="account-circle" pageName="Profile" />
-            </SafeAreaView>
+        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
+            <NavItem name="home" pageName="Home" />
+            <NavItem name="magnify" pageName="Search" />
+            <NavItem name="plus-circle" pageName="Post" />
+            <NavItem name="account-circle" pageName="Profile" />
+        </SafeAreaView>
     );
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1, // Ensures the background color fills the whole screen
-    },
     navbar: {
         width,
         position: "absolute",
