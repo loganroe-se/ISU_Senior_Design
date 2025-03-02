@@ -46,7 +46,7 @@ const SignUpScreen = () => {
         const response = await fetch('https://api.dripdropco.com/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password, birthday: formattedBirthday }),
+          body: JSON.stringify({ username, email, password, dob: formattedBirthday }),
         });
 
         if (response.ok) {
