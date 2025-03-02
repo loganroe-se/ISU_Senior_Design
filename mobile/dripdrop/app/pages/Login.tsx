@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    width: "80%",
+    width: 300,
     borderColor: "grey",
     borderWidth: 1,
     marginBottom: 15,

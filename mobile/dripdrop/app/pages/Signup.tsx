@@ -46,7 +46,7 @@ const SignUpScreen = () => {
         const response = await fetch('https://api.dripdropco.com/users', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password, birthday: formattedBirthday }),
+          body: JSON.stringify({ username, email, password, dob: formattedBirthday }),
         });
 
         if (response.ok) {
@@ -125,7 +125,7 @@ const SignUpScreen = () => {
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", padding: 20 },
   header: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#5271ff" },
-  input: { height: 40, width: "80%", borderColor: "grey", borderWidth: 1, marginBottom: 15, paddingLeft: 10, borderRadius: 5, color: "black", alignSelf: "center" },
+  input: { height: 40, width: 300, borderColor: "grey", borderWidth: 1, marginBottom: 15, paddingLeft: 10, borderRadius: 5, color: "black", alignSelf: "center" },
   logo: { width: 100, height: 100, marginBottom: 10, alignSelf: "center" },
   signInText: { color: "blue", textAlign: "center", marginTop: 20, fontSize: 14 },
   modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },

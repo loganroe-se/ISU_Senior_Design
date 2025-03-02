@@ -10,10 +10,10 @@ export default function NavScreen ({ children } : NavScreenProps) {
     return (
 
 
-    <SafeAreaView style={StyleSheet.absoluteFillObject}>
+    <View style={StyleSheet.absoluteFillObject}>
         {children}
         <Navbar />
-    </SafeAreaView>
+    </View>
 
 
     );
