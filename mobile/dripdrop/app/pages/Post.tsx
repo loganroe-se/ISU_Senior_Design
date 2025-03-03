@@ -2,12 +2,11 @@ import React, { useState } from 'react';
 import { View, StyleSheet, Image, ScrollView, Alert, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
 import { Button, TextInput, Snackbar, Card } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
-import * as FileSystem from 'expo-file-system';
 import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/Colors';
-import { createPost } from '../../__lib/api';
+import * as ImageManipulator from "expo-image-manipulator";
+import NavScreen from './NavScreen';
 import { Ionicons } from '@expo/vector-icons';
-import NavScreen from "./NavScreen";
 
 export default function Post() {
   const [caption, setCaption] = useState('');
@@ -73,31 +72,36 @@ export default function Post() {
 
   const handleContinue = async () => {
     if (!image) {
-      alert('Please select an image first!');
+      alert("Please select an image first!");
       return;
     }
 
     setLoading(true);
 
     try {
-      const base64Image = await FileSystem.readAsStringAsync(image, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Resize and compress the image before showing it (no post submission here)
+      const manipulatedImage = await ImageManipulator.manipulateAsync(
+        image,
+        [{ resize: { width: 800 } }], // Resize to 800px width (adjust as needed)
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG } // Compress to 70% quality
+      );
 
-      const newPost = {
-        userID: 1,
-        caption: caption,
-        images: [`data:image/jpeg;base64,${base64Image}`],
+      // Temporarily show a post preview in the snackbar or state without sending it
+      const previewPost = {
+        caption,
+        imageUri: manipulatedImage.uri, // Display the image preview
       };
 
-      await createPost(newPost);
-      console.log('Post Created by user ' + newPost.userID + ' successfully.');
+      console.log('Post preview:', previewPost);
 
+      // Optionally show a snackbar message
       setSnackbarVisible(true);
+
+      // Reset caption and image
       setCaption('');
       setImage(null);
 
-      // Navigate to ProcessingScreen
+      // Navigate to the processing post screen
       router.push({
         pathname: '/pages/ProcessingPost' as any,
         params: {
@@ -105,15 +109,13 @@ export default function Post() {
           image: image,
         },
       });
-
-    } catch (error) {
-      console.error('Error creating post:', error);
-      alert('Failed to create post. Please try again.');
+        } catch (error) {
+      console.error("Error creating post:", error);
+      alert("Failed to create post preview. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
 
   return (
     <NavScreen>
@@ -136,8 +138,8 @@ export default function Post() {
                 </Button>
               </View>
             ) : (
-              <Button mode="contained" onPress={pickImage} style={[styles.button, styles.uploadButton]}>
-                Upload Image
+              <Button mode="contained" onPress={pickImage} style={[styles.button, styles.uploadButton]} icon="cloud-upload">
+                Upload
               </Button>
             )}
           </Card>
@@ -169,13 +171,12 @@ export default function Post() {
             {loading ? 'Loading...' : 'Continue'}
           </Button>
 
-
           <Snackbar
             visible={snackbarVisible}
             onDismiss={() => setSnackbarVisible(false)}
             duration={3000}
           >
-            Post created successfully!
+            Post created successfully (Preview)!
           </Snackbar>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: 'absolute',
-    top: 20,
+    top: '10%',
     left: 16,
     zIndex: 10,
   },
@@ -213,25 +214,24 @@ const styles = StyleSheet.create({
     marginBottom: 15,
   },
   image: {
-    width: 250,
-    height: 250,
+    width: 200,
+    height: 200,
     borderRadius: 10,
     marginBottom: 15,
   },
   button: {
-    width: '100%',
-    paddingVertical: 10,
+    borderRadius: 8,
   },
   uploadButton: {
     backgroundColor: Colors.light.primary,
   },
   removeButton: {
-    backgroundColor: 'red',
+    backgroundColor: Colors.redButtonColor,
   },
   input: {
     width: '90%',
     marginBottom: 20,
+    backgroundColor: 'white',
     borderRadius: 8,
   },
 });
-

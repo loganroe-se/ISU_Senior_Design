@@ -3,50 +3,41 @@ import { View, StyleSheet, Image } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import NavScreen from './NavScreen';
-import { Ionicons } from '@expo/vector-icons';
 
-export default function ProcessingScreen() {
+export default function PreviewPost() {
     const router = useRouter();
-    const { caption, image } = useLocalSearchParams();
+    const { caption, image } = useLocalSearchParams();  // Get passed params
 
-    const handleNavigateToPreviewPost = () => {
-        // Navigate to the PreviewPost screen with the current caption and image data
-        router.push({
-            pathname: '/pages/PreviewPost',
-            params: { caption, image },
-        });
+    const handleSubmitPost = () => {
+        // Replace this with the actual logic to submit the post
+        alert('Your post has been submitted!');
+    };
+
+    const handleGoBack = () => {
+        router.back();  // Go back to the previous screen (Post.tsx)
     };
 
     return (
         <NavScreen>
             <View style={styles.container}>
-                <Text style={styles.title}>We are Currently Processing Your Post</Text>
+                <Text style={styles.title}>Preview Your Post</Text>
 
                 {image && <Image source={{ uri: Array.isArray(image) ? image[0] : image }} style={styles.image} />}
                 {caption && <Text style={styles.caption}>{caption}</Text>}
 
                 <Button
-                    mode="contained"
-                    onPress={() => alert('AI is still processing, please wait.')}
-                    style={styles.button}
-                    icon="progress-clock"
-                >
-                    Wait for AI to Finish Processing
-                </Button>
-                <Button
                     mode="outlined"
-                    onPress={() => { router.back(); router.back() }}
+                    onPress={handleGoBack}  // Go back to the Post screen
                     style={styles.button}
-                    icon={() => <Ionicons name="exit-outline" size={20} color="black" />}
                 >
-                    Exit and Come Back Later
+                    Previous
                 </Button>
                 <Button
                     mode="contained"
-                    onPress={handleNavigateToPreviewPost}  // Temp button to navigate to PreviewPost screen
+                    onPress={handleSubmitPost}  // Submit the post
                     style={styles.button}
                 >
-                    Go to Preview Post
+                    Submit Post
                 </Button>
             </View>
         </NavScreen>
@@ -67,8 +58,8 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     image: {
-        width: 250,
-        height: 250,
+        width: 300,
+        height: 300,
         borderRadius: 10,
         marginBottom: 15,
     },
