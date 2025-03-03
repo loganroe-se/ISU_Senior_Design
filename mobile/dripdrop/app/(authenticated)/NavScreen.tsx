@@ -1,6 +1,6 @@
 import React from "react";
 import { View, StyleSheet } from "react-native";
-import Navbar from "@/app/components/Navbar";
+import Navbar from "@/components/Navbar";
 
 interface NavScreenProps {
     children: React.ReactNode;
