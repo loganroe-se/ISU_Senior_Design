@@ -20,7 +20,11 @@
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ],
+      "package": "com.ekriegel.dripdrop"
     },
     "web": {
       "bundler": "metro",
@@ -53,9 +57,9 @@
         "origin": false
       },
       "eas": {
-        "projectId": "e7c6ef5f-b251-479b-9a11-23f7a8161e00"
+        "projectId": "7d59e9ba-420d-4e7c-a17d-17a53a7d4554"
       }
     },
-    "newArchEnabled" : true
+    "owner": "ekriegel"
   }
 }
