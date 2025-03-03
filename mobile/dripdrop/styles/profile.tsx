@@ -7,8 +7,10 @@ export const profileStyle = StyleSheet.create({
     },
     profileContainer: {
       flexDirection: "row",
-      alignItems: "flex-start",
-      padding: 16,
+      alignItems: "center",
+      marginTop: 16,
+      marginBottom: 8,
+      marginLeft: 8
     },
     avatarContainer: {
       borderWidth: 2,
@@ -16,20 +18,26 @@ export const profileStyle = StyleSheet.create({
       borderRadius: 50,
       padding: 3,
     },
-    userInfo: {
+    userHeader: {
       flex: 1,
-      marginLeft: 20,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 4
+    },
+    userDescription: {
+      marginTop: 4,
+      marginLeft: 4
     },
     username: {
-      fontSize: 22,
+      fontSize: 24,
       fontWeight: "bold",
       marginBottom: 4,
+      marginRight: 8
     },
     statsContainer: {
       flexDirection: "row",
-      justifyContent: "space-between",
-      marginVertical: 12,
-      marginRight: 20,
+      justifyContent: "space-around",
+      marginBottom: 12,
     },
     stat: {
       alignItems: "center",
@@ -43,13 +51,16 @@ export const profileStyle = StyleSheet.create({
       color: "#666",
     },
     editButton: {
-      borderRadius: 8,
-      borderColor: "#ddd",
-      marginBottom: 12,
+      borderRadius: 16,
+      border: "none",
+      backgroundColor: "#0073FF",
+      paddingVertical: 8,
+      paddingHorizontal: 12
     },
     buttonLabel: {
       fontSize: 14,
       fontWeight: "500",
+      color: "white"
     },
     displayName: {
       fontSize: 14,
@@ -62,12 +73,13 @@ export const profileStyle = StyleSheet.create({
       lineHeight: 18,
     },
     gridContainer: {
-      marginHorizontal: -0.5,
     },
     postContainer: {
-      width: 150,  // Set a fixed width
-      height: 200, // Set a fixed height
-      margin: 2,   // Adjust spacing between images
+      width: 120,  // Set a fixed width
+      height: 160, // Set a fixed height
+      margin: 1,   // Adjust spacing between images
+      display: "flex",
+      alignItems: "center"
     },
     postImage: {
       width: "100%",

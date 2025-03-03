@@ -40,43 +40,44 @@ const UserProfile = () => {
   return (
     <View style={profileStyle.container}>
       {/* Profile Header */}
-      <View style={profileStyle.profileContainer}>
-        <View style={profileStyle.avatarContainer}>
-          <Avatar.Image
-            size={90}
-            source={{ uri: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.username}` }}
-          />
-        </View>
-        <View style={profileStyle.userInfo}>
-          <Text style={profileStyle.username}>{user.username}</Text>
-          
-          <View style={profileStyle.statsContainer}>
-            <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>{posts.length}</Text>
-              <Text style={profileStyle.statLabel}>Posts</Text>
+      <View>
+        <View style={profileStyle.profileContainer}>
+          <View style={profileStyle.avatarContainer}>
+            <Avatar.Image
+              size={90}
+              source={{ uri: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.username}` }}
+            />
+          </View>
+          <View>
+            <View style={profileStyle.userHeader}>
+              <Text style={profileStyle.username}>{user.username}</Text>
+              
+              <TouchableOpacity style={profileStyle.editButton}>
+                <Text style={profileStyle.buttonLabel}>Edit Profile</Text>
+              </TouchableOpacity>
             </View>
-            <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>{followers.length}</Text>
-              <Text style={profileStyle.statLabel}>Followers</Text>
-            </View>
-            <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>{following.length}</Text>
-              <Text style={profileStyle.statLabel}>Following</Text>
+            <View style={profileStyle.userDescription}>
+              <Text style={profileStyle.bio}>{user.bio || "Digital goodies collector 🌈✨"}</Text>
             </View>
           </View>
+        </View>
 
-          <Button 
-            mode="outlined" 
-            style={profileStyle.editButton}
-            labelStyle={profileStyle.buttonLabel}
-          >
-            Edit Profile
-          </Button>
-
-          <Text style={profileStyle.bio}>{user.bio || "Digital goodies collector 🌈✨"}</Text>
+        <View style={profileStyle.statsContainer}>
+          <View style={profileStyle.stat}>
+            <Text style={profileStyle.statNumber}>{posts.length}</Text>
+            <Text style={profileStyle.statLabel}>Posts</Text>
+          </View>
+          <View style={profileStyle.stat}>
+            <Text style={profileStyle.statNumber}>{followers.length}</Text>
+            <Text style={profileStyle.statLabel}>Followers</Text>
+          </View>
+          <View style={profileStyle.stat}>
+            <Text style={profileStyle.statNumber}>{following.length}</Text>
+            <Text style={profileStyle.statLabel}>Following</Text>
+          </View>
         </View>
       </View>
-
+      
       {/* Post Grid */}
       <FlatList
         data={posts}
