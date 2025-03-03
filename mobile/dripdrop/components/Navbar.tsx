@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Dimensions, StyleSheet, TouchableOpacity, useColorScheme, SafeAreaView } from "react-native";
 import { useRouter } from "expo-router";
-import { Colors } from '../../constants/Colors';
+import { Colors } from '@/constants/Colors';
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
 
 const { width } = Dimensions.get('window');

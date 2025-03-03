@@ -61,7 +61,7 @@ const Page = () => {
   // Set the loading symbol
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={profileStyle.feedContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
@@ -70,7 +70,7 @@ const Page = () => {
   // Set the error if there is one
   if (error) {
     return (
-      <View style={styles.container}>
+      <View style={profileStyle.feedContainer}>
         <Text style={styles.text}>{error}</Text>
       </View>
     );
@@ -131,8 +131,8 @@ const Page = () => {
   };
 
   return (
-    <View style={styles.container}>
-        {/* Animated header */}
+    <View style={profileStyle.feedContainer}>
+        {/* Header */}
         <View style={styles.header}>
           <Text style={styles.headerText}>dripdrop</Text>
         </View>
@@ -193,12 +193,6 @@ const Page = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: Colors.light.background,
-  },
   header: {
     position: 'absolute',
     top: 0,

@@ -18,6 +18,12 @@ export const profileStyle = StyleSheet.create({
       borderRadius: 50,
       padding: 3,
     },
+    feedContainer: {
+      flex: 1,
+      justifyContent: "center",
+      alignItems: "center",
+      backgroundColor: "#fff",
+    },
     userHeader: {
       flex: 1,
       flexDirection: 'row',
