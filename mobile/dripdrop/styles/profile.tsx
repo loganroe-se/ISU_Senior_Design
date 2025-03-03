@@ -77,7 +77,7 @@ export const profileStyle = StyleSheet.create({
     postContainer: {
       width: 120,  // Set a fixed width
       height: 160, // Set a fixed height
-      margin: 1,   // Adjust spacing between images
+      margin: 2.5,   // Adjust spacing between images
       display: "flex",
       alignItems: "center"
     },
