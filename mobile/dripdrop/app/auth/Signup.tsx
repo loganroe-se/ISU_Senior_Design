@@ -54,7 +54,7 @@ const SignUpScreen = () => {
           Alert.alert("Success", "Account successfully created", [
             { text: "OK", onPress: () => console.log("Ok pressed") },
           ]);
-          router.replace("/auth/Signup"); // Navigate to the login page
+          router.replace("/auth/signin"); // Navigate to the login page
         } else {
           const errorData = await response.json();
           Alert.alert("Error", errorData.error, [
@@ -82,7 +82,7 @@ const SignUpScreen = () => {
 
   return (
     <View style={styles.container}>
-      <Image source={require("../../public/dripdrop_logo.png")} style={styles.logo} />
+      <Image source={require("@/assets/images/dripdrop_logo.png")} style={styles.logo} />
       <Text style={styles.header}>dripdrop</Text>
 
       <TextInput style={styles.input} placeholder="Username" placeholderTextColor="grey" value={username} onChangeText={setUsername} />

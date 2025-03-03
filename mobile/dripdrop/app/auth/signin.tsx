@@ -11,94 +11,50 @@ import {
   ActivityIndicator
 } from "react-native";
 import { useRouter } from "expo-router";
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useUserContext } from "@/context/UserContext";
 
-export default function Login({ }) {
+export default function Login() {
   const router = useRouter();
+  const { signIn, loading } = useUserContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false); //Loading state
-
 
   const handleSignIn = async () => {
     if (!email || !password) {
-      // Show an alert if any field is empty
-      console.log("Incomplete fields");
-      Alert.alert("Incomplete Fields", "Please fill in all the fields", [
-        { text: "OK", onPress: () => console.log("OK Pressed") },
-      ]);
-      return; // Stop execution if fields are not filled
+      Alert.alert("Incomplete Fields", "Please fill in all the fields");
+      return;
     }
-    setIsLoading(true);
     try {
-      const response = await fetch("https://api.dripdropco.com/users/signIn", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ email, password }),
-      });
-      if (response.ok) {
-        console.log("Login Successful");
-
-        // Save email and username (assuming you get a username as part of the response)
-        const responseData = await response.json();
-        const username = responseData.username; // Adjust this based on actual response structure
-
-        // Store email and username in AsyncStorage
-        await AsyncStorage.setItem('email', email);
-        await AsyncStorage.setItem('username', username);
-
-        router.replace('/authenticated');
-      } else {
-        // Generic error handling for other status codes
-        const errorData = await response.json();
-        console.log("Error" + errorData.error);
-        Alert.alert("Login Failed", errorData.error, [
-          {
-            text: "Try Again",
-            onPress: () => console.log("Try again pressed"),
-          },
-        ]);
-        return;
-      }
+      await signIn(email, password);
+      router.replace("/authenticated");
     } catch (error) {
-      if (error instanceof Error) {
-        console.log("Unexpected error");
-        Alert.alert("Error", "An unexpected error occured", [
-          { text: "OK", onPress: () => console.log("OK Pressed") },
-        ]);
-        return;
-      }
-    } finally {
-      setIsLoading(false);
+      Alert.alert("Login Failed", "Invalid email or password");
     }
   };
 
-  const handleAutoLogin = async () => {
+  const handleAutoLogin = () => {
     setEmail("test");
     setPassword("test");
   };
-  const onGoToSignUp = async () => {
-    console.log("User wants to create new account");
-    router.replace("/auth/Signup");
-  }
+
+  const onGoToSignUp = () => {
+    router.replace("/auth/signup");
+  };
 
   return (
     <View style={styles.container}>
       <Image
-        source={require("../../public/dripdrop_logo.png")} // Replace with the actual image path
+        source={require("@/assets/images/dripdrop_logo.png")}
         style={styles.logo}
       />
       <Text style={styles.header}>dripdrop</Text>
 
-      {/* Input fields with state handling */}
       <TextInput
         style={styles.input}
         placeholder="Email"
         placeholderTextColor="grey"
         value={email}
-        onChangeText={setEmail} // Update username state
+        onChangeText={setEmail}
       />
       <TextInput
         style={styles.input}
@@ -106,11 +62,10 @@ export default function Login({ }) {
         placeholderTextColor="grey"
         value={password}
         secureTextEntry
-        onChangeText={setPassword} // Update password state
+        onChangeText={setPassword}
       />
 
-      {/* Sign-up Button */}
-      <Button title="Sign In" onPress={handleSignIn} />
+      <Button title="Sign In" onPress={handleSignIn} disabled={loading} />
 
       <TouchableOpacity onPress={onGoToSignUp}>
         <Text style={styles.signUpText}>Don't have an account? Sign Up</Text>
@@ -120,8 +75,7 @@ export default function Login({ }) {
         <Text style={styles.signUpText}>Push to Auto Login as Test user</Text>
       </TouchableOpacity>
 
-      {/* Loading Spinner */}
-      {isLoading && (
+      {loading && (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#5271ff" />
         </View>
@@ -155,10 +109,10 @@ const styles = StyleSheet.create({
     alignSelf: "center",
   },
   logo: {
-    width: 100, // Adjust based on your image's dimensions
-    height: 100, // Adjust based on your image's dimensions
-    marginBottom: 10, // Space between the image and the text
-    alignSelf: "center", // To center the image horizontally
+    width: 100,
+    height: 100,
+    marginBottom: 10,
+    alignSelf: "center",
   },
   signUpText: {
     color: "blue",
@@ -174,7 +128,7 @@ const styles = StyleSheet.create({
     bottom: 0,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
-    zIndex: 1, // Ensure it's above all other content
+    backgroundColor: "rgba(255, 255, 255, 0.7)",
+    zIndex: 1,
   },
 });

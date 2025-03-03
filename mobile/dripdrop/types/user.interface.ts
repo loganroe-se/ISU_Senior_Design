@@ -7,4 +7,5 @@ export interface UserContextType {
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
   signOut: () => void;
+  loading: boolean;
 }

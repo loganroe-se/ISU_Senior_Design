@@ -1,13 +1,15 @@
 import axios from "axios";
-import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
+import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserEmail } from "@/api/user";
-import { UserContextType, User } from "@/types/types";
+import { User, UserContextType } from "@/types/user.interface";
+import { router } from "expo-router";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   // Load user data from AsyncStorage on app start
   useEffect(() => {
@@ -19,47 +21,56 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (error) {
         console.error("Failed to load user from storage:", error);
+      } finally {
+        setLoading(false);
       }
     };
     loadUser();
   }, []);
 
-  const signIn = async (username: string, password: string): Promise<void> => {
+  const signIn = useCallback(async (username: string, password: string): Promise<void> => {
     try {
-      const options = {
-        method: "POST",
-        url: "https://api.dripdropco.com/users/signIn",
-        headers: { "content-type": "application/json" },
-        data: { email: username, password },
-      };
+      setLoading(true);
+      const response = await axios.post("https://api.dripdropco.com/users/signIn", {
+        email: username,
+        password,
+      }, {
+        headers: { "Content-Type": "application/json" },
+      });
 
-      const { data } = await axios.request(options);
-
-      // Fetch user email using their ID
-      const userWithEmail = await fetchUserEmail(data.id);
+      const userWithEmail = await fetchUserEmail(response.data.id);
 
       const signedInUser: User = {
-        id: data.id,
-        username: data.username,
+        id: response.data.id,
+        username: response.data.username,
         email: userWithEmail ?? "",
       };
 
       setUser(signedInUser);
       await AsyncStorage.setItem("user", JSON.stringify(signedInUser));
-      
     } catch (error) {
       console.error("Sign-in failed:", error);
       throw error;
+    } finally {
+      setLoading(false);
     }
-  };
+  }, []);
 
-  const signOut = async () => {
-    setUser(null);
-    await AsyncStorage.removeItem("user");
-  };
+  const signOut = useCallback(async () => {
+    try {
+      setLoading(true);
+      setUser(null);
+      await AsyncStorage.removeItem("user");
+      router.replace("/auth/signin")
+    } catch (error) {
+      console.error("Sign-out failed:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   return (
-    <UserContext.Provider value={{ user, signIn, signOut }}>
+    <UserContext.Provider value={{ user, signIn, signOut, loading }}>
       {children}
     </UserContext.Provider>
   );
