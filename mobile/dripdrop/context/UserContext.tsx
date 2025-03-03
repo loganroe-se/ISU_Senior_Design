@@ -46,6 +46,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       setUser(signedInUser);
       await AsyncStorage.setItem("user", JSON.stringify(signedInUser));
+      
     } catch (error) {
       console.error("Sign-in failed:", error);
       throw error;

@@ -1,19 +1,16 @@
-import { Text, StyleSheet, View, Alert } from 'react-native';
+import { Text, StyleSheet, View, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
-import NavScreen from './NavScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 
 const HomePage = () => {
   const [email, setEmail] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
-
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const storedEmail = await AsyncStorage.getItem('email');
-        const storedUsername = await AsyncStorage.getItem('username');
+        const storedEmail = await AsyncStorage.getItem("email");
+        const storedUsername = await AsyncStorage.getItem("username");
 
         // Set them to state if they exist
         if (storedEmail && storedUsername) {
@@ -32,10 +29,9 @@ const HomePage = () => {
   }, []); // Empty array ensures this effect runs only once when the component mounts
 
   return (
-    <NavScreen>
-      <View style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.header}>Welcome to the Home Page</Text>
-      
+
       {/* Display the email and username */}
       {email && username ? (
         <View>
@@ -45,19 +41,16 @@ const HomePage = () => {
       ) : (
         <Text style={styles.text}>Loading user data...</Text>
       )}
-
     </View>
-    </NavScreen>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#fff',
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   header: {
     fontSize: 24,
@@ -66,7 +59,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 24,
-    fontWeight: 'bold',
+    fontWeight: "bold",
   },
 });
 

@@ -6,10 +6,10 @@ import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { UserProvider } from "@/context/UserContext";
-import Navbar from "@/components/Navbar";
 import { DarkTheme } from "@react-navigation/native";
 import { useEffect } from "react";
 import { ThemeProvider, DefaultTheme } from "react-native-paper";
+import Navbar from "@/components/Navbar";
 
 // Prevent splash screen from hiding until assets load
 SplashScreen.preventAutoHideAsync();
