@@ -1,6 +1,6 @@
 // app/index.tsx
 import { useEffect, useState } from "react";
-import { Redirect, useRouter } from "expo-router";
+import { Redirect } from "expo-router";
 import { ActivityIndicator, View } from "react-native";
 import { useUserContext } from "@/context/UserContext";
 
@@ -27,5 +27,5 @@ export default function Index() {
     return <Redirect href="/auth/signin" />;
   }
 
-  return <Redirect href="/authenticated/index" />;
+  return <Redirect href="./authenticated/index" />;
 }

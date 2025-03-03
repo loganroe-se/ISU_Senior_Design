@@ -111,7 +111,7 @@ export default function Post() {
 
       // Navigate to the processing post screen
       router.push({
-        pathname: "/authenticated/ProcessingPost" as any,
+        pathname: "/authenticated/posts/ProcessingPost" as any,
         params: {
           caption: caption,
           image: image,
