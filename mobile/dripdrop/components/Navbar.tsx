@@ -5,18 +5,16 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 
 const { width } = Dimensions.get('window');
 
-type ValidPageName = "Home" | "Search" | "Post" | "Profile"; 
-
 interface NavItemProps {
     name: string;
-    pageName: ValidPageName;
+    pageName: string;
 }
 
 function NavItem({ name, pageName }: NavItemProps) {
     const router = useRouter();
 
     function onPress() {
-        router.push(`/pages/${pageName}` as any);  // Navigate to the respective page
+        router.push(`/authenticated/${pageName}` as any);  // Navigate to the respective page
     }
 
     return (
@@ -29,10 +27,10 @@ function NavItem({ name, pageName }: NavItemProps) {
 export default function Navbar() {
     return (
         <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
-            <NavItem name="home" pageName="Home" />
-            <NavItem name="magnify" pageName="Search" />
-            <NavItem name="plus-circle" pageName="Post" />
-            <NavItem name="account-circle" pageName="Profile" />
+            <NavItem name="home" pageName="" />
+            <NavItem name="magnify" pageName="search/" />
+            <NavItem name="plus-circle" pageName="posts/" />
+            <NavItem name="account-circle" pageName="profile/" />
         </SafeAreaView>
     );
 }
