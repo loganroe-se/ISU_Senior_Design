@@ -32,13 +32,13 @@ def searchUsers(search_string):
 
         # Select the username and userID of first 20 users that match the search string
         users = session.execute(
-            select(User.username, User.userID)
+            select(User.username, User.userID, User.profilePicURL)
             .filter(User.username.ilike(f"%{search_string}%"))
             .limit(20)
         ).fetchall()
 
         # Create a list of user dictionaries directly
-        users_list = [{"username": row[0], "userID": row[1]} for row in users]
+        users_list = [{"username": row[0], "userID": row[1], "profilePic": row[2]} for row in users]
 
         return 200, users_list
 
