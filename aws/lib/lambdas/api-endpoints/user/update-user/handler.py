@@ -68,7 +68,7 @@ def updateUser(user_id, username, email, password, profilePic):
                 user.password = hashed_password
             if profilePic:
                 if profilePic == "default":
-                    user.profilePicURL = "default"
+                    user.profilePicURL = "profilePics/default.jpg"
                 else:
                     # Decode the image and put into the S3 bucket
                     decoded_image = base64.b64decode(profilePic)

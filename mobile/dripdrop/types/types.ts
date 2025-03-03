@@ -27,6 +27,11 @@ export interface Following {
   email: string;
 }
 
+export interface Follower {
+  userID: number;
+  username: string;
+}
+
 export interface User {
   id: number;
   username: string;
