@@ -54,7 +54,7 @@ const SignUpScreen = () => {
           Alert.alert("Success", "Account successfully created", [
             { text: "OK", onPress: () => console.log("Ok pressed") },
           ]);
-          router.push("/pages/Login"); // Navigate to the login page
+          router.replace("/auth/Signup"); // Navigate to the login page
         } else {
           const errorData = await response.json();
           Alert.alert("Error", errorData.error, [
@@ -77,7 +77,7 @@ const SignUpScreen = () => {
 
   const onGoToSignIn = () => {
     console.log("User already has an account, go to login page");
-    router.push('/pages/Login');
+    router.replace("/auth/signin");
   };
 
   return (

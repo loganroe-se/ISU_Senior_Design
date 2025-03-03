@@ -1,8 +1,8 @@
 import axios from "axios";
 import React, { createContext, useContext, useState, ReactNode, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User, UserContextType } from "../types/user.interface";
 import { fetchUserEmail } from "@/api/user";
+import { UserContextType, User } from "@/types/types";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 

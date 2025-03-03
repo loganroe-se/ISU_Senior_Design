@@ -11,7 +11,7 @@ export default function ProcessingScreen() {
   const handleNavigateToPreviewPost = () => {
     // Navigate to the PreviewPost screen with the current caption and image data
     router.push({
-      pathname: "/pages/PreviewPost",
+      pathname: "/authenticated/PreviewPost",
       params: { caption, image },
     });
   };

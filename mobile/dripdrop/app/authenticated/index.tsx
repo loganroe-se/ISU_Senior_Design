@@ -2,7 +2,7 @@ import { Text, StyleSheet, View, Alert } from "react-native";
 import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 
-const HomePage = () => {
+const Page = () => {
   const [email, setEmail] = useState<string | null>(null);
   const [username, setUsername] = useState<string | null>(null);
 
@@ -63,4 +63,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HomePage;
+export default Page;

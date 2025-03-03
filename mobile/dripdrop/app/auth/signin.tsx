@@ -49,7 +49,7 @@ export default function Login({ }) {
         await AsyncStorage.setItem('email', email);
         await AsyncStorage.setItem('username', username);
 
-        router.push('/(authenticated)/Home');
+        router.replace('/authenticated');
       } else {
         // Generic error handling for other status codes
         const errorData = await response.json();
@@ -81,7 +81,7 @@ export default function Login({ }) {
   };
   const onGoToSignUp = async () => {
     console.log("User wants to create new account");
-    router.push('/auth/signup');
+    router.replace("/auth/Signup");
   }
 
   return (

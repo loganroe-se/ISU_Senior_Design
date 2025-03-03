@@ -12,9 +12,9 @@ import {
 import { Button, TextInput, Snackbar, Card } from "react-native-paper";
 import * as ImagePicker from "expo-image-picker";
 import { useRouter } from "expo-router";
-import { Colors } from "../../constants/Colors";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 
 export default function Post() {
   const [caption, setCaption] = useState("");
@@ -111,7 +111,7 @@ export default function Post() {
 
       // Navigate to the processing post screen
       router.push({
-        pathname: "/pages/ProcessingPost" as any,
+        pathname: "/authenticated/ProcessingPost" as any,
         params: {
           caption: caption,
           image: image,
