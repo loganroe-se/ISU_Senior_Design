@@ -63,7 +63,7 @@ export class ApigatewayConstruct extends Construct {
     const userPost = posts.addResource("user");
     const userID = userPost.addResource("{userID}");
 
-    // GET /posts/{userID}} - Get Post by ID
+    // GET /posts/user/{userID}} - Get Post by ID
     userID.addMethod(
       "GET",
       new LambdaIntegration(lambdaConstruct.postLambdas["getPostsByUserIdLambda"]),
@@ -71,6 +71,13 @@ export class ApigatewayConstruct extends Construct {
         operationName: "GetPostByUserId",
       }
     );
+
+    // Define the /posts/search resource
+    const searchPosts = posts.addResource("search");
+    // GET /posts/search - Search posts
+    searchPosts.addMethod("GET", new LambdaIntegration(lambdaConstruct.postLambdas["searchPostsLambda"]), {
+      operationName: "SearchPosts",
+    });
 
     // ---------------------------- USER ENDPOINTS -------------------------------
 
@@ -137,6 +144,13 @@ export class ApigatewayConstruct extends Construct {
         operationName: "UserSignIn",
       }
     );
+
+    // Define the /users/search resource
+    const searchUsers = posts.addResource("search");
+    // GET /users/search - Search posts
+    searchUsers.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["searchUsersLambda"]), {
+      operationName: "SearchUsers",
+    });
 
     // -------------------------------- HAS SEEN ENDPOINTS -------------------------
 

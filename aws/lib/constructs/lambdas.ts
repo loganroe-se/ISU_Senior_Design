@@ -127,6 +127,11 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/user/get-users",
         "handler"
       ),
+      searchUsersLambda: createLambda(
+        "SearchUsersLambda",
+        "lib/lambdas/api-endpoints/user/search-users",
+        "handler"
+      ),
       updateUserLambda: createLambda(
         "UpdateUserLambda",
         "lib/lambdas/api-endpoints/user/update-user",
@@ -202,6 +207,11 @@ export class LambdasConstruct extends Construct {
       getPostsByUserIdLambda: createLambda(
         "GetPostsByUserIdLambda",
         "lib/lambdas/api-endpoints/post/get-posts-by-user-id",
+        "handler"
+      ),
+      searchPostsLambda: createLambda(
+        "searchPostsLambda",
+        "lib/lambdas/api-endpoints/post/search-posts",
         "handler"
       ),
     };
