@@ -1,37 +1,33 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Animated } from 'react-native';
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import NavScreen from './NavScreen';
-import AsyncStorage from '@react-native-async-storage/async-storage'; // Import AsyncStorage
-import { getFeed, likePost, unlikePost } from '../../__lib/api';
-import { Colors } from '../../constants/Colors';
-import Icon from 'react-native-vector-icons/FontAwesome'
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions } from "react-native";
+import React, { useState, useEffect, useCallback } from "react";
+import { useUserContext } from "@/context/UserContext";
+import { getFeed } from "@/api/feed";
+import { likePost, unlikePost } from "@/api/like"
+import { FeedPost } from "@/types/types";
+import { Colors } from "@/constants/Colors"
+import { profileStyle } from "@/styles/profile";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
-const navbarHeight = 60; // TODO: Change this to either dynamic or change it when the navbar is changed
+const navbarHeight = 60; // TODO: change this to either dynamic or change it when the navbar is changed
 const headerHeight = 40;
 
-export default function Home({ }) {
-  const [email, setEmail] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
+const Page = () => {
+  const { user } = useUserContext();
   const [userID, setUserID] = useState<number | null>(null);
-  const [feedData, setFeedData] = useState<any[]>([]);
+  const [feedData, setFeedData] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ [key: number]: number }>({});
 
-
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const storedEmail = await AsyncStorage.getItem('email');
-        const storedUsername = await AsyncStorage.getItem('username');
-        const storedUserID = await AsyncStorage.getItem('userID');
+        const storedUserID = user?.id;
 
         // Set them to state if they exist
-        if (storedEmail && storedUsername && storedUserID) {
-          setEmail(storedEmail);
-          setUsername(storedUsername);
-          setUserID(parseInt(storedUserID));
+        if (storedUserID) {
+          setUserID(storedUserID);
         } else {
           Alert.alert("No user data", "User is not logged in.");
         }
@@ -65,22 +61,18 @@ export default function Home({ }) {
   // Set the loading symbol
   if (loading) {
     return (
-      <NavScreen>
-        <View style={styles.container}>
-          <ActivityIndicator size="large" color="#0000ff" />
-        </View>
-      </NavScreen>
+      <View style={styles.container}>
+        <ActivityIndicator size="large" color="#0000ff" />
+      </View>
     );
   }
 
   // Set the error if there is one
   if (error) {
     return (
-      <NavScreen>
-        <View style={styles.container}>
-          <Text style={styles.text}>{error}</Text>
-        </View>
-      </NavScreen>
+      <View style={styles.container}>
+        <Text style={styles.text}>{error}</Text>
+      </View>
     );
   }
 
@@ -139,69 +131,66 @@ export default function Home({ }) {
   };
 
   return (
-    <NavScreen>
-      <View style={styles.container}>
-          {/* Animated header */}
-          <View style={styles.header}>
-            <Text style={styles.headerText}>dripdrop</Text>
-          </View>
+    <View style={styles.container}>
+        {/* Animated header */}
+        <View style={styles.header}>
+          <Text style={styles.headerText}>dripdrop</Text>
+        </View>
 
-          {/* Render the feed */}
-          <FlatList 
-            contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
-            data={feedData}
-            keyExtractor={(item) => item.postID.toString()}
-            renderItem={({ item }) => {
-              const imageHeight = imageDimensions[item.postID];
+        {/* Render the feed */}
+        <FlatList 
+          contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
+          data={feedData}
+          keyExtractor={(item) => item.postID.toString()}
+          renderItem={({ item }) => {
+            const imageHeight = imageDimensions[item.postID];
 
-              return (
-                <View style={styles.feedItem}>
-                  {/* Display the poster's username */}
-                  <Text style={styles.username}>{item.username}</Text>
+            return (
+              <View style={styles.feedItem}>
+                {/* Display the poster's username */}
+                <Text style={styles.username}>{item.username}</Text>
 
-                  {/* Display the post's image */}
-                  {item.images && item.images[0]?.imageURL && (
-                    <Image
-                      source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
-                      style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
-                      onLoad={() => onImageLayout(item.postID, `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`)}
-                    />
-                  )}
+                {/* Display the post's image */}
+                {item.images && item.images[0]?.imageURL && (
+                  <Image
+                    source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
+                    style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                    onLoad={() => onImageLayout(item.postID, `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`)}
+                  />
+                )}
 
-                  {/* Buttons for liking and commenting */}
-                  <View style={styles.iconContainer}>
-                    <Icon 
-                      name={ item.userHasLiked ? 'heart' : 'heart-o' }
-                      size={30}
-                      color={ item.userHasLiked ? 'red' : Colors.light.contrast }
-                      onPress={() => handleLike(item.postID)}
-                      style={styles.icon}
-                    />
-                    <Text style={styles.iconCount}>{item.numLikes}</Text>
-                    <Icon 
-                      name="comment-o"
-                      size={30}
-                      color={Colors.light.contrast}
-                      onPress={() => handleComment(item.postID)}
-                      style={styles.icon}
-                    />
-                    <Text style={styles.iconCount}>{item.numComments}</Text>
-                  </View>
-
-                  {/* Display the username & caption */}
-                  <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
-
-                  {/* Display the post date */}
-                  <Text style={styles.date}>{item.createdDate}</Text>
+                {/* Buttons for liking and commenting */}
+                <View style={styles.iconContainer}>
+                  <Icon 
+                    name={ item.userHasLiked ? 'heart' : 'heart-o' }
+                    size={30}
+                    color={ item.userHasLiked ? 'red' : Colors.light.contrast }
+                    onPress={() => handleLike(item.postID)}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconCount}>{item.numLikes}</Text>
+                  <Icon 
+                    name="comment-o"
+                    size={30}
+                    color={Colors.light.contrast}
+                    onPress={() => handleComment(item.postID)}
+                    style={styles.icon}
+                  />
+                  <Text style={styles.iconCount}>{item.numComments}</Text>
                 </View>
-              );
-            }}
-          />
-      </View>
-    </NavScreen>
+
+                {/* Display the username & caption */}
+                <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
+
+                {/* Display the post date */}
+                <Text style={styles.date}>{item.createdDate}</Text>
+              </View>
+            );
+          }}
+        />
+    </View>
   );
 };
-
 
 const styles = StyleSheet.create({
   container: {
@@ -276,3 +265,5 @@ const styles = StyleSheet.create({
     marginRight: 20,
   }
 });
+
+export default Page;

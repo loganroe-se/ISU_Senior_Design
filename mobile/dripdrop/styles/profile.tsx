@@ -1,0 +1,89 @@
+import { StyleSheet } from "react-native";
+
+export const profileStyle = StyleSheet.create({
+    container: {
+      flex: 1,
+      backgroundColor: "#fff",
+    },
+    profileContainer: {
+      flexDirection: "row",
+      alignItems: "center",
+      marginTop: 16,
+      marginBottom: 8,
+      marginLeft: 8
+    },
+    avatarContainer: {
+      borderWidth: 2,
+      borderColor: "#e0e0e0",
+      borderRadius: 50,
+      padding: 3,
+    },
+    userHeader: {
+      flex: 1,
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginLeft: 4
+    },
+    userDescription: {
+      marginTop: 4,
+      marginLeft: 4
+    },
+    username: {
+      fontSize: 24,
+      fontWeight: "bold",
+      marginBottom: 4,
+      marginRight: 8
+    },
+    statsContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginBottom: 12,
+    },
+    stat: {
+      alignItems: "center",
+    },
+    statNumber: {
+      fontSize: 18,
+      fontWeight: "bold",
+    },
+    statLabel: {
+      fontSize: 14,
+      color: "#666",
+    },
+    editButton: {
+      borderRadius: 16,
+      border: "none",
+      backgroundColor: "#0073FF",
+      paddingVertical: 8,
+      paddingHorizontal: 12
+    },
+    buttonLabel: {
+      fontSize: 14,
+      fontWeight: "500",
+      color: "white"
+    },
+    displayName: {
+      fontSize: 14,
+      fontWeight: "600",
+      marginBottom: 4,
+    },
+    bio: {
+      fontSize: 14,
+      color: "#333",
+      lineHeight: 18,
+    },
+    gridContainer: {
+    },
+    postContainer: {
+      width: 120,  // Set a fixed width
+      height: 160, // Set a fixed height
+      margin: 2.5,   // Adjust spacing between images
+      display: "flex",
+      alignItems: "center"
+    },
+    postImage: {
+      width: "100%",
+      height: "100%",
+      backgroundColor: "#f0f0f0",
+    },
+  });

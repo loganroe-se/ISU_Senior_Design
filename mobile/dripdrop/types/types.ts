@@ -21,10 +21,20 @@ export interface Post {
   numComments: number;
 }
 
+export interface FeedPost extends Post {
+  username: string;
+  userHasLiked: boolean;
+}
+
 export interface Following {
   userID: number;
   username: string;
   email: string;
+}
+
+export interface Follower {
+  userID: number;
+  username: string;
 }
 
 export interface User {
