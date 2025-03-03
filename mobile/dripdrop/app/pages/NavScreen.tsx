@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Dimensions, Text, StyleSheet, Button, TouchableOpacity } from "react-native";
+import { View, StyleSheet } from "react-native";
 import Navbar from "@/app/components/Navbar";
 
 interface NavScreenProps {
