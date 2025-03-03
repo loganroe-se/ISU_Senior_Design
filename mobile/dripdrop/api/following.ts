@@ -1,4 +1,4 @@
-import { User, Following } from '../types/types';
+import { User, Following, Follower } from '../types/types';
 import { apiRequest } from './api';
 
 // Fetch user by username
@@ -9,6 +9,11 @@ export const fetchUserByUsername = async (username: string): Promise<User> => {
 // Fetch user following list by userID
 export const fetchFollowing = async (userID: number): Promise<Following[]> => {
   return apiRequest<Following[]>('GET', `/follow/${userID}/following`);
+};
+
+// Fetch user following list by userID
+export const fetchFollowers = async (userID: number): Promise<Following[]> => {
+  return apiRequest<Following[]>('GET', `/follow/${userID}/followers`);
 };
 
 

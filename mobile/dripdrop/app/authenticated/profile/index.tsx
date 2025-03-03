@@ -3,21 +3,30 @@ import { View, FlatList, Image, TouchableOpacity } from "react-native";
 import { Avatar, Text, Button } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts } from "@/api/post";
-import { Post } from "@/types/types";
+import { fetchFollowers, fetchFollowing } from "@/api/following";
+import { Follower, Following, Post } from "@/types/types";
 import { profileStyle } from "@/styles/profile";
 
 const UserProfile = () => {
   const { user } = useUserContext();
   const [posts, setPosts] = useState<Post[]>([]);
+  const [followers, setFollowers] = useState<Follower[]>([]);
+  const [following, setFollowing] = useState<Following[]>([]);
 
   useEffect(() => {
-    const getUserPosts = async () => {
+    const getUserData = async () => {
       if (user) {
         const p = await fetchUserPosts(user.id);
+        const f = await fetchFollowing(user.id);
+        const fs = await fetchFollowers(user.id);
+
         setPosts(p);
+        setFollowing(f);
+        setFollowers(fs);
       }
     };
-    getUserPosts();
+
+    getUserData();
   }, [user]);
 
   if (!user) {
@@ -47,11 +56,11 @@ const UserProfile = () => {
               <Text style={profileStyle.statLabel}>Posts</Text>
             </View>
             <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>1.2K</Text>
+              <Text style={profileStyle.statNumber}>{followers.length}</Text>
               <Text style={profileStyle.statLabel}>Followers</Text>
             </View>
             <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>530</Text>
+              <Text style={profileStyle.statNumber}>{following.length}</Text>
               <Text style={profileStyle.statLabel}>Following</Text>
             </View>
           </View>
