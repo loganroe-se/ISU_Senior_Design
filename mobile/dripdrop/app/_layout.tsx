@@ -1,23 +1,31 @@
-import { Slot, Redirect, usePathname } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
-import { useEffect, useState } from "react";
-import { useUserContext } from "@/context/UserContext";
+// app/_layout.tsx
+import { Slot, usePathname } from "expo-router";
+import { View } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
 import { useColorScheme } from "@/hooks/useColorScheme";
+import { UserProvider } from "@/context/UserContext";
 import Navbar from "@/components/Navbar";
-import { ThemeProvider, DefaultTheme, MD3DarkTheme } from "react-native-paper";
+import { DarkTheme } from "@react-navigation/native";
+import { useEffect } from "react";
+import { ThemeProvider, DefaultTheme } from "react-native-paper";
 
-// Prevent the splash screen from auto-hiding before assets load
+// Prevent splash screen from hiding until assets load
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
-  const { user } = useUserContext();
-  const [loading, setLoading] = useState(true);
-  const pathname = usePathname(); // Get current path
+  return (
+    <UserProvider>
+      <AppContent />
+    </UserProvider>
+  );
+}
+
+function AppContent() {
+  const pathname = usePathname();
   const colorScheme = useColorScheme();
-  
+
   const [fontsLoaded] = useFonts({
     SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
   });
@@ -28,28 +36,17 @@ export default function RootLayout() {
     }
   }, [fontsLoaded]);
 
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000); // Simulate loading
-  }, []);
-
-  if (!fontsLoaded || loading) {
-    return <ActivityIndicator size="large" style={{ flex: 1, justifyContent: "center" }} />;
-  }
-
-  // If user is not logged in, redirect to SignIn
-  if (!user && pathname !== "/auth/signin" && pathname !== "/auth/signup") {
-    return <Redirect href="/auth/signin" />;
+  if (!fontsLoaded) {
+    return null;
   }
 
   // Screens where Navbar should be hidden
   const hideNavbar = ["/auth/signin", "/auth/signup"].includes(pathname);
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? MD3DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <View style={{ flex: 1 }}>
-        <Slot /> {/* This renders the current screen */}
+        <Slot /> {/* Renders the current screen */}
         {!hideNavbar && <Navbar />} {/* Show Navbar unless on SignIn/SignUp */}
       </View>
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
