@@ -3,6 +3,7 @@ from utils import create_response, handle_exception
 from sqlalchemy import select
 from sqlalchemy_utils import create_session
 from dripdrop_orm_objects import Post
+from datetime import datetime, date
 
 def handler(event, context):
     try:
@@ -15,17 +16,17 @@ def handler(event, context):
             return create_response(400, 'Missing searchString')
         
         # Call helper function to execute the search
-        status_code, message = searchUsers(search_string)
+        status_code, message = searchPosts(search_string)
 
         # Return message
         return create_response(status_code, message)
     
     except Exception as e:
-        return create_response(500, f"Error retrieving user: {str(e)}")
+        return create_response(500, f"Error searching posts: {str(e)}")
     
 
 
-def searchUsers(search_string):
+def searchPosts(search_string):
     try:
         # Create the session
         session = create_session()
@@ -35,7 +36,7 @@ def searchUsers(search_string):
             select(Post)
             .filter(Post.caption.ilike(f"%{search_string}%"))
             .limit(20)
-        ).fetchall()
+        ).scalars().all()
 
         # Create a list of post dictionaries directly
         posts_list = [
