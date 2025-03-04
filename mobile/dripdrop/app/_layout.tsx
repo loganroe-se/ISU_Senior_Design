@@ -44,11 +44,10 @@ function AppContent() {
   const hideNavbar = ["/auth/signin", "/auth/signup"].includes(pathname);
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <View style={{ flex: 1 }}>
-        <Slot /> {/* Renders the current screen */}
-        {!hideNavbar && <Navbar />} {/* Show Navbar unless on SignIn/SignUp */}
-      </View>
+    <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+       
+        <Slot /> 
+        {!hideNavbar && <Navbar />}
       <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
     </ThemeProvider>
   );

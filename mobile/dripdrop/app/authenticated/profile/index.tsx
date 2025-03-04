@@ -57,7 +57,7 @@ const UserProfile = () => {
               </TouchableOpacity>
             </View>
             <View style={profileStyle.userDescription}>
-              <Text style={profileStyle.bio}>{user.bio || "Digital goodies collector 🌈✨"}</Text>
+              <Text style={profileStyle.bio}>{ "Digital goodies collector 🌈✨"}</Text> {/*Replce with the user's bio once implemente*/}
             </View>
           </View>
         </View>
