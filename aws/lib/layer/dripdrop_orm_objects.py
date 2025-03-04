@@ -91,8 +91,8 @@ class Item(Base):
 class ClothingItem(Base):
     __tablename__ = 'clothing_items'
     clothingItemID = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
-    brand = Column(String(50), nullable=False)
+    name = Column(String(50))
+    brand = Column(String(50))
     category = Column(String(50))
     price = Column(Float)
     itemURL = Column(String(200))

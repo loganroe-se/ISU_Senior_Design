@@ -44,5 +44,8 @@ def save_image_to_db(session, post_id, images):
         # Construct the return message
         print(f"Image with imageID: {new_image.imageID} was created successfully")
 
+        # Send the image to AI processing
+        # TODO: Implement the AI processing logic here
+
         # Return message
     return 201, "Images successfully saved to db"
