@@ -1,0 +1,18 @@
+meta {
+  name: Search Users
+  type: http
+  seq: 4
+}
+
+get {
+  url: https://api.dripdropco.com/users/search
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "searchString": "test"
+  }
+  
+}
