@@ -52,7 +52,6 @@ export const profileStyle = StyleSheet.create({
     },
     editButton: {
       borderRadius: 16,
-      border: "none",
       backgroundColor: "#0073FF",
       paddingVertical: 8,
       paddingHorizontal: 12

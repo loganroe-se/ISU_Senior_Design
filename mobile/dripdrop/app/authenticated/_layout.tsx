@@ -5,11 +5,11 @@ export default function AuthenticatedLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }} initialRouteName="index">
       <Stack.Screen name="index" options={{title: "Home"}} />
-      <Stack.Screen name="profile" />
-      <Stack.Screen name="search" />
-      <Stack.Screen name="posts" options={{ title: "All Posts" }} />
-      <Stack.Screen name="posts/preview" options={{ title: "Preview Post" }} />
-      <Stack.Screen name="posts/processing" options={{ title: "Processing Post" }} />
+      <Stack.Screen name="profile/index" options={{ title: "Profile" }} />
+      <Stack.Screen name="search/index" options={{ title: "Search" }} />
+      <Stack.Screen name="posts/index" options={{ title: "All Posts" }} />
+      <Stack.Screen name="posts/preview_post" options={{ title: "Preview Post" }} />
+      <Stack.Screen name="posts/processing_post" options={{ title: "Processing Post" }} />
     </Stack>
   );
 }
