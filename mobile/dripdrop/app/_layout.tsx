@@ -41,7 +41,7 @@ function AppContent() {
   }
 
   // Screens where Navbar should be hidden
-  const hideNavbar = ["/auth/signin", "/auth/signup"].includes(pathname);
+  const hideNavbar = ["/auth/signin", "/auth/signup", "/authenticated/posts"].includes(pathname);
 
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>

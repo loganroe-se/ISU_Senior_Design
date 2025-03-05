@@ -28,9 +28,9 @@ export default function Navbar() {
     return (
         <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
             <NavItem name="home" pageName="" />
-            <NavItem name="magnify" pageName="search/" />
-            <NavItem name="plus-circle" pageName="posts/" />
-            <NavItem name="account-circle" pageName="profile/" />
+            <NavItem name="magnify" pageName="search" />
+            <NavItem name="plus-circle" pageName="posts" />
+            <NavItem name="account-circle" pageName="profile" />
         </SafeAreaView>
     );
 }
