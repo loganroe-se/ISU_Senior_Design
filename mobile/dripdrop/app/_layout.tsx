@@ -8,7 +8,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { UserProvider } from "@/context/UserContext";
 import { DarkTheme } from "@react-navigation/native";
 import { useEffect } from "react";
-import { ThemeProvider, DefaultTheme } from "react-native-paper";
+import { PaperProvider, ThemeProvider, DefaultTheme } from "react-native-paper";
 import Navbar from "@/components/Navbar";
 
 // Prevent splash screen from hiding until assets load
@@ -45,10 +45,13 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-       
-        <Slot /> 
+      <PaperProvider>
+
+        <Slot />
         {!hideNavbar && <Navbar />}
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      </PaperProvider >
     </ThemeProvider>
+       
   );
 }

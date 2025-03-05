@@ -11,8 +11,8 @@ export default function ProcessingScreen() {
 
   const handleNavigateToPreviewPost = () => {
     // Navigate to the PreviewPost screen with the current caption and image data
-    router.push({
-      pathname: "/authenticated/posts/processing_post",
+    router.replace({
+      pathname: "./posts/processing_post" as any,
       params: { caption, image },
     });
   };

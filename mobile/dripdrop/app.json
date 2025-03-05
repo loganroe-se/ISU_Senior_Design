@@ -14,7 +14,10 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "NSPhotoLibraryUsageDescription": "This app requires access to the photo library."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -55,7 +58,6 @@
       "eas": {
         "projectId": "e7c6ef5f-b251-479b-9a11-23f7a8161e00"
       }
-    },
-    "newArchEnabled" : true
+    }
   }
 }
