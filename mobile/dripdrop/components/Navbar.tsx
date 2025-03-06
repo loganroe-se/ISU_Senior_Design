@@ -14,7 +14,7 @@ function NavItem({ name, pageName }: NavItemProps) {
     const router = useRouter();
 
     function onPress() {
-        router.push(`/authenticated/${pageName}` as any);  // Navigate to the respective page
+        router.replace(`/authenticated/${pageName}` as any);  // Navigate to the respective page
     }
 
     return (

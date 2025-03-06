@@ -6,19 +6,27 @@ import { fetchUserPosts } from "@/api/post";
 import { fetchFollowers, fetchFollowing } from "@/api/following";
 import { Follower, Following, Post } from "@/types/types";
 import { profileStyle } from "@/styles/profile";
+import { useLocalSearchParams } from "expo-router";
 
 const UserProfile = () => {
+  const params = useLocalSearchParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
   const { user } = useUserContext();
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
 
+  let uid=0;
+
   useEffect(() => {
     const getUserData = async () => {
+      uid=id == null ? user != null ? user.id : 0 : parseInt(id);
+
       if (user) {
-        const p = await fetchUserPosts(user.id);
-        const f = await fetchFollowing(user.id);
-        const fs = await fetchFollowers(user.id);
+        const p = await fetchUserPosts(uid);
+        const f = await fetchFollowing(uid);
+        const fs = await fetchFollowers(uid);
 
         setPosts(p);
         setFollowing(f);
