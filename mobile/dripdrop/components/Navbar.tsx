@@ -26,7 +26,7 @@ function NavItem({ name, pageName }: NavItemProps) {
 
 export default function Navbar() {
     return (
-        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
+        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd", backgroundColor: "white" }]}>
             <NavItem name="home" pageName="" />
             <NavItem name="magnify" pageName="search" />
             <NavItem name="plus-circle" pageName="posts" />

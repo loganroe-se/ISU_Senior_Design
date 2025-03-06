@@ -60,7 +60,7 @@ def getPostsByUserId(user_id):
 
             return 200, posts_list
         else:
-            return 404, f"No posts found for userID: {user_id}"
+            return 200, []
 
     except Exception as e:
         # Call a helper to handle the exception
