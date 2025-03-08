@@ -15,7 +15,7 @@ function NavItem({ name, pageName }: NavItemProps) {
     const router = useRouter();
 
     function onPress() {
-        router.push(`/authenticated/${pageName}` as any);  // Navigate to the respective page
+        router.replace(`/authenticated/${pageName}` as any);  // Navigate to the respective page
     }
 
     return (
@@ -27,11 +27,11 @@ function NavItem({ name, pageName }: NavItemProps) {
 
 export default function Navbar() {
     return (
-        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
+        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd", backgroundColor: "white" }]}>
             <NavItem name="home" pageName="" />
-            <NavItem name="magnify" pageName="search/" />
-            <NavItem name="plus-circle" pageName="posts/" />
-            <NavItem name="account-circle" pageName="profile/" />
+            <NavItem name="magnify" pageName="search" />
+            <NavItem name="plus-circle" pageName="posts" />
+            <NavItem name="account-circle" pageName="profile" />
         </SafeAreaView>
     );
 }

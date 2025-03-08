@@ -1,4 +1,3 @@
-import axios from "axios";
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { fetchUserEmail } from "@/api/user";
@@ -31,18 +30,26 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const signIn = useCallback(async (username: string, password: string): Promise<void> => {
     try {
       setLoading(true);
-      const response = await axios.post("https://api.dripdropco.com/users/signIn", {
-        email: username,
-        password,
-      }, {
+
+      const response = await fetch("https://api.dripdropco.com/users/signIn", {
+        method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: username,
+          password,
+        }),
       });
 
-      const userWithEmail = await fetchUserEmail(response.data.id);
+      if (!response.ok) {
+        throw new Error(`Sign-in failed: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      const userWithEmail = await fetchUserEmail(data.id);
 
       const signedInUser: User = {
-        id: response.data.id,
-        username: response.data.username,
+        id: data.id,
+        username: data.username,
         email: userWithEmail ?? "",
       };
 
@@ -61,7 +68,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(true);
       setUser(null);
       await AsyncStorage.removeItem("user");
-      router.replace("/auth/signin")
+      router.replace("/auth/signin");
     } catch (error) {
       console.error("Sign-out failed:", error);
     } finally {

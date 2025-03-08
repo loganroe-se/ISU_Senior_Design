@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -109,8 +110,8 @@ export default function SearchScreen() {
   }, [searchQuery, searchType, users, posts]);
 
   // Handle user selection (optional)
-  const handleUserPress = (username: string) => {
-    Alert.alert("User Selected", `You selected ${username}`);
+  const handleUserPress = (id: number) => {
+    router.replace(`/authenticated/profile?id=${id}` as any);
   };
 
   // Handle post click to open the modal with the selected post details
@@ -174,7 +175,7 @@ export default function SearchScreen() {
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {filteredUsers.length > 0 ? (
             filteredUsers.map((item) => (
-              <TouchableOpacity key={item.id} onPress={() => handleUserPress(item.username)}>
+              <TouchableOpacity key={item.id} onPress={() => handleUserPress(item.id)}>
                 <Text style={styles.userItem}>{item.username}</Text>
               </TouchableOpacity>
             ))

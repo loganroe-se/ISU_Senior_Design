@@ -8,7 +8,7 @@ import { useColorScheme } from "@/hooks/useColorScheme";
 import { UserProvider } from "@/context/UserContext";
 import { DarkTheme } from "@react-navigation/native";
 import { useEffect } from "react";
-import { ThemeProvider, DefaultTheme } from "react-native-paper";
+import { PaperProvider, ThemeProvider, DefaultTheme } from "react-native-paper";
 import Navbar from "@/components/Navbar";
 
 // Prevent splash screen from hiding until assets load
@@ -41,15 +41,17 @@ function AppContent() {
   }
 
   // Screens where Navbar should be hidden
-  const hideNavbar = ["/auth/signin", "/auth/signup"].includes(pathname);
+  const hideNavbar = ["/auth/signin", "/auth/signup", "/authenticated/posts"].includes(pathname);
 
   return (
-    <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <View style={{ flex: 1 }}>
-        <Slot /> {/* Renders the current screen */}
-        {!hideNavbar && <Navbar />} {/* Show Navbar unless on SignIn/SignUp */}
-      </View>
-      <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+    <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <PaperProvider>
+
+        <Slot />
+        {!hideNavbar && <Navbar />}
+        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+      </PaperProvider >
     </ThemeProvider>
+       
   );
 }

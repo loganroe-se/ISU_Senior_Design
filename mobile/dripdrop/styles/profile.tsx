@@ -38,7 +38,8 @@ export const profileStyle = StyleSheet.create({
       fontSize: 24,
       fontWeight: "bold",
       marginBottom: 4,
-      marginRight: 8
+      marginRight: 8,
+      color: "#000"
     },
     statsContainer: {
       flexDirection: "row",
@@ -50,23 +51,25 @@ export const profileStyle = StyleSheet.create({
     },
     statNumber: {
       fontSize: 18,
+      color: "#000",
       fontWeight: "bold",
     },
     statLabel: {
       fontSize: 14,
       color: "#666",
     },
-    editButton: {
-      borderRadius: 16,
-      border: "none",
+    actionButton: {
+      borderRadius: 12,
       backgroundColor: "#0073FF",
       paddingVertical: 8,
-      paddingHorizontal: 12
+      paddingHorizontal: 12,
+      marginTop: 8
     },
     buttonLabel: {
       fontSize: 14,
       fontWeight: "500",
-      color: "white"
+      color: "white",
+      textAlign: "center"
     },
     displayName: {
       fontSize: 14,

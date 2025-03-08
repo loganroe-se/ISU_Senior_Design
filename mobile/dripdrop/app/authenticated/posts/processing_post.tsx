@@ -1,8 +1,9 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, Image } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { styles } from "@/styles/post";  // Import the styles from the post.tsx file
 
 export default function ProcessingScreen() {
   const router = useRouter();
@@ -10,8 +11,8 @@ export default function ProcessingScreen() {
 
   const handleNavigateToPreviewPost = () => {
     // Navigate to the PreviewPost screen with the current caption and image data
-    router.push({
-      pathname: "/authenticated/PreviewPost",
+    router.replace({
+      pathname: "./posts/processing_post" as any,
       params: { caption, image },
     });
   };
@@ -57,34 +58,3 @@ export default function ProcessingScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  image: {
-    width: 250,
-    height: 250,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  caption: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-    paddingHorizontal: 10,
-  },
-  button: {
-    width: "80%",
-    marginVertical: 10,
-  },
-});

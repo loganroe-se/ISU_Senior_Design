@@ -1,6 +1,4 @@
-import axios from 'axios';
-
-const API_BASE_URL = 'https://api.dripdropco.com';
+const API_BASE_URL = "https://api.dripdropco.com";
 
 export const apiRequest = async <T, D = unknown>(
   method: string,
@@ -8,19 +6,27 @@ export const apiRequest = async <T, D = unknown>(
   data: D = null as unknown as D
 ): Promise<T> => {
   try {
-    const response = await axios({
+    const options: RequestInit = {
       method,
-      url: `${API_BASE_URL}${url}`,
-      headers: { 'Content-Type': 'application/json' },
-      data,
-    });
-    return response.data;
-  } catch (error) {
-    if (axios.isAxiosError(error) && error.response) {
-      console.error(`Error [${method.toUpperCase()} ${url}]:`, error.response.data);
-      throw new Error(error.response.data?.message || 'An error occurred');
+      headers: { "Content-Type": "application/json" },
+    };
+
+    // Only include body if it's not a GET request
+    if (method !== "GET" && data !== null) {
+      options.body = JSON.stringify(data);
     }
+
+    const response = await fetch(`${API_BASE_URL}${url}`, options);
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error(`Error [${method.toUpperCase()} ${url}]:`, errorData);
+      throw new Error(errorData?.message || "An error occurred");
+    }
+
+    return await response.json();
+  } catch (error) {
     console.error(`Error [${method.toUpperCase()} ${url}]:`, error);
-    throw new Error('An unknown error occurred');
+    throw new Error("An unknown error occurred");
   }
 };
