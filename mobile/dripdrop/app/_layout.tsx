@@ -10,6 +10,7 @@ import { DarkTheme } from "@react-navigation/native";
 import { useEffect } from "react";
 import { PaperProvider, ThemeProvider, DefaultTheme } from "react-native-paper";
 import Navbar from "@/components/Navbar";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Prevent splash screen from hiding until assets load
 SplashScreen.preventAutoHideAsync();
@@ -46,10 +47,12 @@ function AppContent() {
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <PaperProvider>
-
-        <Slot />
-        {!hideNavbar && <Navbar />}
-        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        {/* Wrap everything inthe SafeAreaView */}
+        <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === "dark" ? "light" : "dark" }}>
+          <Slot />
+          {!hideNavbar && <Navbar />}
+          <StatusBar style={colorScheme === "dark" ? "dark" : "light"} />
+        </SafeAreaView>
       </PaperProvider >
     </ThemeProvider>
        

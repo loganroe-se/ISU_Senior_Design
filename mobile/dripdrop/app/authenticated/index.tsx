@@ -19,6 +19,7 @@ const Page = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ [key: number]: number }>({});
+  const [imageErrors, setImageErrors] = useState< { [key: number]: boolean }>({});
 
   useEffect(() => {
     const getUserData = async () => {
@@ -43,6 +44,7 @@ const Page = () => {
   // Get the feed data
   useEffect(() => {
     if (userID) {
+      setLoading(true);
       getFeed(userID)
         .then((data) => {
           if (data) {
@@ -57,24 +59,6 @@ const Page = () => {
         });
     }
   }, [userID]);
-
-  // Set the loading symbol
-  if (loading) {
-    return (
-      <View style={profileStyle.feedContainer}>
-        <ActivityIndicator size="large" color="#0000ff" />
-      </View>
-    );
-  }
-
-  // Set the error if there is one
-  if (error) {
-    return (
-      <View style={profileStyle.feedContainer}>
-        <Text style={styles.text}>{error}</Text>
-      </View>
-    );
-  }
 
   // Handle a like
   const handleLike = useCallback(async (postID: number) => {
@@ -127,7 +111,21 @@ const Page = () => {
         ...prevState,
         [postID]: calculatedHeight,
       }));
+    }, () => {
+      // If the it failes to get a size, there was an error
+      setImageErrors(prevState => ({
+        ...prevState,
+        [postID]: true,
+      }));
     });
+  };
+
+  // Define an onImageError function
+  const onImageError = (postID: number) => {
+    setImageErrors(prevState => ({
+      ...prevState,
+      [postID]: true,
+    }));
   };
 
   return (
@@ -137,57 +135,70 @@ const Page = () => {
           <Text style={styles.headerText}>dripdrop</Text>
         </View>
 
-        {/* Render the feed */}
-        <FlatList 
-          contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
-          data={feedData}
-          keyExtractor={(item) => item.postID.toString()}
-          renderItem={({ item }) => {
-            const imageHeight = imageDimensions[item.postID];
-
-            return (
-              <View style={styles.feedItem}>
-                {/* Display the poster's username */}
-                <Text style={styles.username}>{item.username}</Text>
-
-                {/* Display the post's image */}
-                {item.images && item.images[0]?.imageURL && (
-                  <Image
-                    source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
-                    style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
-                    onLoad={() => onImageLayout(item.postID, `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`)}
-                  />
-                )}
-
-                {/* Buttons for liking and commenting */}
-                <View style={styles.iconContainer}>
-                  <Icon 
-                    name={ item.userHasLiked ? 'heart' : 'heart-o' }
-                    size={30}
-                    color={ item.userHasLiked ? 'red' : Colors.light.contrast }
-                    onPress={() => handleLike(item.postID)}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.iconCount}>{item.numLikes}</Text>
-                  <Icon 
-                    name="comment-o"
-                    size={30}
-                    color={Colors.light.contrast}
-                    onPress={() => handleComment(item.postID)}
-                    style={styles.icon}
-                  />
-                  <Text style={styles.iconCount}>{item.numComments}</Text>
+        {loading  ? (
+          <ActivityIndicator size="large" color="#0000ff" />
+        ) : error ? (
+          <Text style={styles.text}>{error}</Text>
+        ) : (
+          <FlatList 
+            contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
+            data={feedData}
+            keyExtractor={(item) => item.postID.toString()}
+            renderItem={({ item }) => {
+              const imageHeight = imageDimensions[item.postID];
+              const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
+  
+              return (
+                <View style={styles.feedItem}>
+                  {/* Display the poster's username */}
+                  <Text style={styles.username}>{item.username}</Text>
+  
+                  {/* Display the post's image */}
+                  {imageErrors[item.postID] ? (
+                    <View style={styles.imageErrorBox}>
+                      <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
+                    </View>
+                  ) : (
+                    item.images && item.images[0]?.imageURL && (
+                      <Image
+                        source={{ uri: imageURL }}
+                        style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                        onLoad={() => onImageLayout(item.postID, imageURL)}
+                        onError={() => onImageError(item.postID)}
+                      />
+                    )
+                  )}
+  
+                  {/* Buttons for liking and commenting */}
+                  <View style={styles.iconContainer}>
+                    <Icon 
+                      name={ item.userHasLiked ? 'heart' : 'heart-o' }
+                      size={30}
+                      color={ item.userHasLiked ? 'red' : Colors.light.contrast }
+                      onPress={() => handleLike(item.postID)}
+                      style={styles.icon}
+                    />
+                    <Text style={styles.iconCount}>{item.numLikes}</Text>
+                    <Icon 
+                      name="comment-o"
+                      size={30}
+                      color={Colors.light.contrast}
+                      onPress={() => handleComment(item.postID)}
+                      style={styles.icon}
+                    />
+                    <Text style={styles.iconCount}>{item.numComments}</Text>
+                  </View>
+  
+                  {/* Display the username & caption */}
+                  <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
+  
+                  {/* Display the post date */}
+                  <Text style={styles.date}>{item.createdDate}</Text>
                 </View>
-
-                {/* Display the username & caption */}
-                <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
-
-                {/* Display the post date */}
-                <Text style={styles.date}>{item.createdDate}</Text>
-              </View>
-            );
-          }}
-        />
+              );
+            }}
+          />
+        )}
     </View>
   );
 };
@@ -235,6 +246,19 @@ const styles = StyleSheet.create({
   image: {
     borderRadius: 8,
     marginBottom: 10,
+  },
+  imageErrorBox: {
+    width: windowWidth,
+    height: windowWidth,
+    backgroundColor: "#ccc",
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  imageErrorText: {
+    fontWeight: 'bold',
+    fontSize: 16,
   },
   caption: {
     fontSize: 16,
