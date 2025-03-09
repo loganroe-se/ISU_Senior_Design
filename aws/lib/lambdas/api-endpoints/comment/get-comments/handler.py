@@ -46,6 +46,7 @@ def getCommentsForPost(post_id):
             {
                 "commentID": comment.commentID,
                 "username": comment.user.username,
+                "profilePic": comment.user.profilePicURL,
                 "content": comment.content,
                 "createdDate": comment.createdDate.isoformat()
             }

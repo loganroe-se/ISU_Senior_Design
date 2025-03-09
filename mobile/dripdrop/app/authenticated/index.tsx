@@ -1,5 +1,5 @@
 import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, ScrollView, TouchableOpacity, TextInput, Touchable } from "react-native";
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like"
@@ -27,6 +27,7 @@ const Page = () => {
   const [currentPostID, setCurrentPostID] = useState<number | null>(null);
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState("");
+  const commentInputRef = useRef<TextInput | null>(null);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -127,16 +128,28 @@ const Page = () => {
       content: commentText,
     };
 
-    console.log(newComment);
-
     try {
       await createComment(newComment);
       setCommentText("");
+      setFeedData((prevFeedData) => 
+        prevFeedData.map((post) => 
+          post.postID === currentPostID ? { ...post, numComments: post.numComments + 1} : post
+        )
+      );
       handleComment(currentPostID);
     } catch (error) {
       console.error("Error adding a new comment: ", error);
     }
   };
+
+  // Focus the input when the modal opens
+  useEffect(() => {
+    if (commentModalVisible) {
+      setTimeout(() => {
+        commentInputRef.current?.focus();
+      }, 100);
+    }
+  }, [commentModalVisible]);
 
   // Get image dimensions dynamically
   const onImageLayout = (postID: number, imageURL: string) => {
@@ -265,7 +278,17 @@ const Page = () => {
                           {comments.length > 0 ? (
                             comments.map((comment) => (
                               <View key={comment.commentID} style={styles.commentItem}>
-                                <Text>{comment.username}: {comment.content}</Text>
+                                <Image 
+                                  source={{ uri: `https://cdn.dripdropco.com/${comment.profilePic !== "default" ? comment.profilePic : "profilePics/default.jpg" }?format=png` }}
+                                  style={styles.profilePicture}
+                                />
+                                <View style={styles.commentTextContainer}>
+                                  <View style={styles.commentHeader}>
+                                    <Text style={styles.commentUsername}>{comment.username}</Text>
+                                    <Text style={styles.commentDate}>{comment.createdDate}</Text>
+                                  </View>
+                                  <Text>{comment.content}</Text>
+                                </View>
                               </View>
                             ))
                           ) : (
@@ -276,6 +299,7 @@ const Page = () => {
                         {/* Comment Input */}
                         <View style={styles.inputContainer}>
                           <TextInput 
+                            ref={commentInputRef}
                             style={styles.commentInput}
                             placeholder="Add a comment..."
                             value={commentText}
@@ -389,6 +413,16 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20, // TODO: Can't get the radius to work 
     borderTopRightRadius: 20,
   },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 2,
+  },
+  commentUsername: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -406,9 +440,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
   },
   commentItem: {
-    paddingVertical: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: Colors.light.contrast,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 15,
+  },
+  profilePicture: {
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    marginRight: 10,
+    marginTop: 5,
+  },
+  commentTextContainer: {
+    flex: 1,
+    flexDirection: 'column',
+  },
+  commentDate: {
+    marginLeft: 5,
+    fontSize: 14,
+    color: 'gray',
   },
   noCommentsText: {
     textAlign: 'center',
