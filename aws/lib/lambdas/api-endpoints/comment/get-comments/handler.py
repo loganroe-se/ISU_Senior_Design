@@ -39,7 +39,7 @@ def getCommentsForPost(post_id):
         comments = post.comments
 
         if not comments:
-            return 404, "No comments found for this post."
+            return 200, "No comments found for this post."
 
         # Format comments into a list of dictionaries
         comments_list = [

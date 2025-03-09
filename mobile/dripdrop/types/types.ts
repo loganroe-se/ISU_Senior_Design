@@ -55,7 +55,7 @@ export interface Marker {
 
 export interface Comment {
   commentID: number;
-  username: number;
+  username: string;
   postID: number;
   content: string;
   createdDate: string;

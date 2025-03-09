@@ -1,11 +1,14 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions } from "react-native";
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, ScrollView, TouchableOpacity, TextInput, Touchable } from "react-native";
 import React, { useState, useEffect, useCallback } from "react";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like"
-import { FeedPost } from "@/types/types";
+import { createComment, fetchCommentsByPostID } from "@/api/comment";
+import { FeedPost, Comment } from "@/types/types";
+import { sendComment } from "@/types/sendComment.interface";
 import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
+import { GestureHandlerRootView, PanGestureHandler, TouchableWithoutFeedback } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
@@ -20,6 +23,10 @@ const Page = () => {
   const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ [key: number]: number }>({});
   const [imageErrors, setImageErrors] = useState< { [key: number]: boolean }>({});
+  const [commentModalVisible, setCommentModalVisible] = useState(false);
+  const [currentPostID, setCurrentPostID] = useState<number | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentText, setCommentText] = useState("");
 
   useEffect(() => {
     const getUserData = async () => {
@@ -96,9 +103,39 @@ const Page = () => {
     }
   }, [feedData, userID]);
 
-  // Handle a comment
-  const handleComment = (postID: number) => {
-    // TODO
+  // Get comments on comment open
+  const handleComment = async (postID: number) => {
+    setCurrentPostID(postID);
+    setCommentModalVisible(true);
+
+    try {
+      const comments = await fetchCommentsByPostID(postID);
+      comments.length === 0 ? setComments([]): setComments(comments);
+    } catch (error) {
+      console.error("Error fetching comments: ", error)
+    }
+  };
+
+  // Add a new comment
+  const handleAddComment = async () => {
+    if (!commentText.trim() || currentPostID === null) return;
+    if ((userID ?? 0) === 0) return;
+
+    const newComment: sendComment = {
+      postId: currentPostID,
+      userId: userID ?? 0,
+      content: commentText,
+    };
+
+    console.log(newComment);
+
+    try {
+      await createComment(newComment);
+      setCommentText("");
+      handleComment(currentPostID);
+    } catch (error) {
+      console.error("Error adding a new comment: ", error);
+    }
   };
 
   // Get image dimensions dynamically
@@ -140,64 +177,128 @@ const Page = () => {
         ) : error ? (
           <Text style={styles.text}>{error}</Text>
         ) : (
-          <FlatList 
-            contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
-            data={feedData}
-            keyExtractor={(item) => item.postID.toString()}
-            renderItem={({ item }) => {
-              const imageHeight = imageDimensions[item.postID];
-              const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
-  
-              return (
-                <View style={styles.feedItem}>
-                  {/* Display the poster's username */}
-                  <Text style={styles.username}>{item.username}</Text>
-  
-                  {/* Display the post's image */}
-                  {imageErrors[item.postID] ? (
-                    <View style={styles.imageErrorBox}>
-                      <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
-                    </View>
-                  ) : (
-                    item.images && item.images[0]?.imageURL && (
-                      <Image
-                        source={{ uri: imageURL }}
-                        style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
-                        onLoad={() => onImageLayout(item.postID, imageURL)}
-                        onError={() => onImageError(item.postID)}
+          <View style={{ flex: 1 }}>
+            <FlatList 
+              contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
+              data={feedData}
+              keyExtractor={(item) => item.postID.toString()}
+              renderItem={({ item }) => {
+                const imageHeight = imageDimensions[item.postID];
+                const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
+    
+                return (
+                  <View style={styles.feedItem}>
+                    {/* Display the poster's username */}
+                    <Text style={styles.username}>{item.username}</Text>
+    
+                    {/* Display the post's image */}
+                    {imageErrors[item.postID] ? (
+                      <View style={styles.imageErrorBox}>
+                        <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
+                      </View>
+                    ) : (
+                      item.images && item.images[0]?.imageURL && (
+                        <Image
+                          source={{ uri: imageURL }}
+                          style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                          onLoad={() => onImageLayout(item.postID, imageURL)}
+                          onError={() => onImageError(item.postID)}
+                        />
+                      )
+                    )}
+    
+                    {/* Buttons for liking and commenting */}
+                    <View style={styles.iconContainer}>
+                      <Icon 
+                        name={ item.userHasLiked ? 'heart' : 'heart-o' }
+                        size={30}
+                        color={ item.userHasLiked ? 'red' : Colors.light.contrast }
+                        onPress={() => handleLike(item.postID)}
+                        style={styles.icon}
                       />
-                    )
-                  )}
-  
-                  {/* Buttons for liking and commenting */}
-                  <View style={styles.iconContainer}>
-                    <Icon 
-                      name={ item.userHasLiked ? 'heart' : 'heart-o' }
-                      size={30}
-                      color={ item.userHasLiked ? 'red' : Colors.light.contrast }
-                      onPress={() => handleLike(item.postID)}
-                      style={styles.icon}
-                    />
-                    <Text style={styles.iconCount}>{item.numLikes}</Text>
-                    <Icon 
-                      name="comment-o"
-                      size={30}
-                      color={Colors.light.contrast}
-                      onPress={() => handleComment(item.postID)}
-                      style={styles.icon}
-                    />
-                    <Text style={styles.iconCount}>{item.numComments}</Text>
+                      <Text style={styles.iconCount}>{item.numLikes}</Text>
+                      <Icon 
+                        name="comment-o"
+                        size={30}
+                        color={Colors.light.contrast}
+                        onPress={() => handleComment(item.postID)}
+                        style={styles.icon}
+                      />
+                      <Text style={styles.iconCount}>{item.numComments}</Text>
+                    </View>
+    
+                    {/* Display the username & caption */}
+                    <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
+    
+                    {/* Display the post date */}
+                    <Text style={styles.date}>{item.createdDate}</Text>
                   </View>
-  
-                  {/* Display the username & caption */}
-                  <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
-  
-                  {/* Display the post date */}
-                  <Text style={styles.date}>{item.createdDate}</Text>
-                </View>
-              );
-            }}
-          />
+                );
+              }}
+            />
+
+            {/* Comment Modal */}
+            {commentModalVisible && <Modal 
+              animationType="slide"
+              transparent={false}
+              visible={commentModalVisible}
+              onRequestClose={() => setCommentModalVisible(false)}
+            >
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <PanGestureHandler
+                  onGestureEvent={(event) => {
+                    if (event.nativeEvent.translationY > 50) {
+                      setCommentModalVisible(false);
+                    }
+                  }}
+                >
+                  <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                      <View style={styles.commentContainer}>
+                        {/* Header - Swipe down indicator */}
+                        <View style={styles.modalHeader}>
+                          <View style={styles.swipeIndicator}/>
+                        </View>
+
+                        {/* Comments List */}
+                        <ScrollView style={styles.commentList} keyboardShouldPersistTaps="handled" onScroll={Keyboard.dismiss}>
+                          {comments.length > 0 ? (
+                            comments.map((comment) => (
+                              <View key={comment.commentID} style={styles.commentItem}>
+                                <Text>{comment.username}: {comment.content}</Text>
+                              </View>
+                            ))
+                          ) : (
+                            <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
+                          )}
+                        </ScrollView>
+
+                        {/* Comment Input */}
+                        <View style={styles.inputContainer}>
+                          <TextInput 
+                            style={styles.commentInput}
+                            placeholder="Add a comment..."
+                            value={commentText}
+                            onChangeText={setCommentText}
+                            autoFocus={true}
+                            multiline={true}
+                            numberOfLines={5}
+                            scrollEnabled={true}
+                          />
+                          <TouchableOpacity onPress={handleAddComment}>
+                            <Text style={styles.sendButton}>Post</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                      
+                    </TouchableWithoutFeedback>
+                  </KeyboardAvoidingView>
+
+                </PanGestureHandler>
+              </GestureHandlerRootView>
+              
+            </Modal>}
+          </View>
         )}
     </View>
   );
@@ -281,6 +382,61 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: Colors.light.contrast,
     marginRight: 20,
+  },
+  commentContainer: {
+    backgroundColor: Colors.light.background,
+    padding: 20,
+    borderTopLeftRadius: 20, // TODO: Can't get the radius to work 
+    borderTopRightRadius: 20,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  swipeIndicator: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 2,
+  },
+  commentList: {
+    marginBottom: 20,
+    paddingHorizontal: 10,
+  },
+  commentItem: {
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: Colors.light.contrast,
+  },
+  noCommentsText: {
+    textAlign: 'center',
+    color: 'gray',
+    fontStyle: 'italic',
+    fontSize: 16,
+    marginTop: 20,
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: Colors.light.contrast,
+  },
+  commentInput: {
+    flex: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    backgroundColor: '#f1f1f1',
+    borderRadius: 20,
+    fontSize: 16,
+    marginRight: 10,
+  },
+  sendButton: {
+    fontSize: 18,
+    color: Colors.light.primary,
+    fontWeight: 'bold',
   }
 });
 
