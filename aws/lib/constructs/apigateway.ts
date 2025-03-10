@@ -79,6 +79,14 @@ export class ApigatewayConstruct extends Construct {
       operationName: "SearchPosts",
     });
 
+    // Define the /posts/publish/{id} resource
+    const publishPost = posts.addResource("publish");
+    const publishPostID = publishPost.addResource("{id}");
+    // PUT /posts/search/{id} - Publish Post
+    publishPostID.addMethod("PUT", new LambdaIntegration(lambdaConstruct.postLambdas["publishPostLambda"]), {
+      operationName: "PublishPost",
+    });
+
     // ---------------------------- USER ENDPOINTS -------------------------------
 
     // Define the /users resource
@@ -324,6 +332,38 @@ export class ApigatewayConstruct extends Construct {
         operationName: "GetCommentsByPostId",
       }
     );
+
+
+    //--------------------------- ITEM ENDPOINTS -----------------------------
+
+    // Define the /items resource
+    const items = api.root.addResource("items");
+
+    // POST /items - create item
+    items.addMethod("POST", new LambdaIntegration(lambdaConstruct.itemLambdas["createItemLambda"]), {
+      operationName: "CreateItem",
+    });
+
+    // Define the /items/{item_id} resource
+    const itemID = items.addResource("{item-id}");
+
+    // DELETE /items/item_id - delete item
+    itemID.addMethod("DELETE", new LambdaIntegration(lambdaConstruct.itemLambdas["deleteItemLambda"]), {
+      operationName: "DeleteItem",    
+    });
+
+    // POST /items/{item_id} - add details
+    itemID.addMethod("POST", new LambdaIntegration(lambdaConstruct.itemLambdas["addDetailsLambda"]), {
+      operationName: "AddDetails",
+    });
+
+    // Define the /items/post/{post_id} resource
+    const itemPost = items.addResource("post");
+    const itemPostID = itemPost.addResource("{post-id}");
+    itemPostID.addMethod("GET", new LambdaIntegration(lambdaConstruct.itemLambdas["getItemsLambda"]), {
+      operationName: "GetItemsByPostId",
+    });
+  
 
     // Create an ARecord for API Gateway in Route 53
     new ARecord(this, "ApiAliasRecord", {

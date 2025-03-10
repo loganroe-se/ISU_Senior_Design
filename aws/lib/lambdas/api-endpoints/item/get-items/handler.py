@@ -4,10 +4,8 @@ from dripdrop_orm_objects import Post, Image, Item, Coordinate
 
 def handler(event, context):
     try:
-        # Parse the user data from event
-        path_params = event.get('pathParameters') or {}
-
-        post_id = path_params.get('id')
+        # Get id from path parameters
+        post_id = event['pathParameters'].get('post_id')
 
         # Check for missing, required values
         if not post_id:
