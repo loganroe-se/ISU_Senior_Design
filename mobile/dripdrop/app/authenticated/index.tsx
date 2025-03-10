@@ -262,70 +262,69 @@ const Page = () => {
               onRequestClose={() => setCommentModalVisible(false)}
             >
               <GestureHandlerRootView style={{ flex: 1 }}>
-                <PanGestureHandler
-                  onGestureEvent={(event) => {
-                    if (event.nativeEvent.translationY > 50) {
-                      setCommentModalVisible(false);
-                    }
-                  }}
-                >
-                  <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                      <View style={styles.commentContainer}>
-                        {/* Header - Swipe down indicator */}
+                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+                  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                    <View style={styles.commentContainer}>
+                      {/* Header - Swipe down indicator */}
+                      <PanGestureHandler
+                        onGestureEvent={(event) => {
+                          if (event.nativeEvent.translationY > 50) {
+                            setCommentModalVisible(false);
+                          }
+                        }}
+                      >
                         <View style={styles.modalHeader}>
                           <View style={styles.swipeIndicator}/>
                           <Text style={styles.commentsText}>Comments</Text>
                         </View>
+                      </PanGestureHandler>
 
-                        {/* Comments List */}
-                        <ScrollView style={styles.commentList} keyboardShouldPersistTaps="handled" onScroll={Keyboard.dismiss}>
-                          {loadingComments ? (
-                            <ActivityIndicator size="large" color={Colors.light.primary}/>
-                          ) : comments.length > 0 ? (
-                            comments.map((comment) => (
-                              <View key={comment.commentID} style={styles.commentItem}>
-                                <Image 
-                                  source={{ uri: `https://cdn.dripdropco.com/${comment.profilePic !== "default" ? comment.profilePic : "profilePics/default.jpg" }?format=png` }}
-                                  style={styles.profilePicture}
-                                />
-                                <View style={styles.commentTextContainer}>
-                                  <View style={styles.commentHeader}>
-                                    <Text style={styles.commentUsername}>{comment.username}</Text>
-                                    <Text style={styles.commentDate}>{comment.createdDate}</Text>
-                                  </View>
-                                  <Text>{comment.content}</Text>
+                      {/* Comments List */}
+                      <ScrollView style={styles.commentList} keyboardShouldPersistTaps="handled" onScroll={Keyboard.dismiss}>
+                        {loadingComments ? (
+                          <ActivityIndicator size="large" color={Colors.light.primary}/>
+                        ) : comments.length > 0 ? (
+                          comments.map((comment) => (
+                            <View key={comment.commentID} style={styles.commentItem}>
+                              <Image 
+                                source={{ uri: `https://cdn.dripdropco.com/${comment.profilePic !== "default" ? comment.profilePic : "profilePics/default.jpg" }?format=png` }}
+                                style={styles.profilePicture}
+                              />
+                              <View style={styles.commentTextContainer}>
+                                <View style={styles.commentHeader}>
+                                  <Text style={styles.commentUsername}>{comment.username}</Text>
+                                  <Text style={styles.commentDate}>{comment.createdDate}</Text>
                                 </View>
+                                <Text>{comment.content}</Text>
                               </View>
-                            ))
-                          ) : (
-                            <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
-                          )}
-                        </ScrollView>
+                            </View>
+                          ))
+                        ) : (
+                          <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
+                        )}
+                      </ScrollView>
 
-                        {/* Comment Input */}
-                        <View style={styles.inputContainer}>
-                          <TextInput 
-                            ref={commentInputRef}
-                            style={styles.commentInput}
-                            placeholder="Add a comment..."
-                            value={commentText}
-                            onChangeText={setCommentText}
-                            autoFocus={true}
-                            multiline={true}
-                            numberOfLines={5}
-                            scrollEnabled={true}
-                          />
-                          <TouchableOpacity onPress={handleAddComment}>
-                            <Text style={styles.sendButton}>Post</Text>
-                          </TouchableOpacity>
-                        </View>
+                      {/* Comment Input */}
+                      <View style={styles.inputContainer}>
+                        <TextInput 
+                          ref={commentInputRef}
+                          style={styles.commentInput}
+                          placeholder="Add a comment..."
+                          value={commentText}
+                          onChangeText={setCommentText}
+                          autoFocus={true}
+                          multiline={true}
+                          numberOfLines={5}
+                          scrollEnabled={true}
+                        />
+                        <TouchableOpacity onPress={handleAddComment}>
+                          <Text style={styles.sendButton}>Post</Text>
+                        </TouchableOpacity>
                       </View>
-                      
-                    </TouchableWithoutFeedback>
-                  </KeyboardAvoidingView>
-
-                </PanGestureHandler>
+                    </View>
+                    
+                  </TouchableWithoutFeedback>
+                </KeyboardAvoidingView>
               </GestureHandlerRootView>
               
             </Modal>}
