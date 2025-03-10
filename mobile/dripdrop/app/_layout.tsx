@@ -49,7 +49,7 @@ function AppContent() {
 
         <Slot />
         {!hideNavbar && <Navbar />}
-        <StatusBar style={colorScheme === "dark" ? "light" : "dark"} />
+        <StatusBar/>
       </PaperProvider >
     </ThemeProvider>
        

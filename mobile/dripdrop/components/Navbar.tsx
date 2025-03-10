@@ -2,6 +2,7 @@ import React from "react";
 import { View, Dimensions, StyleSheet, TouchableOpacity, useColorScheme, SafeAreaView } from "react-native";
 import { useRouter } from "expo-router";
 import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityIcons';
+import { ThemeContext } from "@react-navigation/native";
 
 const { width } = Dimensions.get('window');
 
@@ -26,7 +27,7 @@ function NavItem({ name, pageName }: NavItemProps) {
 
 export default function Navbar() {
     return (
-        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd", backgroundColor: "white" }]}>
+        <SafeAreaView style={[styles.navbar, { borderTopColor: "#ddd" }]}>
             <NavItem name="home" pageName="" />
             <NavItem name="magnify" pageName="search" />
             <NavItem name="plus-circle" pageName="posts" />

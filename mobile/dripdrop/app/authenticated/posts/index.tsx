@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   View,
-  StyleSheet,
   Image,
   TouchableOpacity,
   FlatList,
@@ -13,12 +12,15 @@ import {
   Platform,
   Keyboard
 } from "react-native";
-import { Button, TextInput, Snackbar, Card } from "react-native-paper";
+import { Button, TextInput, Card } from "react-native-paper";
 import { useRouter } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import * as MediaLibrary from "expo-media-library";
+import { styles } from "@/styles/post";
+import { createPost } from "@/api/post";
+import { sendPost } from "@/types/post"; 
 
 export default function Post() {
   const [caption, setCaption] = useState("");
@@ -105,13 +107,21 @@ export default function Post() {
         imageUri: manipulatedImage.uri,
       };
 
+      const newPost: sendPost = {
+        userID: 1, // Replace with actual user ID
+        caption,
+        images: [manipulatedImage.uri],
+      };
+
+      const response = await createPost(newPost);
+
       console.log("Post preview:", previewPost);
       setSnackbarVisible(true);
       setCaption("");
       setImage(null);
 
       router.push({
-        pathname: "./posts/processing_post" as any,
+        pathname: "./posts/processing_post",
         params: {
           caption: caption,
           image: image,
@@ -133,153 +143,88 @@ export default function Post() {
   return (
     <SafeAreaView style={styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"} // Adjust behavior based on platform
-        style={styles.container}
-      >
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={28} color="black" />
-        </TouchableOpacity>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === "ios" ? "padding" : "height"} // Adjust behavior based on platform
+          style={styles.container}
+        >
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={28} color="black" />
+          </TouchableOpacity>
 
-        {/* Top Half: Selected Image */}
-        <Card style={styles.cardContainer}>
-          {image ? (
-            <View style={styles.imageContainer}>
-              <Image source={{ uri: image }} style={styles.image} />
-              <Button
-                mode="contained"
-                onPress={removeImage}
-                style={[styles.button, styles.removeButton]}
-              >
-                Remove Image
-              </Button>
-            </View>
-          ) : (
-            <View style={styles.placeholderContainer}>
-              <Ionicons name="image-outline" size={50} color={Colors.light.primary} />
-              <Text style={styles.placeholderText}>No image selected</Text>
-            </View>
-          )}
-        </Card>
-
-        {/* Bottom Half: Image Gallery */}
-        <FlatList
-          data={photos}
-          renderItem={({ item }) => (
-            <TouchableOpacity onPress={() => handleImageSelect(item)}>
-              <Image source={{ uri: item.uri }} style={styles.thumbnail} />
-            </TouchableOpacity>
-          )}
-          keyExtractor={(item) => item.id}
-          numColumns={numColumns}
-          onEndReached={loadMorePhotos}
-          onEndReachedThreshold={0.5}
-          ListFooterComponent={
-            loadingMore ? (
-              <View style={styles.loadingContainer}>
-                <Text>Loading...</Text>
+          {/* Top Half: Selected Image */}
+          <Card style={styles.cardContainer}>
+            {image ? (
+              <View style={styles.imageContainer}>
+                <Image source={{ uri: image }} style={styles.image} />
+                <Button
+                  mode="contained"
+                  onPress={removeImage}
+                  style={[styles.button, styles.removeButton]}
+                >
+                  Remove Image
+                </Button>
               </View>
-            ) : null
-          }
-        />
+            ) : (
+              <View style={styles.placeholderContainer}>
+                <Ionicons name="image-outline" size={50} color={Colors.light.primary} />
+                <Text style={styles.placeholderText}>No image selected</Text>
+              </View>
+            )}
+          </Card>
 
-        {/* Caption Input and Continue Button */}
-        <View style={styles.bottomContainer}>
-          <TextInput
-            label="Caption"
-            value={caption}
-            onChangeText={setCaption}
-            mode="outlined"
-            style={styles.input}
-            multiline
-            numberOfLines={4}
-            placeholder="Write a caption..."
+          {/* Bottom Half: Image Gallery */}
+          <FlatList
+            data={photos}
+            renderItem={({ item }) => (
+              <TouchableOpacity onPress={() => handleImageSelect(item)}>
+                <Image source={{ uri: item.uri }} style={styles.thumbnail} />
+              </TouchableOpacity>
+            )}
+            keyExtractor={(item) => item.id}
+            numColumns={numColumns}
+            onEndReached={loadMorePhotos}
+            onEndReachedThreshold={0.5}
+            ListFooterComponent={
+              loadingMore ? (
+                <View style={styles.loadingContainer}>
+                  <Text>Loading...</Text>
+                </View>
+              ) : null
+            }
           />
-          <Button
-            mode="contained"
-            onPress={handleContinue}
-            loading={loading}
-            disabled={loading || !image || caption.trim() === ""}
-            style={[
-              styles.button,
-              {
-                backgroundColor:
-                  loading || !image || caption.trim() === ""
-                    ? "gray"
-                    : Colors.light.primary,
-              },
-            ]}
-          >
-            {loading ? "Loading..." : "Continue"}
-          </Button>
-        </View>
-      </KeyboardAvoidingView>
-        </TouchableWithoutFeedback>
+
+          {/* Caption Input and Continue Button */}
+          <View style={styles.bottomContainer}>
+            <TextInput
+              label="Caption"
+              value={caption}
+              onChangeText={setCaption}
+              mode="outlined"
+              style={styles.input}
+              multiline
+              numberOfLines={4}
+              placeholder="Write a caption..."
+            />
+            <Button
+              mode="contained"
+              onPress={handleContinue}
+              loading={loading}
+              disabled={loading || !image || caption.trim() === ""}
+              style={[
+                styles.button,
+                {
+                  backgroundColor:
+                    loading || !image || caption.trim() === ""
+                      ? "gray"
+                      : Colors.light.primary,
+                },
+              ]}
+            >
+              {loading ? "Loading..." : "Continue"}
+            </Button>
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingTop: 10, // To add spacing at the top
-  },
-  backButton: {
-    top: 20,
-    left: 16,
-    zIndex: 10,
-  },
-  cardContainer: {
-    width: "100%",
-    paddingHorizontal: 20,
-    alignItems: "center",
-    borderRadius: 12,
-    elevation: 5,
-  },
-  imageContainer: {
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  image: {
-    width: "100%",
-    height: 200,
-    borderRadius: 10,
-    marginVertical: 10,
-  },
-  placeholderContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 200,
-  },
-  placeholderText: {
-    color: Colors.light.primary,
-    fontSize: 16,
-  },
-  thumbnail: {
-    width: Dimensions.get("window").width / 4 - 10,
-    height: Dimensions.get("window").width / 4 - 10,
-    margin: 5,
-    borderRadius: 5,
-  },
-  button: {
-    borderRadius: 8,
-  },
-  removeButton: {
-    backgroundColor: Colors.redButtonColor,
-  },
-  input: {
-    backgroundColor: "white",
-    borderRadius: 8,
-    marginBottom: 10,
-    width: "90%",
-    alignSelf: "center",
-  },
-  bottomContainer: {
-    width: "90%",
-    alignSelf: "center",
-  },
-  loadingContainer: {
-    padding: 20,
-    alignItems: "center",
-  },
-});
