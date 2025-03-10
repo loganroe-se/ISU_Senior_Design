@@ -10,6 +10,11 @@ export const fetchUserById = async (userID: number): Promise<User | null> => {
   return apiRequest<User | null>('GET', `/users/${userID}`);
 };
 
+// Fetch user by userID
+export const fetchUserSuperById = async (userID: number): Promise<User | null> => {
+  return apiRequest<User | null>('GET', `/users/super/${userID}`);
+};
+
 // Fetch user email by userID
 export const fetchUserEmail = async (userID: number): Promise<string | null> => {
   const user = await apiRequest<User>('GET', `/users/${userID}`);

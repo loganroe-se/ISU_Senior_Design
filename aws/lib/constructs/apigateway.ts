@@ -105,6 +105,14 @@ export class ApigatewayConstruct extends Construct {
     user.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["getUserByIdLambda"]), {
       operationName: "GetUserById",
     });
+    
+    const userSuper = users.addResource("super");
+    const userSuperID = userSuper.addResource("{userID}");
+
+    // GET /users/super/{userID} - Get User Super by ID
+    userSuperID.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["getUserSuperByIdLambda"]), {
+      operationName: "GetUserSuperById",
+    });
 
     // PUT /users/{id} - Update User
     user.addMethod("PUT", new LambdaIntegration(lambdaConstruct.userLambdas["updateUserLambda"]), {
