@@ -77,9 +77,8 @@ const UserProfile = () => {
                 onPress={signOut} // Call the signOut function from context
                 style={profileStyle.signOutButton}
               >
-                <Text style={profileStyle.buttonLabel, profileStyle.buttonLabel}>Sign out</Text>
+                <Text style={[profileStyle.buttonLabel, profileStyle.buttonLabel]}>Sign out</Text>
               </TouchableOpacity>
-            )}
 
           </View>
         </View>
