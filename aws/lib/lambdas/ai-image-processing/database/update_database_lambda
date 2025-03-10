@@ -2,7 +2,7 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select 
 from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import Post, Image, ClothingItemTag, Tag, Coordinate, ClothingItem
+from dripdrop_orm_objects import Post, Image, ClothingItemTag, Tag, Coordinate, ClothingItem, Item
 from sqlalchemy.exc import IntegrityError
 
 
@@ -31,12 +31,15 @@ def handler(event, context):
         return create_response(500, f"Error updating user: {str(e)}")
     
 def update_database(image_id, items):
-    # Try to update the user
+    # Try to update the database
     try:
         # Create the session
         session = create_session()
 
         # Fetch post id for this image
+        # post = (session.execute(select(Post).join(Image).where(Image.imageID == image_id)).scalars().first())
+        # if not post:
+        #     return 404, f'Post with imageID: {image_id} does not exist'
         post_id = (session.execute(select(Image.postID).where(Image.imageID == image_id)).scalars().first())
         if not post_id:
             return 404, f'Image with imageID: {image_id} does not exist'
