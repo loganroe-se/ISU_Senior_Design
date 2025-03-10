@@ -200,7 +200,9 @@ export default function Post() {
               value={caption}
               onChangeText={setCaption}
               mode="outlined"
-              style={styles.input}
+              style={styles.input
+              }
+              textColor="#000" 
               multiline
               numberOfLines={4}
               placeholder="Write a caption..."

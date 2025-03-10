@@ -89,4 +89,8 @@ export const profileStyle = StyleSheet.create({
       height: "100%",
       backgroundColor: "#f0f0f0",
     },
+  signOutButton: {
+    marginTop: 16,
+    backgroundColor: "#FF3B30", // Red color for sign-out button
+  },
   });

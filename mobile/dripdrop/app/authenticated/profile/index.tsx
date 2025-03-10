@@ -15,7 +15,8 @@ const UserProfile = () => {
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const { user } = useUserContext();
+  const { user, signOut } = useUserContext();
+
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
@@ -72,6 +73,14 @@ const UserProfile = () => {
             <TouchableOpacity style={profileStyle.actionButton}>
               <Text style={profileStyle.buttonLabel}>{user.id === profileUser?.id ? "Edit Profile" : "Follow"}</Text>
             </TouchableOpacity>
+              <TouchableOpacity
+                onPress={signOut} // Call the signOut function from context
+                style={profileStyle.signOutButton}
+              >
+                <Text style={profileStyle.buttonLabel, profileStyle.buttonLabel}>Sign out</Text>
+              </TouchableOpacity>
+            )}
+
           </View>
         </View>
 

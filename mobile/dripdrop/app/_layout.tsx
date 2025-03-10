@@ -1,6 +1,5 @@
 // app/_layout.tsx
 import { Slot, usePathname } from "expo-router";
-import { View } from "react-native";
 import { useFonts } from "expo-font";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -46,7 +45,6 @@ function AppContent() {
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <PaperProvider>
-
         <Slot />
         {!hideNavbar && <Navbar />}
         <StatusBar/>

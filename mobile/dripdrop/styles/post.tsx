@@ -87,7 +87,7 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 10,
         width: "90%",
         alignSelf: "center",
-        backgroundColor:'#fff'
+        backgroundColor:'#fff',
     },
     bottomContainer: {
         width: "90%",
