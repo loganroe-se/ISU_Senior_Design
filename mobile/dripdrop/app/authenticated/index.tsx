@@ -20,6 +20,7 @@ const Page = () => {
   const [userID, setUserID] = useState<number | null>(null);
   const [feedData, setFeedData] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
+  const [loadingComments, setLoadingComments] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ [key: number]: number }>({});
   const [imageErrors, setImageErrors] = useState< { [key: number]: boolean }>({});
@@ -108,12 +109,15 @@ const Page = () => {
   const handleComment = async (postID: number) => {
     setCurrentPostID(postID);
     setCommentModalVisible(true);
+    setLoadingComments(true);
 
     try {
       const comments = await fetchCommentsByPostID(postID);
       comments.length === 0 ? setComments([]): setComments(comments);
     } catch (error) {
       console.error("Error fetching comments: ", error)
+    } finally {
+      setLoadingComments(false);
     }
   };
 
@@ -271,11 +275,14 @@ const Page = () => {
                         {/* Header - Swipe down indicator */}
                         <View style={styles.modalHeader}>
                           <View style={styles.swipeIndicator}/>
+                          <Text style={styles.commentsText}>Comments</Text>
                         </View>
 
                         {/* Comments List */}
                         <ScrollView style={styles.commentList} keyboardShouldPersistTaps="handled" onScroll={Keyboard.dismiss}>
-                          {comments.length > 0 ? (
+                          {loadingComments ? (
+                            <ActivityIndicator size="large" color={Colors.light.primary}/>
+                          ) : comments.length > 0 ? (
                             comments.map((comment) => (
                               <View key={comment.commentID} style={styles.commentItem}>
                                 <Image 
@@ -409,7 +416,7 @@ const styles = StyleSheet.create({
   },
   commentContainer: {
     backgroundColor: Colors.light.background,
-    padding: 20,
+    padding: 10,
     borderTopLeftRadius: 20, // TODO: Can't get the radius to work 
     borderTopRightRadius: 20,
   },
@@ -424,7 +431,7 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   modalHeader: {
-    flexDirection: 'row',
+    flexDirection: 'column',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 10,
@@ -434,6 +441,11 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: Colors.light.primary,
     borderRadius: 2,
+  },
+  commentsText: {
+    marginVertical: 10,
+    fontSize: 16,
+    textAlign: 'center',
   },
   commentList: {
     marginBottom: 20,
@@ -465,7 +477,6 @@ const styles = StyleSheet.create({
     color: 'gray',
     fontStyle: 'italic',
     fontSize: 16,
-    marginTop: 20,
   },
   inputContainer: {
     flexDirection: 'row',
