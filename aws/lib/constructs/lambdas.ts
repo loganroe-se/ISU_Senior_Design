@@ -117,11 +117,6 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/user/get-user-by-id",
         "handler"
       ),
-      getUserSuperByIdLambda: createLambda(
-        "GetUserSuperByIdLambda",
-        "lib/lambdas/api-endpoints/user/get-user-super-by-id",
-        "handler"
-      ),
       getUserByUsernameLambda: createLambda(
         "GetUserByUsernameLambda",
         "lib/lambdas/api-endpoints/user/get-user-by-username",
