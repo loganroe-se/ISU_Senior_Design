@@ -27,5 +27,5 @@ export default function Index() {
     return <Redirect href="/auth/signin" />;
   }
 
-  return <Redirect href="./authenticated/index" />;
+  return <Redirect href="/authenticated" />;
 }

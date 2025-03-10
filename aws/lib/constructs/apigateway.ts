@@ -146,7 +146,7 @@ export class ApigatewayConstruct extends Construct {
     );
 
     // Define the /users/search resource
-    const searchUsers = posts.addResource("search");
+    const searchUsers = users.addResource("search");
     // GET /users/search - Search posts
     searchUsers.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["searchUsersLambda"]), {
       operationName: "SearchUsers",

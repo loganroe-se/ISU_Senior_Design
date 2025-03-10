@@ -4,26 +4,40 @@ import { Avatar, Text, Button } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts } from "@/api/post";
 import { fetchFollowers, fetchFollowing } from "@/api/following";
-import { Follower, Following, Post } from "@/types/types";
+import { Follower, Following } from "@/types/Following";
+import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
+import { useLocalSearchParams } from "expo-router";
+import { fetchUserById } from "@/api/user";
+import { User } from "@/types/user.interface";
 
 const UserProfile = () => {
+  const params = useLocalSearchParams();
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+
   const { user } = useUserContext();
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
 
+  let uid = 0;
+
   useEffect(() => {
     const getUserData = async () => {
-      if (user) {
-        const p = await fetchUserPosts(user.id);
-        const f = await fetchFollowing(user.id);
-        const fs = await fetchFollowers(user.id);
+      uid = id == null ? user != null ? user.id : 0 : parseInt(id);
 
-        setPosts(p);
-        setFollowing(f);
-        setFollowers(fs);
+      if (uid != user?.id) {
+        setProfileUser(await fetchUserById(uid));
       }
+
+      const p = await fetchUserPosts(uid);
+      const f = await fetchFollowing(uid);
+      const fs = await fetchFollowers(uid);
+
+      setPosts(p);
+      setFollowing(f);
+      setFollowers(fs);
     };
 
     getUserData();
@@ -45,20 +59,19 @@ const UserProfile = () => {
           <View style={profileStyle.avatarContainer}>
             <Avatar.Image
               size={90}
-              source={{ uri: `https://api.dicebear.com/7.x/identicon/svg?seed=${user.username}` }}
+              source={{ uri: `https://api.dicebear.com/7.x/identicon/svg?seed=${profileUser?.username}` }}
             />
           </View>
           <View>
             <View style={profileStyle.userHeader}>
-              <Text style={profileStyle.username}>{user.username}</Text>
-              
-              <TouchableOpacity style={profileStyle.editButton}>
-                <Text style={profileStyle.buttonLabel}>Edit Profile</Text>
-              </TouchableOpacity>
+              <Text style={profileStyle.username}>{profileUser?.username}</Text>
             </View>
             <View style={profileStyle.userDescription}>
-              <Text style={profileStyle.bio}>{user.bio || "Digital goodies collector 🌈✨"}</Text>
+              <Text style={profileStyle.bio}>{"Digital goodies collector 🌈✨"}</Text> {/*Replce with the user's bio once implemente*/}
             </View>
+            <TouchableOpacity style={profileStyle.actionButton}>
+              <Text style={profileStyle.buttonLabel}>{user.id === profileUser?.id ? "Edit Profile" : "Follow"}</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -77,7 +90,7 @@ const UserProfile = () => {
           </View>
         </View>
       </View>
-      
+
       {/* Post Grid */}
       <FlatList
         data={posts}

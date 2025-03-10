@@ -1,8 +1,9 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, Image } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { preview_post_styles } from "@/styles/post";  // Import the styles from the post.tsx file
 
 export default function ProcessingScreen() {
   const router = useRouter();
@@ -10,28 +11,28 @@ export default function ProcessingScreen() {
 
   const handleNavigateToPreviewPost = () => {
     // Navigate to the PreviewPost screen with the current caption and image data
-    router.push({
-      pathname: "/authenticated/posts/PreviewPost",
+    router.replace({
+      pathname: "./posts/processing_post" as any,
       params: { caption, image },
     });
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>We are Currently Processing Your Post</Text>
+    <View style={preview_post_styles.container}>
+      <Text style={preview_post_styles.title}>We are Currently Processing Your Post</Text>
 
       {image && (
         <Image
           source={{ uri: Array.isArray(image) ? image[0] : image }}
-          style={styles.image}
+          style={preview_post_styles.image}
         />
       )}
-      {caption && <Text style={styles.caption}>{caption}</Text>}
+      {caption && <Text style={preview_post_styles.caption}>{caption}</Text>}
 
       <Button
         mode="contained"
         onPress={() => alert("AI is still processing, please wait.")}
-        style={styles.button}
+        style={preview_post_styles.button}
         icon="progress-clock"
       >
         Wait for AI to Finish Processing
@@ -42,7 +43,7 @@ export default function ProcessingScreen() {
           router.back();
           router.back();
         }}
-        style={styles.button}
+        style={preview_post_styles.button}
         icon={() => <Ionicons name="exit-outline" size={20} color="black" />}
       >
         Exit and Come Back Later
@@ -50,41 +51,10 @@ export default function ProcessingScreen() {
       <Button
         mode="contained"
         onPress={handleNavigateToPreviewPost} // Temp button to navigate to PreviewPost screen
-        style={styles.button}
+        style={preview_post_styles.button}
       >
         Go to Preview Post
       </Button>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  image: {
-    width: 250,
-    height: 250,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  caption: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-    paddingHorizontal: 10,
-  },
-  button: {
-    width: "80%",
-    marginVertical: 10,
-  },
-});
