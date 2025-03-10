@@ -82,7 +82,7 @@ export class ApigatewayConstruct extends Construct {
     // Define the /posts/publish/{id} resource
     const publishPost = posts.addResource("publish");
     const publishPostID = publishPost.addResource("{id}");
-    // PUT /posts/search/{id} - Publish Post
+    // PUT /posts/publish/{id} - Publish Post
     publishPostID.addMethod("PUT", new LambdaIntegration(lambdaConstruct.postLambdas["publishPostLambda"]), {
       operationName: "PublishPost",
     });
