@@ -15,7 +15,7 @@ def handler(event, context):
             return create_response(400, 'Missing user ID')
         
         # Call another function to get the post
-        status_code, message = getUserById(user_id)
+        status_code, message = getUserSuperById(user_id)
 
         # Return message
         return create_response(status_code, message)
@@ -23,7 +23,7 @@ def handler(event, context):
     except Exception as e:
         return create_response(500, f"Error retrieving user: {str(e)}")
     
-def getUserById(user_id):
+def getUserSuperById(user_id):
     # Try to get the user
     try:
         # Create the session
