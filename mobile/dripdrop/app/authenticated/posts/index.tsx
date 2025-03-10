@@ -160,6 +160,7 @@ export default function Post() {
                   mode="contained"
                   onPress={removeImage}
                   style={[styles.button, styles.removeButton]}
+                  textColor="#fff"
                 >
                   Remove Image
                 </Button>
