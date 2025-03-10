@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, Button, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import { styles_signup } from "@/styles/auth";
 
 const SignUpScreen = () => {
   const router = useRouter();
@@ -81,25 +82,25 @@ const SignUpScreen = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <Image source={require("@/assets/images/dripdrop_logo.png")} style={styles.logo} />
-      <Text style={styles.header}>dripdrop</Text>
+    <View style={styles_signup.container}>
+      <Image source={require("@/assets/images/dripdrop_logo.png")} style={styles_signup.logo} />
+      <Text style={styles_signup.header}>dripdrop</Text>
 
-      <TextInput style={styles.input} placeholder="Username" placeholderTextColor="grey" value={username} onChangeText={setUsername} />
-      <TextInput style={styles.input} placeholder="Email" placeholderTextColor="grey" value={email} onChangeText={setEmail} />
-      <TextInput style={styles.input} placeholder="Password" placeholderTextColor="grey" secureTextEntry value={password} onChangeText={setPassword} />
-      <TextInput style={styles.input} placeholder="Confirm Password" placeholderTextColor="grey" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
+      <TextInput style={styles_signup.input} placeholder="Username" placeholderTextColor="grey" value={username} onChangeText={setUsername} />
+      <TextInput style={styles_signup.input} placeholder="Email" placeholderTextColor="grey" value={email} onChangeText={setEmail} />
+      <TextInput style={styles_signup.input} placeholder="Password" placeholderTextColor="grey" secureTextEntry value={password} onChangeText={setPassword} />
+      <TextInput style={styles_signup.input} placeholder="Confirm Password" placeholderTextColor="grey" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
       <Button title="Sign Up" onPress={handleSignUp} />
       <TouchableOpacity onPress={onGoToSignIn}>
-        <Text style={styles.signInText}>Already have an account? Sign In</Text>
+        <Text style={styles_signup.signInText}>Already have an account? Sign In</Text>
       </TouchableOpacity>
 
       <Modal isVisible={isModalVisible}>
-        <View style={styles.modalContent}>
-          <Text style={styles.modalText}>Select Your Birthday</Text>
+        <View style={styles_signup.modalContent}>
+          <Text style={styles_signup.modalText}>Select Your Birthday</Text>
           <DateTimePicker
-            style={styles.datePicker}
+            style={styles_signup.datePicker}
             value={birthday}
             mode="date"
             display="default"
@@ -114,34 +115,12 @@ const SignUpScreen = () => {
       </Modal>
       {/* Loading Spinner */}
       {isLoading && (
-        <View style={styles.loadingContainer}>
+        <View style={styles_signup.loadingContainer}>
           <ActivityIndicator size="large" color="#5271ff" />
         </View>
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: "center", padding: 20 },
-  header: { fontSize: 24, fontWeight: "bold", marginBottom: 20, textAlign: "center", color: "#5271ff" },
-  input: { height: 40, width: 300, borderColor: "grey", borderWidth: 1, marginBottom: 15, paddingLeft: 10, borderRadius: 5, color: "black", alignSelf: "center" },
-  logo: { width: 100, height: 100, marginBottom: 10, alignSelf: "center" },
-  signInText: { color: "blue", textAlign: "center", marginTop: 20, fontSize: 14 },
-  modalContent: { backgroundColor: "white", padding: 20, borderRadius: 10, alignItems: "center" },
-  modalText: { fontSize: 18, marginBottom: 10 },
-  datePicker: { width: "80%", marginBottom: 20 },
-  loadingContainer: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.7)", // Optional: semi-transparent background to dim rest of the screen
-    zIndex: 1, // Ensure it's above all other content
-  },
-});
 
 export default SignUpScreen;
