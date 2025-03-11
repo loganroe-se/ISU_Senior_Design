@@ -147,8 +147,8 @@ export default function Post() {
           behavior={Platform.OS === "ios" ? "padding" : "height"} // Adjust behavior based on platform
           style={styles.container}
         >
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={28} color="black" />
+          <TouchableOpacity onPress={() => router.replace("/authenticated")} style={styles.backButton}>
+            <Ionicons name="arrow-back-circle" size={40} color="grey" />
           </TouchableOpacity>
 
           {/* Top Half: Selected Image */}

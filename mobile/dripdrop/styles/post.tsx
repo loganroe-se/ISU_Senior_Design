@@ -37,16 +37,15 @@ export const preview_post_styles = StyleSheet.create({
     
     container: {
         flex: 1,
-        paddingTop: 10, // To add spacing at the top
     },
     backButton: {
-        top: 20,
+        top: '3%',
         left: 16,
         zIndex: 10,
+        position: 'absolute'
     },
     cardContainer: {
         width: "100%",
-        paddingHorizontal: 20,
         alignItems: "center",
         borderRadius: 12,
         elevation: 5,
