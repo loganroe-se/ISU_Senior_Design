@@ -7,7 +7,7 @@ from dripdrop_orm_objects import ClothingItemDetails
 def handler(event, context):
     try: 
         # Get id from path parameters
-        item_id = event['pathParameters'].get('item_id')
+        item_id = event['pathParameters'].get('item-id')
 
         # Check for missing, required values
         if not item_id:

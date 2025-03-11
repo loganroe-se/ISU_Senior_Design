@@ -41,6 +41,7 @@ def create_clothing_item(image_id, xCoord, yCoord, name, brand, category, price,
 
         new_clothing_item = ClothingItem()
         session.add(new_clothing_item)
+        session.flush()
 
         new_item = Item(imageID = image_id, clothingItemID = new_clothing_item.clothingItemID, coordinateID = new_coordinates.coordinateID)
         session.add(new_item)
@@ -63,6 +64,7 @@ def create_clothing_item(image_id, xCoord, yCoord, name, brand, category, price,
 
     except Exception as e:
         # Call a helper to handle the exception
+        session.rollback()
         code, msg = handle_exception(e, "Error occurred when updating database")
         return code, msg
 

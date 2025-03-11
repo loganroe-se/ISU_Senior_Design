@@ -344,20 +344,20 @@ export class ApigatewayConstruct extends Construct {
       operationName: "CreateItem",
     });
 
-    // Define the /items/{item_id} resource
+    // Define the /items/{item-id} resource
     const itemID = items.addResource("{item-id}");
 
-    // DELETE /items/item_id - delete item
+    // DELETE /items/{item-id} - delete item
     itemID.addMethod("DELETE", new LambdaIntegration(lambdaConstruct.itemLambdas["deleteItemLambda"]), {
       operationName: "DeleteItem",    
     });
 
-    // POST /items/{item_id} - add details
+    // POST /items/{item-id} - add details
     itemID.addMethod("POST", new LambdaIntegration(lambdaConstruct.itemLambdas["addDetailsLambda"]), {
       operationName: "AddDetails",
     });
 
-    // Define the /items/post/{post_id} resource
+    // Define the /items/post/{post-id} resource
     const itemPost = items.addResource("post");
     const itemPostID = itemPost.addResource("{post-id}");
     itemPostID.addMethod("GET", new LambdaIntegration(lambdaConstruct.itemLambdas["getItemsLambda"]), {

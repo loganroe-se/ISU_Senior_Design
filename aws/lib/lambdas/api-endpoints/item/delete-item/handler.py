@@ -6,7 +6,7 @@ from sqlalchemy import select
 def handler(event, context):
     try:
         # Get id from path parameters
-        item_id = event['pathParameters'].get('item_id')
+        item_id = event['pathParameters'].get('item-id')
 
         # Check for missing, required values
         if not item_id:
@@ -30,7 +30,7 @@ def delete_item(item_id):
         session = create_session()
 
         # Get item from the database
-        item = session.execute(select(Item).where(Item.itemID == item_id)).scalars().first()
+        item = session.execute(select(Item).where(Item.clothingItemID == item_id)).scalars().first()
 
         # Remove item from the database
         if item:
