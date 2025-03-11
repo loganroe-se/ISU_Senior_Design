@@ -2,7 +2,7 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select 
 from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import ClothingItemDetails
+from dripdrop_orm_objects import ClothingItemDetails, ClothingItem
 
 def handler(event, context):
     try: 
@@ -38,6 +38,15 @@ def add_clothing_item_details(item_id, name, brand, category, price, itemURL, si
         # Create the session
         session = create_session()
 
+        clothing_item = session.execute(select(ClothingItem).where(ClothingItem.clothingItemID == item_id)).scalars().first()
+
+        # Check if the clothing item exists
+        if not clothing_item:
+            return 404, 'Clothing item id does not exist'
+        
+        if clothing_item.clothingItemDetails:
+            return 400, 'Clothing item already has details'
+        
         # Create new clothing item details object
         new_clothing_item_details = ClothingItemDetails(
             clothingItemID = item_id, 

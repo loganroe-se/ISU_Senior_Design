@@ -347,6 +347,11 @@ export class ApigatewayConstruct extends Construct {
     // Define the /items/{item-id} resource
     const itemID = items.addResource("{item-id}");
 
+    // GET /items/{item-id} - get item details
+    itemID.addMethod("GET", new LambdaIntegration(lambdaConstruct.itemLambdas["getItemDetailsLambda"]), {
+      operationName: "GetItemDetails",
+    });
+
     // DELETE /items/{item-id} - delete item
     itemID.addMethod("DELETE", new LambdaIntegration(lambdaConstruct.itemLambdas["deleteItemLambda"]), {
       operationName: "DeleteItem",    
