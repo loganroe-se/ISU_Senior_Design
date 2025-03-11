@@ -39,7 +39,7 @@ class Post(Base):
     postID = Column(Integer, primary_key=True)
     userID = Column(Integer, ForeignKey('users.userID'))
     caption = Column(String(50))
-    isPublic = Column(Boolean, nullable=False, default=False)
+    status = Column(String(15), nullable=False, default="PRIVATE")  # private, needs_review, public
     createdDate = Column(Date)
     #Establish relationships
     userRel = relationship("User", back_populates="posts")
@@ -78,29 +78,37 @@ class Image(Base):
 # Item table
 class Item(Base):
     __tablename__ = 'items'
-    imageID = Column(Integer, ForeignKey('images.imageID'), primary_key=True)
+    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), primary_key=True)
     coordinateID = Column(Integer, ForeignKey('coordinates.coordinateID'), unique=True)
-    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), nullable=False)
+    imageID = Column(Integer, ForeignKey('images.imageID'))
 
     # Relationships
-    coordinates = relationship("Coordinate", back_populates="item", uselist=False)
+    coordinates = relationship("Coordinate", back_populates="item", uselist=False, cascade="all, delete-orphan", single_parent=True)
     image = relationship("Image", back_populates="items")
-    clothingItem = relationship("ClothingItem", back_populates="items")
+    clothingItem = relationship("ClothingItem", back_populates="item", uselist=False, cascade="all, delete-orphan", single_parent=True)
 
 # Clothing Item Table
 class ClothingItem(Base):
     __tablename__ = 'clothing_items'
     clothingItemID = Column(Integer, primary_key=True)
-    name = Column(String(50), nullable=False)
-    brand = Column(String(50), nullable=False)
+    # Relationships
+    item = relationship("Item", back_populates="clothingItem")
+    clothing_item_tags = relationship("ClothingItemTag", back_populates="clothing_item", cascade="all, delete-orphan")
+    details = relationship("ClothingItemDetails", back_populates="clothing_item", uselist=False, cascade="all, delete-orphan", single_parent=True)
+
+# Clothing Item Details
+class ClothingItemDetails(Base):
+    __tablename__ = 'clothing_item_details'
+    clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID'), primary_key=True)
+    name = Column(String(50))
+    brand = Column(String(50))
     category = Column(String(50))
     price = Column(Float)
     itemURL = Column(String(200))
     size = Column(String(5))
 
-    # Relationships
-    items = relationship("Item", back_populates="clothingItem")
-    clothing_item_tags = relationship("ClothingItemTag", back_populates="clothing_item")
+    # One-to-One relationship back to ClothingItem
+    clothing_item = relationship("ClothingItem", back_populates="details")
 
 # Coordinates Table
 class Coordinate(Base):

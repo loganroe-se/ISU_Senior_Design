@@ -22,6 +22,7 @@ export class LambdasConstruct extends Construct {
   public readonly hasSeenLambdas: Record<string, Function>;
   public readonly feedLambdas: Record<string, Function>;
   public readonly postLambdas: Record<string, Function>;
+  public readonly itemLambdas: Record<string, Function>;
   public readonly followLambdas: Record<string, Function>;
   public readonly likeLambdas: Record<string, Function>;
   public readonly commentLambdas: Record<string, Function>;
@@ -209,6 +210,11 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/post/get-posts-by-user-id",
         "handler"
       ),
+      publishPostLambda: createLambda(
+        "PublishPostLambda",
+        "lib/lambdas/api-endpoints/post/publish-post",
+        "handler"
+      ),
       searchPostsLambda: createLambda(
         "searchPostsLambda",
         "lib/lambdas/api-endpoints/post/search-posts",
@@ -223,6 +229,34 @@ export class LambdasConstruct extends Construct {
         actions: ["s3:PutObject"],
       })
     );
+
+    this.itemLambdas = {
+      createItemLambda: createLambda(
+        "createItemLambda",
+        "lib/lambdas/api-endpoints/item/create-item",
+        "handler"
+      ),
+      addDetailsLambda: createLambda(
+        "addDetailsLambda",
+        "lib/lambdas/api-endpoints/item/add-details",
+        "handler"
+      ),
+      deleteItemLambda: createLambda(
+        "deleteItemLambda",
+        "lib/lambdas/api-endpoints/item/delete-item",
+        "handler"
+      ),
+      getItemDetailsLambda: createLambda(
+        "getItemDetailsLambda",
+        "lib/lambdas/api-endpoints/item/get-item-details",
+        "handler"
+      ),
+      getItemsLambda: createLambda(
+        "getItemsLambda",
+        "lib/lambdas/api-endpoints/item/get-items",
+        "handler"
+      ),
+    };
 
     this.followLambdas = {
       followUserLambda: createLambda(
