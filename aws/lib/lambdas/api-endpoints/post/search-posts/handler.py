@@ -43,6 +43,7 @@ def searchPosts(search_string):
             {
                 "postID": post.postID,
                 "userID": post.userID,
+                "status": post.status,
                 "caption": post.caption,
                 "createdDate": (
                     post.createdDate.isoformat()

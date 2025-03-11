@@ -14,14 +14,14 @@ export AWS_SESSION_TOKEN=$(echo $creds | awk '{print $3}')
 
 
 # Manually set instance ID if not using dynamic retrieval
-BASTION_INSTANCE_ID="i-01362d431285687e6"
+BASTION_INSTANCE_ID="i-0395421804cdd9cf7"
 
 # Define the correct RDS Proxy endpoint (Ensure it is correct from AWS Console or CDK output)
-RDS_PROXY_ENDPOINT="dripdropapidatabaseconstructauroraclusterproxy08427396.proxy-c7qik8o6ytrt.us-east-1.rds.amazonaws.com"
+RDS_PROXY_ENDPOINT="dripdropapi-databaseconstructauroraclusterc63176ed-mvuq6uhwg6qi.c7qik8o6ytrt.us-east-1.rds.amazonaws.com"
 
 # Start AWS Systems Manager (SSM) Port Forwarding Session
 aws ssm start-session \
     --target $BASTION_INSTANCE_ID \
     --region us-east-1 \
     --document-name AWS-StartPortForwardingSessionToRemoteHost \
-    --parameters "{\"host\":[\"$RDS_PROXY_ENDPOINT\"], \"portNumber\":[\"3306\"], \"localPortNumber\":[\"3306\"]}"
+    --parameters "{\"host\":[\"$RDS_PROXY_ENDPOINT\"], \"portNumber\":[\"3306\"], \"localPortNumber\":[\"3308\"]}"

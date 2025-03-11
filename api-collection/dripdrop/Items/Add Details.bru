@@ -1,0 +1,23 @@
+meta {
+  name: Add Details
+  type: http
+  seq: 2
+}
+
+post {
+  url: https://api.dripdropco.com/items/1
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "name": "Nike Air Force 1",
+    "brand": "Nike",
+    "category": "Shoes",
+    "price": 109.99,
+    "itemURL": "https://example.com/nike-af1",
+    "size": "10"
+  }
+  
+}
