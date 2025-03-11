@@ -18,9 +18,11 @@ import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
 import * as MediaLibrary from "expo-media-library";
-import { styles } from "@/styles/post";
+import { post_styles } from "@/styles/post";
 import { createPost } from "@/api/post";
-import { sendPost } from "@/types/post"; 
+import { sendPost } from "@/types/post";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
+import { useUserContext } from "@/context/UserContext";
 
 export default function Post() {
   const [caption, setCaption] = useState("");
@@ -30,6 +32,12 @@ export default function Post() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const router = useRouter();
+
+  const { user } = useUserContext();
+  const id = user?.id;
+  if (id === undefined) {
+    throw new Error("User ID is undefined. Please ensure the user is logged in.");
+  }
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -108,7 +116,7 @@ export default function Post() {
       };
 
       const newPost: sendPost = {
-        userID: 1, // Replace with actual user ID
+        userID: id,
         caption,
         images: [manipulatedImage.uri],
       };
@@ -141,34 +149,34 @@ export default function Post() {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={post_styles.container}>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"} // Adjust behavior based on platform
-          style={styles.container}
+          style={post_styles.container}
         >
-          <TouchableOpacity onPress={() => router.replace("/authenticated")} style={styles.backButton}>
+          <TouchableOpacity onPress={() => router.replace("/authenticated")} style={post_styles.backButton}>
             <Ionicons name="arrow-back-circle" size={40} color="grey" />
           </TouchableOpacity>
 
           {/* Top Half: Selected Image */}
-          <Card style={styles.cardContainer}>
+          <Card style={post_styles.cardContainer}>
             {image ? (
-              <View style={styles.imageContainer}>
-                <Image source={{ uri: image }} style={styles.image} />
+              <View style={post_styles.imageContainer}>
+                <Image source={{ uri: image }} style={post_styles.image} />
                 <Button
                   mode="contained"
                   onPress={removeImage}
-                  style={[styles.button, styles.removeButton]}
+                  style={[post_styles.button, post_styles.removeButton]}
                   textColor="#fff"
                 >
                   Remove Image
                 </Button>
               </View>
             ) : (
-              <View style={styles.placeholderContainer}>
+              <View style={post_styles.placeholderContainer}>
                 <Ionicons name="image-outline" size={50} color={Colors.light.primary} />
-                <Text style={styles.placeholderText}>No image selected</Text>
+                <Text style={post_styles.placeholderText}>No image selected</Text>
               </View>
             )}
           </Card>
@@ -178,7 +186,7 @@ export default function Post() {
             data={photos}
             renderItem={({ item }) => (
               <TouchableOpacity onPress={() => handleImageSelect(item)}>
-                <Image source={{ uri: item.uri }} style={styles.thumbnail} />
+                <Image source={{ uri: item.uri }} style={post_styles.thumbnail} />
               </TouchableOpacity>
             )}
             keyExtractor={(item) => item.id}
@@ -187,7 +195,7 @@ export default function Post() {
             onEndReachedThreshold={0.5}
             ListFooterComponent={
               loadingMore ? (
-                <View style={styles.loadingContainer}>
+                <View style={post_styles.loadingContainer}>
                   <Text>Loading...</Text>
                 </View>
               ) : null
@@ -195,15 +203,15 @@ export default function Post() {
           />
 
           {/* Caption Input and Continue Button */}
-          <View style={styles.bottomContainer}>
+          <View style={post_styles.bottomContainer}>
             <TextInput
               label="Caption"
               value={caption}
               onChangeText={setCaption}
               mode="outlined"
-              style={styles.input
+              style={post_styles.input
               }
-              textColor="#000" 
+              textColor="#000"
               multiline
               numberOfLines={4}
               placeholder="Write a caption..."
@@ -214,7 +222,7 @@ export default function Post() {
               loading={loading}
               disabled={loading || !image || caption.trim() === ""}
               style={[
-                styles.button,
+                post_styles.button,
                 {
                   backgroundColor:
                     loading || !image || caption.trim() === ""

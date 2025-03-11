@@ -16,6 +16,7 @@ export const preview_post_styles = StyleSheet.create({
         fontWeight: "bold",
         marginBottom: 20,
         textAlign: "center",
+        color: '#000'
     },
     image: {
         width: 250,
@@ -28,13 +29,14 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 10,
+        color: '#000'
     },
     button: {
         width: "80%",
         marginVertical: 10,
     },
-}); export const styles = StyleSheet.create({
-    
+}); export const post_styles = StyleSheet.create({
+
     container: {
         flex: 1,
     },
@@ -86,7 +88,7 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 10,
         width: "90%",
         alignSelf: "center",
-        backgroundColor:'#fff',
+        backgroundColor: '#fff',
     },
     bottomContainer: {
         width: "90%",
@@ -96,6 +98,6 @@ export const preview_post_styles = StyleSheet.create({
         padding: 20,
         alignItems: "center",
     },
-    
+
 });
 
