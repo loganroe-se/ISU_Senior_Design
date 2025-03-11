@@ -246,6 +246,11 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/item/delete-item",
         "handler"
       ),
+      getItemDetailsLambda: createLambda(
+        "getItemDetailsLambda",
+        "lib/lambdas/api-endpoints/item/get-item-details",
+        "handler"
+      ),
       getItemsLambda: createLambda(
         "getItemsLambda",
         "lib/lambdas/api-endpoints/item/get-items",
