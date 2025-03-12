@@ -3,7 +3,7 @@ import { View, Image } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-import { styles } from "@/styles/post";  // Import the styles from the post.tsx file
+import { preview_post_styles } from "@/styles/post";  // Import the styles from the post.tsx file
 
 export default function ProcessingScreen() {
   const router = useRouter();
@@ -18,21 +18,21 @@ export default function ProcessingScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>We are Currently Processing Your Post</Text>
+    <View style={preview_post_styles.container}>
+      <Text style={preview_post_styles.title}>We are Currently Processing Your Post</Text>
 
       {image && (
         <Image
           source={{ uri: Array.isArray(image) ? image[0] : image }}
-          style={styles.image}
+          style={preview_post_styles.image}
         />
       )}
-      {caption && <Text style={styles.caption}>{caption}</Text>}
+      {caption && <Text style={preview_post_styles.caption}>{caption}</Text>}
 
       <Button
         mode="contained"
         onPress={() => alert("AI is still processing, please wait.")}
-        style={styles.button}
+        style={preview_post_styles.button}
         icon="progress-clock"
       >
         Wait for AI to Finish Processing
@@ -43,7 +43,7 @@ export default function ProcessingScreen() {
           router.back();
           router.back();
         }}
-        style={styles.button}
+        style={preview_post_styles.button}
         icon={() => <Ionicons name="exit-outline" size={20} color="black" />}
       >
         Exit and Come Back Later
@@ -51,7 +51,7 @@ export default function ProcessingScreen() {
       <Button
         mode="contained"
         onPress={handleNavigateToPreviewPost} // Temp button to navigate to PreviewPost screen
-        style={styles.button}
+        style={preview_post_styles.button}
       >
         Go to Preview Post
       </Button>

@@ -4,7 +4,8 @@ import { Avatar, Text, Button } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts } from "@/api/post";
 import { fetchFollowers, fetchFollowing } from "@/api/following";
-import { Follower, Following, Post } from "@/types/types";
+import { Follower, Following } from "@/types/Following";
+import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
 import { useLocalSearchParams } from "expo-router";
 import { fetchUserById } from "@/api/user";
@@ -14,19 +15,20 @@ const UserProfile = () => {
   const params = useLocalSearchParams();
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
-  const { user } = useUserContext();
+  const { user, signOut } = useUserContext();
+
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
 
-  let uid=0;
+  let uid = 0;
 
   useEffect(() => {
     const getUserData = async () => {
-      uid=id == null ? user != null ? user.id : 0 : parseInt(id);
+      uid = id == null ? user != null ? user.id : 0 : parseInt(id);
 
-      if(uid != user?.id) {
+      if (uid != user?.id) {
         setProfileUser(await fetchUserById(uid));
       }
 
@@ -66,11 +68,18 @@ const UserProfile = () => {
               <Text style={profileStyle.username}>{profileUser?.username}</Text>
             </View>
             <View style={profileStyle.userDescription}>
-              <Text style={profileStyle.bio}>{ "Digital goodies collector 🌈✨"}</Text> {/*Replce with the user's bio once implemente*/}
+              <Text style={profileStyle.bio}>{"Digital goodies collector 🌈✨"}</Text> {/*Replce with the user's bio once implemente*/}
             </View>
             <TouchableOpacity style={profileStyle.actionButton}>
               <Text style={profileStyle.buttonLabel}>{user.id === profileUser?.id ? "Edit Profile" : "Follow"}</Text>
             </TouchableOpacity>
+              <TouchableOpacity
+                onPress={signOut} // Call the signOut function from context
+              style={[profileStyle.actionButton, profileStyle.signOutButton]}
+              >
+                <Text style={profileStyle.buttonLabel}>Sign out</Text>
+              </TouchableOpacity>
+
           </View>
         </View>
 
@@ -89,7 +98,7 @@ const UserProfile = () => {
           </View>
         </View>
       </View>
-      
+
       {/* Post Grid */}
       <FlatList
         data={posts}

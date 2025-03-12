@@ -42,6 +42,7 @@ def getPostsByUserId(user_id):
                 {
                     "postID": post.postID,
                     "userID": post.userID,
+                    "status": post.status,
                     "caption": post.caption,
                     "createdDate": (
                         post.createdDate.isoformat()

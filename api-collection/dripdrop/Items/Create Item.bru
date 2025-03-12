@@ -1,0 +1,26 @@
+meta {
+  name: Create Item
+  type: http
+  seq: 4
+}
+
+post {
+  url: https://api.dripdropco.com/items
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "image_id": "1",
+    "xCoord": 150,
+    "yCoord": 300,
+    "name": "Nike Air Force 1",
+    "brand": "Nike",
+    "category": "Shoes",
+    "price": 109.99,
+    "itemURL": "https://example.com/nike-af1",
+    "size": "10"
+  }
+  
+}

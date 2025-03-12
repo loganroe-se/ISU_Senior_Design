@@ -4,7 +4,8 @@ import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like"
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
-import { FeedPost, Comment } from "@/types/types";
+import { FeedPost } from "@/types/post";
+import { Comment } from "@/types/Comment";
 import { sendComment } from "@/types/sendComment.interface";
 import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
