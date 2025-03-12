@@ -40,8 +40,7 @@ export default function ProcessingScreen() {
       <Button
         mode="outlined"
         onPress={() => {
-          router.back();
-          router.back();
+          router.replace('/authenticated');
         }}
         style={preview_post_styles.button}
         icon={() => <Ionicons name="exit-outline" size={20} color="black" />}

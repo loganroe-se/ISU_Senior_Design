@@ -16,6 +16,7 @@ export const preview_post_styles = StyleSheet.create({
         fontWeight: "bold",
         marginBottom: 20,
         textAlign: "center",
+        color: '#000'
     },
     image: {
         width: 250,
@@ -28,29 +29,24 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 10,
+        color: '#000'
     },
     button: {
         width: "80%",
         marginVertical: 10,
     },
-}); export const styles = StyleSheet.create({
-    
+});
+export const post_styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 10, // To add spacing at the top
-    },
-    backButton: {
-        top: 20,
-        left: 16,
-        zIndex: 10,
+
     },
     cardContainer: {
         width: "100%",
-        paddingHorizontal: 20,
         alignItems: "center",
         borderRadius: 12,
         elevation: 5,
-        backgroundColor: '#fff'
+        backgroundColor: '#f2f2f2'
     },
     imageContainer: {
         alignItems: "center",
@@ -71,13 +67,11 @@ export const preview_post_styles = StyleSheet.create({
         fontSize: 16,
     },
     thumbnail: {
-        width: Dimensions.get("window").width / 4 - 10,
-        height: Dimensions.get("window").width / 4 - 10,
-        margin: 5,
+        width: Dimensions.get("window").width / 4,
+        height: Dimensions.get("window").width / 4,
+        justifyContent: "center",
+        padding: 5,
         borderRadius: 5,
-    },
-    button: {
-        borderRadius: 8,
     },
     removeButton: {
         backgroundColor: Colors.redButtonColor,
@@ -87,7 +81,7 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 10,
         width: "90%",
         alignSelf: "center",
-        backgroundColor:'#fff',
+        backgroundColor: '#fff',
     },
     bottomContainer: {
         width: "90%",
@@ -97,6 +91,73 @@ export const preview_post_styles = StyleSheet.create({
         padding: 20,
         alignItems: "center",
     },
-    
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.8)",
+    },
+    frame: {
+        width: 300,
+        height: 300,
+        borderWidth: 2,
+        borderColor: "#fff",
+        overflow: "hidden",
+    },
+    adjustableImage: {
+        width: "100%",
+        height: "100%",
+    },
+    modal_button: {
+        width: 200, // Fixed width for both buttons
+        height: 50, // Fixed height for both buttons
+        justifyContent: "center", // Center text horizontally
+        alignItems: "center", // Center text vertically
+        marginTop: 10, // Space between buttons
+    },
+    saveButton: {
+        backgroundColor: Colors.light.primary,
+    },
+    cancelButton: {
+        borderColor: 'red',
+    },
+    topBar: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        paddingHorizontal: 16,
+        paddingVertical: 10,
+        backgroundColor: "rgba(255, 255, 255, 0.7)",
+        borderBottomWidth: 1,
+        borderBottomColor: "#e0e0e0",
+    },
+    backButton: {
+        padding: 8,
+    },
+    continueButton: {
+        padding: 8,
+    },
+    continueText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: Colors.light.primary,
+    },
+    takePhotoButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: Colors.light.primary,
+        paddingVertical: 10,
+        paddingHorizontal: 16,
+        borderRadius: 8,
+        marginTop: 16,
+    },
+    cameraIcon: {
+        marginRight: 8,
+    },
+    takePhotoText: {
+        color: "#fff",
+        fontSize: 16,
+        fontWeight: "bold",
+    },
 });
 
