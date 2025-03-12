@@ -72,9 +72,10 @@ export const preview_post_styles = StyleSheet.create({
         fontSize: 16,
     },
     thumbnail: {
-        width: Dimensions.get("window").width / 4 - 10,
-        height: Dimensions.get("window").width / 4 - 10,
-        margin: 5,
+        width: Dimensions.get("window").width / 4,
+        height: Dimensions.get("window").width / 4,
+        justifyContent: "center",
+        padding: 5,
         borderRadius: 5,
     },
     button: {
