@@ -218,7 +218,9 @@ export default function Post() {
 
             >
               <Text
-                style={post_styles.continueText}
+                style={[post_styles.continueText,
+                  loading && post_styles.loadingText]
+                }
               >
                 {loading ? "Loading..." : "Continue"}
               </Text>
@@ -230,14 +232,13 @@ export default function Post() {
             {image ? (
               <View style={post_styles.imageContainer}>
                 <Image source={{ uri: image }} style={post_styles.image} />
-                <Button
-                  mode="contained"
+                {/* X Icon in the top-right corner */}
+                <TouchableOpacity
                   onPress={removeImage}
-                  style={[post_styles.modal_button, post_styles.removeButton]}
-                  textColor="#fff"
+                  style={post_styles.removeIconContainer}
                 >
-                  Remove Image
-                </Button>
+                  <Ionicons name="close-outline" size={40} color={'red'} />
+                </TouchableOpacity>
               </View>
             ) : (
               <View style={post_styles.placeholderContainer}>
@@ -253,7 +254,6 @@ export default function Post() {
               </View>
             )}
           </Card>
-
           {/* Bottom Half: Image Gallery */}
           <FlatList
             data={photos}
@@ -287,6 +287,9 @@ export default function Post() {
               multiline
               numberOfLines={4}
               placeholder="Write a caption..."
+              activeUnderlineColor={Colors.light.primary} // Set the focus color to your primary color
+
+              activeOutlineColor={Colors.light.primary} //
             />
           </View>
         </KeyboardAvoidingView>

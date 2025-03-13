@@ -39,11 +39,8 @@ export const preview_post_styles = StyleSheet.create({
 export const post_styles = StyleSheet.create({
     container: {
         flex: 1,
-
     },
     cardContainer: {
-        width: "100%",
-        alignItems: "center",
         borderRadius: 12,
         elevation: 5,
         backgroundColor: '#f2f2f2'
@@ -51,12 +48,22 @@ export const post_styles = StyleSheet.create({
     imageContainer: {
         alignItems: "center",
         marginBottom: 10,
+        position:'relative',
     },
     image: {
         width: "100%",
         height: 200,
         borderRadius: 10,
         marginVertical: 10,
+        objectFit: 'contain',
+    },
+    removeIconContainer: {
+        position: "absolute", // Position the X icon absolutely
+        top: 10, // Distance from the top
+        right: 10, // Distance from the right
+
+        borderRadius: 12, // Rounded corners
+        padding: 4, // Padding around the icon
     },
     placeholderContainer: {
         alignItems: "center",
@@ -75,6 +82,7 @@ export const post_styles = StyleSheet.create({
     },
     removeButton: {
         backgroundColor: Colors.redButtonColor,
+        alignSelf:'center'
     },
     input: {
         borderRadius: 8,
@@ -110,9 +118,10 @@ export const post_styles = StyleSheet.create({
     },
     modal_button: {
         width: 200, // Fixed width for both buttons
-        height: 50, // Fixed height for both buttons
+        height: 40, // Fixed height for both buttons
         justifyContent: "center", // Center text horizontally
-        alignItems: "center", // Center text vertically
+
+        alignSelf:'center',
         marginTop: 10, // Space between buttons
     },
     saveButton: {
@@ -121,6 +130,7 @@ export const post_styles = StyleSheet.create({
     cancelButton: {
         borderColor: 'red',
     },
+    
     topBar: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -141,6 +151,10 @@ export const post_styles = StyleSheet.create({
         fontSize: 16,
         fontWeight: "bold",
         color: Colors.light.primary,
+    },
+    loadingText: {
+        color: 'grey', 
+        opacity: 0.7, 
     },
     takePhotoButton: {
         flexDirection: "row",
