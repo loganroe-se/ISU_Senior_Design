@@ -15,9 +15,11 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
+    <PaperProvider>
     <UserProvider>
       <AppContent />
     </UserProvider>
+    </PaperProvider>
   );
 }
 
@@ -44,11 +46,9 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <PaperProvider>
         <Slot />
         {!hideNavbar && <Navbar />}
         <StatusBar/>
-      </PaperProvider >
     </ThemeProvider>
        
   );
