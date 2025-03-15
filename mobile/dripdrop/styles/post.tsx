@@ -16,11 +16,10 @@ export const preview_post_styles = StyleSheet.create({
         fontWeight: "bold",
         marginBottom: 20,
         textAlign: "center",
-        color: '#000'
     },
     image: {
-        width: 250,
-        height: 250,
+        width: 300,
+        height: 300,
         borderRadius: 10,
         marginBottom: 15,
     },
@@ -29,13 +28,16 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 10,
-        color: '#000'
     },
     button: {
         width: "80%",
         marginVertical: 10,
     },
 });
+
+
+
+
 export const post_styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -48,7 +50,7 @@ export const post_styles = StyleSheet.create({
     imageContainer: {
         alignItems: "center",
         marginBottom: 10,
-        position:'relative',
+        position: 'relative',
     },
     image: {
         width: "100%",
@@ -82,7 +84,7 @@ export const post_styles = StyleSheet.create({
     },
     removeButton: {
         backgroundColor: Colors.redButtonColor,
-        alignSelf:'center'
+        alignSelf: 'center'
     },
     input: {
         borderRadius: 8,
@@ -121,7 +123,7 @@ export const post_styles = StyleSheet.create({
         height: 40, // Fixed height for both buttons
         justifyContent: "center", // Center text horizontally
 
-        alignSelf:'center',
+        alignSelf: 'center',
         marginTop: 10, // Space between buttons
     },
     saveButton: {
@@ -130,7 +132,7 @@ export const post_styles = StyleSheet.create({
     cancelButton: {
         borderColor: 'red',
     },
-    
+
     topBar: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -153,8 +155,8 @@ export const post_styles = StyleSheet.create({
         color: Colors.light.primary,
     },
     loadingText: {
-        color: 'grey', 
-        opacity: 0.7, 
+        color: 'grey',
+        opacity: 0.7,
     },
     takePhotoButton: {
         flexDirection: "row",
@@ -172,6 +174,128 @@ export const post_styles = StyleSheet.create({
         color: "#fff",
         fontSize: 16,
         fontWeight: "bold",
+    },
+});
+export const image_marker_styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        alignItems: "center",
+        padding: 16,
+        backgroundColor: "#fff",
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+    },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+        color: Colors.light.primary,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 16,
+        color: Colors.light.primary,
+    },
+    imageContainer: {
+        position: "relative",
+        width: "100%",
+        aspectRatio: 1,
+        marginBottom: 16,
+    },
+    image: {
+        width: "100%",
+        height: "100%",
+        resizeMode: "cover",
+        borderRadius: 8,
+    },
+    marker: {
+        position: "absolute",
+        width: 20, // Larger marker
+        height: 20, // Larger marker
+        borderRadius: 10, // Circular marker
+        backgroundColor: "grey", // Default color for unverified markers
+        opacity: 0.7, // Semi-transparent
+    },
+    caption: {
+        fontSize: 16,
+        textAlign: "center",
+        color: Colors.light.text,
+    },
+});
+export const item_details_styles = StyleSheet.create({
+    container: {
+        flex: 1
+    },
+    scrollView: {
+        flex: 1,
+    },
+    scrollContainer: {
+        flexGrow: 1,
+        padding: 16,
+        paddingBottom: '10%', // Add padding to avoid overlap with buttons
+        justifyContent: 'space-evenly',
+    },
+    buttonContainer: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        padding: 10,
+        position: "absolute", // Position the buttons absolutely
+        alignSelf: 'center',
+        bottom: '-.1%'
+    },
+
+    backButton: {
+        borderWidth: 1.5,
+        borderColor: "black",
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: "center",
+        justifyContent: "center",
+        flex: 1,
+        marginRight: 8, // Add spacing between buttons
+        backgroundColor: "#fff", // White background for the button
+    },
+    saveButton: {
+        backgroundColor: Colors.light.primary,
+        paddingVertical: 12,
+        paddingHorizontal: 24,
+        borderRadius: 8,
+        alignItems: "center",
+        justifyContent: "center",
+        flex: 1,
+        marginLeft: 8, // Add spacing between buttons
+    },
+    buttonText: {
+        fontSize: 16,
+        fontWeight: "bold",
+        color: "#000", // Black text color for back button
+    },
+    header: {
+        fontSize: 24,
+        fontWeight: "bold",
+        marginBottom: 20,
+        color: "#333", // Dark gray text color
+    },
+    text: {
+        fontSize: 18,
+        marginBottom: 10,
+        color: "#555", // Medium gray text color
+    },
+    input: {
+        height: 50,
+        borderColor: "#ccc",
+        borderWidth: 1,
+        borderRadius: 8,
+        paddingHorizontal: 12,
+        marginBottom: 16,
+        width: "100%",
+        backgroundColor: "#fff", // White background for inputs
+        fontSize: 16,
     },
 });
 

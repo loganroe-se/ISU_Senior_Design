@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, Image, StyleSheet, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Text } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { Colors } from "@/constants/Colors"; // Import your app's color constants
+import { Colors } from "@/constants/Colors";
 import { Marker } from '@/types/Marker'; // Import the Marker type
 import { SafeAreaView } from "react-native-safe-area-context";
+import { image_marker_styles } from "@/styles/post";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
@@ -45,7 +46,7 @@ const ImageMarkerScreen = () => {
         if (!verifiedMarkers.has(marker.clothingItemID)) {
             // Navigate to the ItemDetails screen for unverified markers
             router.push({
-                pathname: "./item_details", // Updated path
+                pathname: "./item_details", 
                 params: { markerId: marker.clothingItemID },
             });
         }
@@ -54,29 +55,29 @@ const ImageMarkerScreen = () => {
     // Show loading indicator while fetching data
     if (loading) {
         return (
-            <SafeAreaView style={styles.loadingContainer}>
+            <SafeAreaView style={image_marker_styles.loadingContainer}>
                 <ActivityIndicator size="large" color={Colors.light.primary} />
-                <Text style={styles.loadingText}>Loading...</Text>
+                <Text style={image_marker_styles.loadingText}>Loading...</Text>
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Text style={styles.title}>Preview Your Post</Text>
+        <SafeAreaView style={image_marker_styles.container}>
+            <Text style={image_marker_styles.title}>Preview Your Post</Text>
 
             {image && (
-                <View style={styles.imageContainer}>
+                <View style={image_marker_styles.imageContainer}>
                     <Image
                         source={{ uri: Array.isArray(image) ? image[0] : image }}
-                        style={styles.image}
+                        style={image_marker_styles.image}
                     />
                     {markers.map((marker, index) => (
                         <TouchableOpacity
                             key={index}
                             onPress={() => handleMarkerPress(marker)}
                             style={[
-                                styles.marker,
+                                image_marker_styles.marker,
                                 {
                                     left: marker.xCoord,
                                     top: marker.yCoord,
@@ -88,60 +89,9 @@ const ImageMarkerScreen = () => {
                 </View>
             )}
 
-            {caption && <Text style={styles.caption}>{caption}</Text>}
+            {caption && <Text style={image_marker_styles.caption}>{caption}</Text>}
         </SafeAreaView>
     );
 };
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        alignItems: "center",
-        padding: 16,
-        backgroundColor: "#fff",
-    },
-    loadingContainer: {
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "#fff",
-    },
-    loadingText: {
-        marginTop: 16,
-        fontSize: 16,
-        color: Colors.light.primary,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "bold",
-        marginBottom: 16,
-        color: Colors.light.primary,
-    },
-    imageContainer: {
-        position: "relative",
-        width: "100%",
-        aspectRatio: 1,
-        marginBottom: 16,
-    },
-    image: {
-        width: "100%",
-        height: "100%",
-        resizeMode: "cover",
-        borderRadius: 8,
-    },
-    marker: {
-        position: "absolute",
-        width: 20, // Larger marker
-        height: 20, // Larger marker
-        borderRadius: 10, // Circular marker
-        backgroundColor: "grey", // Default color for unverified markers
-        opacity: 0.7, // Semi-transparent
-    },
-    caption: {
-        fontSize: 16,
-        textAlign: "center",
-        color: Colors.light.text,
-    },
-});
 
 export default ImageMarkerScreen;
