@@ -44,6 +44,7 @@ const styles = StyleSheet.create({
         borderTopWidth: 1.5,
         justifyContent: "space-around",
         alignItems: "center",
+        backgroundColor:'white'
     },
     navItem: {
         flex: 1,
