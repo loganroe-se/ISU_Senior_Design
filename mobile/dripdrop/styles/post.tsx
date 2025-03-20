@@ -176,6 +176,8 @@ export const post_styles = StyleSheet.create({
         fontWeight: "bold",
     },
 });
+
+
 export const image_marker_styles = StyleSheet.create({
     container: {
         flex: 1,
@@ -203,20 +205,22 @@ export const image_marker_styles = StyleSheet.create({
     imageContainer: {
         position: "relative",
         width: "100%",
-        aspectRatio: 1,
+        height: "60%", // Adjust height to center the image vertically
+        justifyContent: "center", // Center the image vertically
+        alignItems: "center", // Center the image horizontally
         marginBottom: 16,
     },
     image: {
         width: "100%",
         height: "100%",
-        resizeMode: "cover",
+        resizeMode: "contain", // Ensure the image fits within the container
         borderRadius: 8,
     },
     marker: {
         position: "absolute",
-        width: 20, // Larger marker
-        height: 20, // Larger marker
-        borderRadius: 10, // Circular marker
+        width: '8%', 
+        height: '8%', 
+        borderRadius: '100%', // Circular marker
         backgroundColor: "grey", // Default color for unverified markers
         opacity: 0.7, // Semi-transparent
     },
@@ -224,8 +228,47 @@ export const image_marker_styles = StyleSheet.create({
         fontSize: 16,
         textAlign: "center",
         color: Colors.light.text,
+        marginBottom: 20, // Add margin to separate from the Post button
+    },
+    helpButton: {
+        position: "absolute",
+        top: '10%', // Adjust top position
+        right: '4%', // Adjust right position
+        zIndex: 1, // Ensure the button is above other elements
+    },
+    modalContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "rgba(0, 0, 0, 0.5)",
+    },
+    modalContent: {
+        width: "80%",
+        padding: 20,
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        alignItems: "center",
+    },
+    modalText: {
+        fontSize: 16,
+        marginBottom: 20,
+        textAlign: "center",
+    },
+    modalButton: {
+        width: "100%",
+        marginTop: 10,
+    },
+    postButton: {
+        position: "absolute",
+        bottom: '2%',
+        width: "100%",
+        paddingVertical: 8,
+        borderRadius: 8, // Rounded corners
+        shadowOpacity: 0.2,
     },
 });
+
+
 export const item_details_styles = StyleSheet.create({
     container: {
         flex: 1

@@ -1,4 +1,4 @@
-import { Text, View, Alert, TextInput, TouchableOpacity, ScrollView } from "react-native";
+import { Text, View, Alert, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 import { useRouter } from "expo-router"; // Import useRouter for navigation
@@ -14,6 +14,7 @@ const Page = () => {
     const [price, setPrice] = useState<string>("");
     const [itemURL, setItemURL] = useState<string>("");
     const [size, setSize] = useState<string>("");
+    const [isLoading, setIsLoading] = useState<boolean>(false); // New state for loading indicator
 
     const router = useRouter(); // Initialize the router
 
@@ -40,6 +41,8 @@ const Page = () => {
     }, []); // Empty array ensures this effect runs only once when the component mounts
 
     const handleSave = async () => {
+        setIsLoading(true); // Set loading to true when the save process starts
+
         // Prepare the request body
         const itemData = {
             name,
@@ -75,6 +78,8 @@ const Page = () => {
         } catch (error) {
             console.error("Error saving item details:", error);
             Alert.alert("Error", "Failed to save item details. Please try again.");
+        } finally {
+            setIsLoading(false); // Set loading to false when the save process completes
         }
     };
 
@@ -131,8 +136,12 @@ const Page = () => {
                 <TouchableOpacity onPress={() => router.back()} style={item_details_styles.backButton}>
                     <Text style={item_details_styles.buttonText}>Back</Text>
                 </TouchableOpacity>
-                <TouchableOpacity onPress={handleSave} style={item_details_styles.saveButton}>
-                    <Text style={item_details_styles.buttonText}>Save</Text>
+                <TouchableOpacity onPress={handleSave} style={item_details_styles.saveButton} disabled={isLoading}>
+                    {isLoading ? (
+                        <ActivityIndicator color="#fff" /> // Show loading indicator when isLoading is true
+                    ) : (
+                        <Text style={item_details_styles.buttonText}>Save</Text>
+                    )}
                 </TouchableOpacity>
             </View>
         </SafeAreaView>

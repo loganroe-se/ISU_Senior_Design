@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { View, Image, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Text } from "react-native-paper";
+import { View, Image, TouchableOpacity, ActivityIndicator, Modal, Alert } from "react-native";
+import { Text, Button } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { Marker } from '@/types/Marker'; // Import the Marker type
 import { SafeAreaView } from "react-native-safe-area-context";
 import { image_marker_styles } from "@/styles/post";
+import { Ionicons } from "@expo/vector-icons";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
@@ -13,6 +14,7 @@ const ImageMarkerScreen = () => {
     const [markers, setMarkers] = useState<Marker[]>([]); // Store marker data
     const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set()); // Track verified markers
     const [loading, setLoading] = useState(true); // Track loading state
+    const [isHelpModalVisible, setIsHelpModalVisible] = useState(false); // State for help modal
 
     console.log("Caption:", caption);
     console.log("Image URI:", image);
@@ -46,10 +48,19 @@ const ImageMarkerScreen = () => {
         if (!verifiedMarkers.has(marker.clothingItemID)) {
             // Navigate to the ItemDetails screen for unverified markers
             router.push({
-                pathname: "./item_details", 
+                pathname: "./item_details",
                 params: { markerId: marker.clothingItemID },
             });
         }
+    };
+
+    // Check if all markers are verified
+    const allMarkersVerified = markers.length > 0 && verifiedMarkers.size === markers.length;
+
+    // Handle Post button press
+    const handlePost = () => {
+        Alert.alert("Success", "Your post has been submitted!");
+        // Add logic to submit the post
     };
 
     // Show loading indicator while fetching data
@@ -64,6 +75,37 @@ const ImageMarkerScreen = () => {
 
     return (
         <SafeAreaView style={image_marker_styles.container}>
+            {/* Help Button */}
+            <TouchableOpacity
+                style={image_marker_styles.helpButton}
+                onPress={() => setIsHelpModalVisible(true)}
+            >
+                <Ionicons name="help-circle-outline" size={30} color={Colors.light.primary} />
+            </TouchableOpacity>
+
+            {/* Help Modal */}
+            <Modal
+                visible={isHelpModalVisible}
+                transparent={true}
+                animationType="slide"
+                onRequestClose={() => setIsHelpModalVisible(false)}
+            >
+                <View style={image_marker_styles.modalContainer}>
+                    <View style={image_marker_styles.modalContent}>
+                        <Text style={image_marker_styles.modalText}>
+                            Please click on the image markers to validate the clothing item's information.
+                        </Text>
+                        <Button
+                            mode="contained"
+                            onPress={() => setIsHelpModalVisible(false)}
+                            style={image_marker_styles.modalButton}
+                        >
+                            Close
+                        </Button>
+                    </View>
+                </View>
+            </Modal>
+
             <Text style={image_marker_styles.title}>Preview Your Post</Text>
 
             {image && (
@@ -90,6 +132,24 @@ const ImageMarkerScreen = () => {
             )}
 
             {caption && <Text style={image_marker_styles.caption}>{caption}</Text>}
+
+            {/* Post Button */}
+            <Button
+                mode="contained"
+                onPress={handlePost}
+                style={[
+                    image_marker_styles.postButton,
+                    allMarkersVerified
+                        ? { backgroundColor: Colors.light.primary } // Use primary color when all markers are verified
+                        : { backgroundColor: "#ccc" }, // Greyed out when not all markers are verified
+                ]}
+                labelStyle={{
+                    color: allMarkersVerified ? "#fff" : '#1c1b1f60', // White text when all markers are verified
+                }}
+                disabled={!allMarkersVerified} // Disable if not all markers are verified
+            >
+                Post
+            </Button>
         </SafeAreaView>
     );
 };
