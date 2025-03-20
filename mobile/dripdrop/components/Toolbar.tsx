@@ -2,6 +2,8 @@ import React from "react";
 import { View, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import Entypo from '@expo/vector-icons/Entypo';
+
 
 type ToolbarProps = {
     mode: "cursor" | "add" | "delete" | "move";
@@ -16,7 +18,7 @@ const Toolbar = ({ mode, setMode }: ToolbarProps) => {
                 style={[styles.toolbarButton, mode === "cursor" && styles.activeButton]}
                 onPress={() => setMode("cursor")}
             >
-                <Ionicons name="create" size={24} color={mode === "cursor" ? Colors.light.primary : "#000"} />
+                <Entypo name="mouse-pointer" size={24} color={mode === "cursor" ? Colors.light.primary : "#000"} />
             </TouchableOpacity>
 
             {/* Add Mode Button */}

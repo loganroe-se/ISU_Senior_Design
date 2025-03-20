@@ -187,9 +187,9 @@ const ImageMarkerScreen = () => {
                         style={image_marker_styles.image}
                     />
                     {markers.map((marker, index) => (
-                        <View
+                        <TouchableOpacity
                             key={index}
-                            {...panResponder.panHandlers}
+                            onPress={() => handleMarkerPress(marker)}
                             style={[
                                 image_marker_styles.marker,
                                 {
@@ -200,11 +200,12 @@ const ImageMarkerScreen = () => {
                                     borderColor: Colors.light.primary,
                                 },
                             ]}
+                            {...panResponder.panHandlers}
                         >
                             {mode === "delete" && selectedMarker?.clothingItemID === marker.clothingItemID && (
                                 <Ionicons name="trash" size={16} color="red" style={image_marker_styles.deleteIcon} />
                             )}
-                        </View>
+                        </TouchableOpacity>
                     ))}
                     {newMarkerPosition && (
                         <View
@@ -213,17 +214,19 @@ const ImageMarkerScreen = () => {
                                 {
                                     left: newMarkerPosition.x,
                                     top: newMarkerPosition.y,
-                                    borderWidth: 2,
-                                    borderColor: Colors.light.primary,
-                                    backgroundColor: "transparent",
+                                    backgroundColor: "#fff",
+                                    flexDirection: "row", // Align buttons horizontally
+                                    justifyContent: "space-between", // Space between buttons
+                                    alignItems: "center",
+                                    opacity:1,
                                 },
                             ]}
                         >
-                            <TouchableOpacity onPress={confirmAddMarker}>
-                                <Ionicons name="checkmark" size={24} color="green" />
+                            <TouchableOpacity onPress={confirmAddMarker} style={{ backgroundColor: "#fff", borderRadius: 15 }}>
+                                <Ionicons name="checkmark" size={30} color="green" />
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={cancelAddMarker}>
-                                <Ionicons name="close" size={24} color="red" />
+                            <TouchableOpacity onPress={cancelAddMarker} style={{ backgroundColor: "#fff", borderRadius: 15 }}>
+                                <Ionicons name="close" size={30} color="red" />
                             </TouchableOpacity>
                         </View>
                     )}
