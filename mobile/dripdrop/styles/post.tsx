@@ -266,7 +266,64 @@ export const image_marker_styles = StyleSheet.create({
         borderRadius: 8, // Rounded corners
         shadowOpacity: 0.2,
     },
+    deleteIcon: {
+        position: "absolute",
+        top: -8,
+        right: -8,
+    },
+    confirmationDialog: {
+        position: "absolute",
+        bottom: 100,
+        width: "80%",
+        alignSelf: "center",
+        backgroundColor: "#fff",
+        padding: 16,
+        borderRadius: 8,
+        elevation: 5,
+    },
+    confirmationText: {
+        fontSize: 16,
+        textAlign: "center",
+        marginBottom: 16,
+    },
+    confirmationButtons: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+    },
+    confirmButton: {
+        flex: 1,
+        marginRight: 8,
+    },
+    cancelButton: {
+        flex: 1,
+        marginLeft: 8,
+    },
+        editButton: {
+        position: "absolute",
+        top: 16,
+        right: 16,
+        zIndex: 1,
+    },
+    editModeButtons: {
+        flexDirection: "row",
+        justifyContent: "space-around",
+        marginBottom: 16,
+    },
+    addButton: {
+        flex: 1,
+        marginRight: 8,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    deleteButton: {
+        flex: 1,
+        marginLeft: 8,
+        paddingVertical: 8,
+        borderRadius: 8,
+    },
+    
 });
+
 
 
 export const item_details_styles = StyleSheet.create({

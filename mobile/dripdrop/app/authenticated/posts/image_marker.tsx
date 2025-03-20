@@ -1,12 +1,13 @@
-import React, { useEffect, useState } from "react";
-import { View, Image, TouchableOpacity, ActivityIndicator, Modal, Alert } from "react-native";
-import { Text, Button } from "react-native-paper";
+import React, { useEffect, useState, useRef } from "react";
+import { View, Image, TouchableOpacity, ActivityIndicator, Modal, Alert, Text, PanResponder } from "react-native";
+import { Button } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
 import { Marker } from '@/types/Marker'; // Import the Marker type
 import { SafeAreaView } from "react-native-safe-area-context";
 import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
+import Toolbar from "@/components/Toolbar"; // Adjust the path as needed
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
@@ -15,9 +16,31 @@ const ImageMarkerScreen = () => {
     const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set()); // Track verified markers
     const [loading, setLoading] = useState(true); // Track loading state
     const [isHelpModalVisible, setIsHelpModalVisible] = useState(false); // State for help modal
+    const [mode, setMode] = useState<"cursor" | "add" | "delete" | "move">("cursor"); // Toolbar mode
+    const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null); // Selected marker for moving or deleting
+    const [newMarkerPosition, setNewMarkerPosition] = useState<{ x: number; y: number } | null>(null); // New marker position
+    const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for delete confirmation dialog
 
-    console.log("Caption:", caption);
-    console.log("Image URI:", image);
+    // PanResponder for moving markers
+    const panResponder = useRef(
+        PanResponder.create({
+            onStartShouldSetPanResponder: () => mode === "move",
+            onPanResponderMove: (event, gestureState) => {
+                if (mode === "move" && selectedMarker) {
+                    const { moveX, moveY } = gestureState;
+                    const updatedMarkers = markers.map((m) =>
+                        m.clothingItemID === selectedMarker.clothingItemID
+                            ? { ...m, xCoord: moveX, yCoord: moveY }
+                            : m
+                    );
+                    setMarkers(updatedMarkers);
+                }
+            },
+            onPanResponderRelease: () => {
+                setSelectedMarker(null); // Deselect marker after moving
+            },
+        })
+    ).current;
 
     // Fetch the coordinates from the API
     useEffect(() => {
@@ -43,14 +66,56 @@ const ImageMarkerScreen = () => {
         }
     }, [verifiedMarkerId]);
 
-    // Handle marker press
+    // Handle adding a new marker
+    const handleAddMarker = (event: any) => {
+        if (mode !== "add") return;
+
+        const { locationX, locationY } = event.nativeEvent;
+        setNewMarkerPosition({ x: locationX, y: locationY });
+    };
+
+    // Confirm adding a new marker
+    const confirmAddMarker = () => {
+        if (newMarkerPosition) {
+            const newMarker: Marker = {
+                clothingItemID: markers.length + 1,
+                xCoord: newMarkerPosition.x,
+                yCoord: newMarkerPosition.y,
+            };
+            setMarkers((prev) => [...prev, newMarker]);
+            setNewMarkerPosition(null);
+        }
+    };
+
+    // Cancel adding a new marker
+    const cancelAddMarker = () => {
+        setNewMarkerPosition(null);
+    };
+
+    // Handle deleting a marker
+    const handleDeleteMarker = (markerId: number) => {
+        setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
+        setVerifiedMarkers((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(markerId);
+            return newSet;
+        });
+        setSelectedMarker(null);
+        setIsDeleteConfirmationVisible(false);
+    };
+
+    // Handle marker press (for verification)
     const handleMarkerPress = (marker: Marker) => {
-        if (!verifiedMarkers.has(marker.clothingItemID)) {
-            // Navigate to the ItemDetails screen for unverified markers
+        if (mode === "cursor" && !verifiedMarkers.has(marker.clothingItemID)) {
             router.push({
                 pathname: "./item_details",
                 params: { markerId: marker.clothingItemID },
             });
+        } else if (mode === "delete") {
+            setSelectedMarker(marker);
+            setIsDeleteConfirmationVisible(true);
+        } else if (mode === "move") {
+            setSelectedMarker(marker);
         }
     };
 
@@ -108,30 +173,87 @@ const ImageMarkerScreen = () => {
 
             <Text style={image_marker_styles.title}>Preview Your Post</Text>
 
+            {/* Toolbar */}
+            <Toolbar mode={mode} setMode={setMode} />
+
             {image && (
-                <View style={image_marker_styles.imageContainer}>
+                <View
+                    style={image_marker_styles.imageContainer}
+                    onStartShouldSetResponder={() => true}
+                    onResponderRelease={handleAddMarker} // Add marker on tap
+                >
                     <Image
                         source={{ uri: Array.isArray(image) ? image[0] : image }}
                         style={image_marker_styles.image}
                     />
                     {markers.map((marker, index) => (
-                        <TouchableOpacity
+                        <View
                             key={index}
-                            onPress={() => handleMarkerPress(marker)}
+                            {...panResponder.panHandlers}
                             style={[
                                 image_marker_styles.marker,
                                 {
                                     left: marker.xCoord,
                                     top: marker.yCoord,
-                                    backgroundColor: verifiedMarkers.has(marker.clothingItemID) ? "green" : "grey", // Color based on verification state
+                                    backgroundColor: verifiedMarkers.has(marker.clothingItemID) ? "green" : "grey",
+                                    borderWidth: selectedMarker?.clothingItemID === marker.clothingItemID ? 2 : 0,
+                                    borderColor: Colors.light.primary,
                                 },
                             ]}
-                        />
+                        >
+                            {mode === "delete" && selectedMarker?.clothingItemID === marker.clothingItemID && (
+                                <Ionicons name="trash" size={16} color="red" style={image_marker_styles.deleteIcon} />
+                            )}
+                        </View>
                     ))}
+                    {newMarkerPosition && (
+                        <View
+                            style={[
+                                image_marker_styles.marker,
+                                {
+                                    left: newMarkerPosition.x,
+                                    top: newMarkerPosition.y,
+                                    borderWidth: 2,
+                                    borderColor: Colors.light.primary,
+                                    backgroundColor: "transparent",
+                                },
+                            ]}
+                        >
+                            <TouchableOpacity onPress={confirmAddMarker}>
+                                <Ionicons name="checkmark" size={24} color="green" />
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={cancelAddMarker}>
+                                <Ionicons name="close" size={24} color="red" />
+                            </TouchableOpacity>
+                        </View>
+                    )}
                 </View>
             )}
 
             {caption && <Text style={image_marker_styles.caption}>{caption}</Text>}
+
+            {/* Delete Confirmation Dialog */}
+            {isDeleteConfirmationVisible && (
+                <View style={image_marker_styles.confirmationDialog}>
+                    <Text style={image_marker_styles.confirmationText}>Are you sure you want to delete this marker?</Text>
+                    <View style={image_marker_styles.confirmationButtons}>
+                        <Button
+                            mode="contained"
+                            onPress={() => handleDeleteMarker(selectedMarker!.clothingItemID)}
+                            style={image_marker_styles.confirmButton}
+                        >
+                            Delete
+                        </Button>
+                        <Button
+                            mode="outlined"
+                            onPress={() => setIsDeleteConfirmationVisible(false)}
+                            style={image_marker_styles.cancelButton}
+                        >
+                            Cancel
+                        </Button>
+                    </View>
+                </View>
+            )}
 
             {/* Post Button */}
             <Button
@@ -140,13 +262,13 @@ const ImageMarkerScreen = () => {
                 style={[
                     image_marker_styles.postButton,
                     allMarkersVerified
-                        ? { backgroundColor: Colors.light.primary } // Use primary color when all markers are verified
-                        : { backgroundColor: "#ccc" }, // Greyed out when not all markers are verified
+                        ? { backgroundColor: Colors.light.primary }
+                        : { backgroundColor: "#ccc" },
                 ]}
                 labelStyle={{
-                    color: allMarkersVerified ? "#fff" : '#1c1b1f60', // White text when all markers are verified
+                    color: allMarkersVerified ? "#fff" : '#1c1b1f60',
                 }}
-                disabled={!allMarkersVerified} // Disable if not all markers are verified
+                disabled={!allMarkersVerified}
             >
                 Post
             </Button>
