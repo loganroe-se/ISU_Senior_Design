@@ -210,12 +210,6 @@ export default function SearchScreen() {
               return (
                 <TouchableOpacity key={post.postID} style={styles.postCard} onPress={() => handlePostClick(post)}>
                   <Image source={{ uri: imageURL }} style={styles.postImage} />
-                  <Text style={styles.postCaption}>{post.caption}</Text>
-                  <Text style={styles.postUsername}>{post.username}</Text>
-                  <View style={styles.postActions}>
-                    <Icon name="heart" size={20} color="#e74c3c" />
-                    <Text style={styles.likeText}>{post.numLikes}</Text>
-                  </View>
                 </TouchableOpacity>
               );
             })
@@ -304,11 +298,8 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   postCard: {
-    width: '48%',
-    marginBottom: 10,
+    width: '50%',
     backgroundColor: '#f9f9f9',
-    padding: 10,
-    borderRadius: 8,
     shadowColor: '#000',
     shadowOpacity: 0.1,
     shadowRadius: 4,
@@ -316,8 +307,9 @@ const styles = StyleSheet.create({
   },
   postImage: {
     width: '100%',
-    height: 200,
-    borderRadius: 8,
+    height: 200,  // Ensure the height of the image is uniform
+    borderRadius: 5,
+    resizeMode: 'cover',  // This will ensure the image covers the TouchableOpacity without stretching
   },
   postCaption: {
     fontSize: 18,
