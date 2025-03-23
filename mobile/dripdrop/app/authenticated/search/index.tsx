@@ -10,11 +10,12 @@ import {
   Image,
   ScrollView,
   Modal,
-  TouchableWithoutFeedback
+  TouchableWithoutFeedback,
+  FlatList,
+  Dimensions,
 } from "react-native";
-import Icon from 'react-native-vector-icons/MaterialCommunityIcons'; // Importing icons
+import Icon from 'react-native-vector-icons/MaterialCommunityIcons';
 
-// Define types for Post
 interface Post {
   postID: number;
   userID: number;
@@ -26,31 +27,30 @@ interface Post {
   numLikes: number;
 }
 
+const windowWidth = Dimensions.get("window").width;
+const windowHeight = Dimensions.get("window").height;
+
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<any[]>([]); // Store the fetched users
-  const [posts, setPosts] = useState<Post[]>([]); // Store the fetched posts
-  const [filteredUsers, setFilteredUsers] = useState<any[]>([]); // Store the filtered users
-  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]); // Store filtered posts
-  const [searchType, setSearchType] = useState<'accounts' | 'posts'>('accounts'); // State to track search type
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null); // State for the modal content
+  const [users, setUsers] = useState<any[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [filteredUsers, setFilteredUsers] = useState<any[]>([]);
+  const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
+  const [searchType, setSearchType] = useState<'accounts' | 'posts'>('accounts');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
 
-  // Fetching posts function
   const fetchAllPosts = async (): Promise<Post[]> => {
     try {
       const response = await fetch('https://api.dripdropco.com/posts');
       const posts = await response.json();
-
-      // Now, we need to map userID to username
       const updatedPosts = await Promise.all(posts.map(async (post: Post) => {
         const userResponse = await fetch(`https://api.dripdropco.com/users/${post.userID}`);
         const userData = await userResponse.json();
         return {
           ...post,
-          username: userData.username, // Attach the username to the post object
+          username: userData.username,
         };
       }));
-
       return updatedPosts;
     } catch (error) {
       console.error('Error fetching all posts:', error);
@@ -66,13 +66,12 @@ export default function SearchScreen() {
     });
   };
 
-  // Fetch users and posts from the API when the component mounts
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         const response = await fetch("https://api.dripdropco.com/users");
         const data = await response.json();
-        setUsers(data); // Assuming the API returns an array of users
+        setUsers(data);
       } catch (error) {
         console.error("Error fetching users:", error);
         Alert.alert("Error", "Failed to fetch users");
@@ -92,7 +91,6 @@ export default function SearchScreen() {
     fetchPosts();
   }, []);
 
-  // Update filtered results based on search query and search type
   useEffect(() => {
     if (searchQuery === "") {
       setFilteredUsers([]);
@@ -108,23 +106,18 @@ export default function SearchScreen() {
     }
   }, [searchQuery, searchType, users, posts]);
 
-  // Handle user selection (optional)
   const handleUserPress = (id: number) => {
     router.replace(`/authenticated/profile?id=${id}` as any);
   };
 
-  // Handle post click to open the modal with the selected post details
   const handlePostClick = (post: Post) => {
-    console.log("post clicked");
     setSelectedPost(post);
   };
 
-  // Handle closing the modal
   const closeModal = () => {
     setSelectedPost(null);
   };
 
-  // Handle liking a post
   const handleLike = () => {
     if (selectedPost) {
       setSelectedPost({
@@ -134,27 +127,51 @@ export default function SearchScreen() {
     }
   };
 
-  // Handle comments click
   const handleComments = () => {
-    // You can handle comments interaction here
     Alert.alert("Comments", "View all comments for this post.");
+  };
+
+  // Render a post in modal
+  const renderPostInModal = ({ item }: { item: Post }) => {
+    return (
+      <View style={styles.modalContent}>
+        <TouchableOpacity style={styles.backButton} onPress={closeModal}>
+          <Icon name="arrow-left" size={30} color="black" />
+        </TouchableOpacity>
+        <Image
+          source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
+          style={styles.modalImage}
+        />
+        <View style={styles.modalTextContainer}>
+          <Text style={styles.modalUsername}>{item.username}</Text>
+          <Text style={styles.modalCaption}>{item.caption}</Text>
+          <View style={styles.modalActions}>
+            <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
+              <Icon name="heart" size={30} color={item.numLikes > 0 ? "red" : "grey"} />
+              <Text style={styles.modalLikeText}>{item.numLikes}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={handleComments}>
+              <Icon name="comment" size={30} color="grey" />
+            </TouchableOpacity>
+          </View>
+        </View>
+      </View>
+    );
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Search</Text>
 
-      {/* Search bar */}
       <TextInput
         style={styles.searchBar}
         placeholder="Search for a username or post"
         placeholderTextColor="#D3D3D3"
         value={searchQuery}
         onChangeText={setSearchQuery}
-        returnKeyType="search" // Changes the return key to 'Search'
+        returnKeyType="search"
       />
 
-      {/* Toggle search type (Accounts / Posts) */}
       <View style={styles.toggleContainer}>
         <TouchableOpacity
           style={[styles.toggleButton, searchType === 'accounts' && styles.activeToggle]}
@@ -170,7 +187,6 @@ export default function SearchScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Display filtered results based on search type */}
       {searchType === 'accounts' ? (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {filteredUsers.length > 0 ? (
@@ -187,23 +203,17 @@ export default function SearchScreen() {
         <ScrollView contentContainerStyle={styles.gridContainer}>
           {filteredPosts.length > 0 ? (
             filteredPosts.map((post) => {
-              // Extracting the image URL
               const imageURL =
                 Array.isArray(post.images) && post.images.length > 0 && post.images[0].imageURL
                   ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
                   : 'default_image.png';
-
               return (
-                
                 <TouchableOpacity key={post.postID} style={styles.postCard} onPress={() => handlePostClick(post)}>
-                  <Image
-                    source={{ uri: imageURL }}
-                    style={styles.postImage}
-                  />
+                  <Image source={{ uri: imageURL }} style={styles.postImage} />
                   <Text style={styles.postCaption}>{post.caption}</Text>
                   <Text style={styles.postUsername}>{post.username}</Text>
                   <View style={styles.postActions}>
-                    <Icon name="heart" size={20} color="#e74c3c"  />
+                    <Icon name="heart" size={20} color="#e74c3c" />
                     <Text style={styles.likeText}>{post.numLikes}</Text>
                   </View>
                 </TouchableOpacity>
@@ -223,28 +233,14 @@ export default function SearchScreen() {
           </TouchableWithoutFeedback>
 
           {selectedPost && (
-            <View style={styles.modalContent}>
-              <TouchableOpacity style={styles.backButton} onPress={closeModal}>
-                <Icon name="arrow-left" size={30} color="black" />
-              </TouchableOpacity>
-              <Image
-                source={{ uri: `https://cdn.dripdropco.com/${selectedPost.images[0].imageURL}?format=png`}}
-                style={styles.modalImage}
-              />
-              <View style={styles.modalTextContainer}>
-                <Text style={styles.modalUsername}>{selectedPost.username}</Text>
-                <Text style={styles.modalCaption}>{selectedPost.caption}</Text>
-                <View style={styles.modalActions}>
-                  <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
-                    <Icon name="heart" size={30} color={selectedPost.numLikes > 0 ? "red" : "grey"} />
-                    <Text style={styles.modalLikeText}>{selectedPost.numLikes}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity onPress={handleComments}>
-                    <Icon name="comment" size={30} color="grey" />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            </View>
+            <FlatList
+              data={filteredPosts}  // This will show the rest of the posts in the modal
+              renderItem={renderPostInModal}
+              keyExtractor={(item) => item.postID.toString()}
+              horizontal={false}  // For vertical scrolling
+              pagingEnabled={true}  // Enables one post per screen
+              showsVerticalScrollIndicator={false}
+            />
           )}
         </View>
       </Modal>
@@ -273,7 +269,6 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     borderRadius: 5,
     alignSelf: "center",
-    
   },
   toggleContainer: {
     flexDirection: 'row',
@@ -294,19 +289,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   scrollContainer: {
-    flexGrow: 1, // Ensures the content takes full height
+    paddingBottom: 20,  // Ensure scrolling works properly if there are many users
   },
   userItem: {
-    fontSize: 16,
-    padding: 10,
+    fontSize: 18,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ccc",
+    borderBottomColor: '#ddd',
   },
   gridContainer: {
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingBottom: 20, // Add padding at the bottom to avoid cutoff of last post
+    paddingBottom: 20,
   },
   postCard: {
     width: '48%',
@@ -318,7 +313,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
-    
   },
   postImage: {
     width: '100%',
@@ -369,15 +363,15 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     padding: 20,
     borderRadius: 8,
-    width: '80%',
+    height: windowHeight,  // Make it take full height of the screen
+    width: windowWidth,
     maxWidth: 500,
-    maxHeight: 500,
   },
   modalImage: {
     width: '100%',
-    height: 300,
-    borderRadius: 8,
-    paddingTop: 15
+    height: 500,
+    marginTop: 120,  // Center the image vertically
+    marginBottom: 20
   },
   modalTextContainer: {
     marginTop: 10,
@@ -401,13 +395,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   modalLikeText: {
-    fontSize: 16,
     marginLeft: 5,
   },
   backButton: {
     position: 'absolute',
     top: 10,
     left: 10,
+    paddingTop: 50
   },
 });
-
