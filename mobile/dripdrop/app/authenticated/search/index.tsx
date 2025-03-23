@@ -148,6 +148,7 @@ export default function SearchScreen() {
       <TextInput
         style={styles.searchBar}
         placeholder="Search for a username or post"
+        placeholderTextColor="#D3D3D3"
         value={searchQuery}
         onChangeText={setSearchQuery}
         returnKeyType="search" // Changes the return key to 'Search'
@@ -253,13 +254,14 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   container: {
+    paddingTop: 50,
     flex: 1,
     padding: 20,
   },
   header: {
     fontSize: 24,
     fontWeight: "bold",
-    marginBottom: 20,
+    marginBottom: 10,
     textAlign: "center",
   },
   searchBar: {
@@ -271,6 +273,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     borderRadius: 5,
     alignSelf: "center",
+    
   },
   toggleContainer: {
     flexDirection: 'row',
