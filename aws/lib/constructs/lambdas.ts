@@ -48,19 +48,19 @@ export class LambdasConstruct extends Construct {
       ],
     });
 
-    // Grant Lambda the ability to connect to the RDS Proxy using IAM authentication
-    databaseConstuct.dbProxy.grantConnect(lambdaRole);
+    // // Grant Lambda the ability to connect to the RDS Proxy using IAM authentication
+    // databaseConstuct.dbProxy.grantConnect(lambdaRole);
 
-    // Ensure Lambda can authenticate with RDS Proxy using IAM
-    lambdaRole.addToPolicy(
-      new PolicyStatement({
-        effect: Effect.ALLOW,
-        actions: ["rds-db:connect"],
-        resources: [
-          `arn:aws:rds:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:db-proxy/${databaseConstuct.dbProxy.dbProxyName}`,
-        ],
-      })
-    );
+    // // Ensure Lambda can authenticate with RDS Proxy using IAM
+    // lambdaRole.addToPolicy(
+    //   new PolicyStatement({
+    //     effect: Effect.ALLOW,
+    //     actions: ["rds-db:connect"],
+    //     resources: [
+    //       `arn:aws:rds:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:db-proxy/${databaseConstuct.dbProxy.dbProxyName}`,
+    //     ],
+    //   })
+    // );
 
     // Lambda Layer
     const sharedLayer = new LayerVersion(this, "shared-layer", {
