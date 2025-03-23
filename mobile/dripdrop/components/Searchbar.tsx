@@ -58,11 +58,10 @@ export default function SearchScreen() {
     }
   };
 
-  // Helper function to filter posts based on search term (username or caption)
   const filterPosts = (posts: Post[], searchTerm: string): Post[] => {
     return posts.filter(post => {
-      const usernameMatch = post.username.toLowerCase().includes(searchTerm.toLowerCase());
-      const captionMatch = post.caption.toLowerCase().includes(searchTerm.toLowerCase());
+      const usernameMatch = post.username?.toLowerCase().includes(searchTerm.toLowerCase());
+      const captionMatch = post.caption?.toLowerCase().includes(searchTerm.toLowerCase());
       return usernameMatch || captionMatch;
     });
   };
@@ -194,7 +193,8 @@ export default function SearchScreen() {
                   : 'default_image.png';
 
               return (
-                <View key={post.postID} style={styles.postCard}>
+                
+                <TouchableOpacity key={post.postID} style={styles.postCard} onPress={() => handlePostClick(post)}>
                   <Image
                     source={{ uri: imageURL }}
                     style={styles.postImage}
@@ -202,10 +202,10 @@ export default function SearchScreen() {
                   <Text style={styles.postCaption}>{post.caption}</Text>
                   <Text style={styles.postUsername}>{post.username}</Text>
                   <View style={styles.postActions}>
-                    <Icon name="heart" size={20} color="#e74c3c" onPress={() => handlePostClick(post)} />
+                    <Icon name="heart" size={20} color="#e74c3c"  />
                     <Text style={styles.likeText}>{post.numLikes}</Text>
                   </View>
-                </View>
+                </TouchableOpacity>
               );
             })
           ) : (
@@ -227,7 +227,7 @@ export default function SearchScreen() {
                 <Icon name="arrow-left" size={30} color="black" />
               </TouchableOpacity>
               <Image
-                source={{ uri: selectedPost.images[0].imageURL }}
+                source={{ uri: `https://cdn.dripdropco.com/${selectedPost.images[0].imageURL}?format=png`}}
                 style={styles.modalImage}
               />
               <View style={styles.modalTextContainer}>
@@ -315,6 +315,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    
   },
   postImage: {
     width: '100%',
@@ -373,6 +374,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 300,
     borderRadius: 8,
+    paddingTop: 15
   },
   modalTextContainer: {
     marginTop: 10,
