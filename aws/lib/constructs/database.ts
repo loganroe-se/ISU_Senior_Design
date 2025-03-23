@@ -20,7 +20,7 @@ import { Role, ServicePrincipal, ManagedPolicy, Effect, PolicyDocument, PolicySt
 export class DatabaseConstruct extends Construct {
   public readonly dbInstance: DatabaseInstance;
   public readonly databaseName: string;
-  public readonly dbProxy: DatabaseProxy;
+  // public readonly dbProxy: DatabaseProxy;
 
   constructor(scope: Construct, id: string, vpcConstruct: VpcConstruct) {
     super(scope, id);
@@ -72,19 +72,19 @@ export class DatabaseConstruct extends Construct {
     });
 
 
-    // RDS Proxy with IAM authentication
-    this.dbProxy = new DatabaseProxy(this, "AuroraClusterProxy", {
-      proxyTarget: ProxyTarget.fromInstance(this.dbInstance),
-      secrets: [this.dbInstance.secret!], // No static secrets, IAM auth only
-      securityGroups: [vpcConstruct.dbSecurityGroup],
-      vpc: vpcConstruct.vpc,
-      requireTLS: true,
-      iamAuth: true, // Enable IAM authentication for proxy
-      vpcSubnets: vpcConstruct.vpc.selectSubnets({
-        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
-      }),
-      role: rdsProxyRole
-    });
+    // // RDS Proxy with IAM authentication
+    // this.dbProxy = new DatabaseProxy(this, "AuroraClusterProxy", {
+    //   proxyTarget: ProxyTarget.fromInstance(this.dbInstance),
+    //   secrets: [this.dbInstance.secret!], // No static secrets, IAM auth only
+    //   securityGroups: [vpcConstruct.dbSecurityGroup],
+    //   vpc: vpcConstruct.vpc,
+    //   requireTLS: true,
+    //   iamAuth: true, // Enable IAM authentication for proxy
+    //   vpcSubnets: vpcConstruct.vpc.selectSubnets({
+    //     subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+    //   }),
+    //   role: rdsProxyRole
+    // });
 
     this.dbInstance.connections.allowDefaultPortFrom(vpcConstruct.bastionHost);
   }
