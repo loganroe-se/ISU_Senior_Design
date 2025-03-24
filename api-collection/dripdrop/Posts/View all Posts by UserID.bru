@@ -5,7 +5,11 @@ meta {
 }
 
 get {
-  url: https://api.dripdropco.com/posts/user/20
+  url: https://api.dripdropco.com/posts/user/1?status=PRIVATE
   body: none
   auth: none
+}
+
+params:query {
+  status: PRIVATE
 }
