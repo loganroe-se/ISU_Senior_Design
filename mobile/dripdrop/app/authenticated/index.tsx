@@ -1,5 +1,6 @@
 import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, ScrollView, TouchableOpacity, TextInput, Touchable } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like"
@@ -13,6 +14,7 @@ import { GestureHandlerRootView, PanGestureHandler, TouchableWithoutFeedback } f
 import Icon from "react-native-vector-icons/FontAwesome";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
+const windowHeight = Dimensions.get('window').height;
 const navbarHeight = 60; // TODO: change this to either dynamic or change it when the navbar is changed
 const headerHeight = 40;
 
@@ -281,7 +283,7 @@ const Page = () => {
                       </PanGestureHandler>
 
                       {/* Comments List */}
-                      <ScrollView style={styles.commentList} keyboardShouldPersistTaps="handled" onScroll={Keyboard.dismiss}>
+                      <KeyboardAwareScrollView style={[styles.commentList, { maxHeight: windowHeight - 150 }]} keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }} onScroll={Keyboard.dismiss} scrollEnabled={true}>
                         {loadingComments ? (
                           <ActivityIndicator size="large" color={Colors.light.primary}/>
                         ) : comments.length > 0 ? (
@@ -303,7 +305,7 @@ const Page = () => {
                         ) : (
                           <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
                         )}
-                      </ScrollView>
+                      </KeyboardAwareScrollView>
 
                       {/* Comment Input */}
                       <View style={styles.inputContainer}>
