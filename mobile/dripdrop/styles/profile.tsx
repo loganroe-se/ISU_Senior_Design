@@ -40,6 +40,18 @@ export const profileStyle = StyleSheet.create({
       justifyContent: "space-around",
       marginBottom: 12,
     },
+    subpageContainer: {
+      flexDirection: "row",
+      justifyContent: "space-around",
+      marginBottom: 12,
+    },
+    subpagePickerText: {
+      fontSize: 16
+    },
+    subpagePickerTextSelected: {
+      fontSize: 16,
+      fontWeight: "bold"
+    },
     stat: {
       alignItems: "center",
     },

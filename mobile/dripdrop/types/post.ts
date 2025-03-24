@@ -7,6 +7,7 @@ export interface sendPost {
 export interface Post {
   postID: number;
   userID: number;
+  status: string;
   images: { imageURL: string }[];
   username: string;
   caption: string;
