@@ -3,19 +3,16 @@ import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
 
 const Page = () => {
-  const [email, setEmail] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
+  const [user, setUser] = useState<string | null>(null);
 
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const storedEmail = await AsyncStorage.getItem("email");
-        const storedUsername = await AsyncStorage.getItem("username");
+        const user = await AsyncStorage.getItem("user");
 
         // Set them to state if they exist
-        if (storedEmail && storedUsername) {
-          setEmail(storedEmail);
-          setUsername(storedUsername);
+        if (user) {
+          setUser(user);
         } else {
           Alert.alert("No user data", "User is not logged in.");
         }
@@ -33,10 +30,9 @@ const Page = () => {
       <Text style={styles.header}>Welcome to the Home Page</Text>
 
       {/* Display the email and username */}
-      {email && username ? (
+      {user ? (
         <View>
-          <Text style={styles.text}>Email: {email}</Text>
-          <Text style={styles.text}>Username: {username}</Text>
+          <Text style={styles.text}>User Info: {user}</Text>
         </View>
       ) : (
         <Text style={styles.text}>Loading user data...</Text>
