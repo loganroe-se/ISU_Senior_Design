@@ -38,6 +38,8 @@ export default function SearchScreen() {
   const [filteredPosts, setFilteredPosts] = useState<Post[]>([]);
   const [searchType, setSearchType] = useState<'accounts' | 'posts'>('accounts');
   const [selectedPost, setSelectedPost] = useState<Post | null>(null);
+  const [initialIndex, setInitialIndex] = useState<number>(0);  // Track the initial index for the modal feed
+
 
   const fetchAllPosts = async (): Promise<Post[]> => {
     try {
@@ -112,6 +114,9 @@ export default function SearchScreen() {
 
   const handlePostClick = (post: Post) => {
     setSelectedPost(post);
+    // Find the index of the clicked post in the filteredPosts array
+    const index = filteredPosts.findIndex((p) => p.postID === post.postID);
+    setInitialIndex(index); // Set the initial index to scroll to
   };
 
   const closeModal = () => {
@@ -158,6 +163,20 @@ export default function SearchScreen() {
       </View>
     );
   };
+
+ 
+  
+    // Handle failure when scrolling to an index
+    const onScrollToIndexFailed = (info: { index: number; averageItemLength: number }) => {
+      const { index } = info;
+      console.warn(`Error scrolling to index ${index}. Retrying...`);
+      setTimeout(() => {
+        flatListRef.current?.scrollToIndex({ index, animated: true });
+      }, 500);
+    };
+  
+    // Create a ref for FlatList
+    const flatListRef = React.useRef<FlatList>(null);
 
   return (
     <View style={styles.container}>
@@ -219,8 +238,8 @@ export default function SearchScreen() {
         </ScrollView>
       )}
 
-      {/* Modal for the selected post */}
-      <Modal visible={selectedPost !== null} animationType="fade" transparent={true}>
+       {/* Modal for the selected post */}
+       <Modal visible={selectedPost !== null} animationType="fade" transparent={true}>
         <View style={styles.modalContainer}>
           <TouchableWithoutFeedback onPress={closeModal}>
             <View style={styles.modalBackdrop}></View>
@@ -228,12 +247,15 @@ export default function SearchScreen() {
 
           {selectedPost && (
             <FlatList
-              data={filteredPosts}  // This will show the rest of the posts in the modal
+              ref={flatListRef}
+              data={filteredPosts} // This will show the rest of the posts in the modal
               renderItem={renderPostInModal}
               keyExtractor={(item) => item.postID.toString()}
               horizontal={false}  // For vertical scrolling
               pagingEnabled={true}  // Enables one post per screen
               showsVerticalScrollIndicator={false}
+              initialScrollIndex={initialIndex}  // Scroll to the index of the clicked post
+              onScrollToIndexFailed={onScrollToIndexFailed} // Handle failures
             />
           )}
         </View>
