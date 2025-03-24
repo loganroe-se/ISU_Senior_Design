@@ -30,12 +30,9 @@ const UserProfile = () => {
     const getUserData = async () => {
       uid = id == null ? user != null ? user.id : 0 : parseInt(id);
 
-      if (uid != user?.id) {
-        setProfileUser(await fetchUserById(uid));
-      }
-      else {
-        setProfileUser(user);
-      }
+      setProfileUser(await fetchUserById(uid));
+
+      console.log(profileUser);
 
       const p = await fetchUserPosts(uid);
       const f = await fetchFollowing(uid);
@@ -74,7 +71,7 @@ const UserProfile = () => {
           <View style={profileStyle.avatarContainer}>
             <Avatar.Image
               size={90}
-              source={{ uri: `https://api.dicebear.com/7.x/identicon/svg?seed=${profileUser?.username}` }}
+              source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
             />
           </View>
           <View>
