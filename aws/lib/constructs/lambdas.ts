@@ -256,6 +256,11 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/item/get-items",
         "handler"
       ),
+      updateItemDetailsLambda: createLambda(
+        "updateItemDetailsLambda",
+        "lib/lambdas/api-endpoints/item/update-details",
+        "handler"
+      ),
     };
 
     this.followLambdas = {

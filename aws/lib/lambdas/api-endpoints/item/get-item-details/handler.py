@@ -32,7 +32,7 @@ def get_item_details(item_id):
         # Get item from the database
         clothing_item_details = session.execute(select(ClothingItemDetails).where(ClothingItemDetails.clothingItemID == item_id)).scalars().first()
 
-        # Remove item from the database
+        # Get clothing item details
         if clothing_item_details:
             clothing_item_details_data = {
                 "name": clothing_item_details.name,
@@ -44,7 +44,7 @@ def get_item_details(item_id):
             }
             return 200, clothing_item_details_data
         else:
-            return 404, f"Clothing item with ID {item_id} does not have details"
+            return 200, f"Clothing item with ID {item_id} does not have details"
 
     except Exception as e:
         # Call a helper to handle the exception
