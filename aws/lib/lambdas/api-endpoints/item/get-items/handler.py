@@ -38,17 +38,17 @@ def getCoordinates(post_id):
             .all()
         )
 
-        # Organize the coordinates found from query
+        # Organize the items found from query
         coordinate_data = [
             {"clothingItemID": item.clothingItemID, "xCoord": item.xCoord, "yCoord": item.yCoord}
             for item in items
         ]
 
-        # Return the coordinates
+        # Return the items
         if coordinate_data:
             return 200, coordinate_data
         else:
-            return 404, f"No items found for post ID: {post_id}"
+            return 200, []
 
     except Exception as e:
         # Call a helper to handle the exception

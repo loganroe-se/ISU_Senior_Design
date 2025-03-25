@@ -367,6 +367,11 @@ export class ApigatewayConstruct extends Construct {
       operationName: "AddDetails",
     });
 
+    // PUT /items/{item-id} - update item details
+    itemID.addMethod("PUT", new LambdaIntegration(lambdaConstruct.itemLambdas["updateItemDetailsLambda"]), {
+      operationName: "UpdateItemDetails",
+    });
+
     // Define the /items/post/{post-id} resource
     const itemPost = items.addResource("post");
     const itemPostID = itemPost.addResource("{post-id}");
