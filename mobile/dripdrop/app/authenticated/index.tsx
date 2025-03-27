@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, ScrollView, TouchableOpacity, TextInput, Touchable } from "react-native";
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useUserContext } from "@/context/UserContext";
@@ -24,6 +24,7 @@ const Page = () => {
   const [feedData, setFeedData] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingComments, setLoadingComments] = useState<boolean>(false);
+  const [loadingAddComment, setLoadingAddComment] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [imageDimensions, setImageDimensions] = useState<{ [key: number]: number }>({});
   const [imageErrors, setImageErrors] = useState< { [key: number]: boolean }>({});
@@ -129,6 +130,8 @@ const Page = () => {
     if (!commentText.trim() || currentPostID === null) return;
     if ((userID ?? 0) === 0) return;
 
+    setLoadingAddComment(true);
+
     const newComment: sendComment = {
       postId: currentPostID,
       userId: userID ?? 0,
@@ -144,6 +147,7 @@ const Page = () => {
         )
       );
       handleComment(currentPostID);
+      setLoadingAddComment(false);
     } catch (error) {
       console.error("Error adding a new comment: ", error);
     }
@@ -321,7 +325,11 @@ const Page = () => {
                           scrollEnabled={true}
                         />
                         <TouchableOpacity onPress={handleAddComment}>
-                          <Text style={styles.sendButton}>Post</Text>
+                          {loadingAddComment ? (
+                            <ActivityIndicator size="small" color={Colors.light.primary}/>
+                          ) : (
+                            <Text style={styles.sendButton}>Post</Text>
+                          )}
                         </TouchableOpacity>
                       </View>
                     </View>
