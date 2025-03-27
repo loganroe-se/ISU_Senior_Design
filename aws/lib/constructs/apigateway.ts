@@ -63,19 +63,23 @@ export class ApigatewayConstruct extends Construct {
     const userPost = posts.addResource("user");
     const userID = userPost.addResource("{userID}");
 
-    // GET /posts/user/{userID}} - Get Post by ID
+    // GET /posts/user/{userID}} - Get Post by User ID
     userID.addMethod(
       "GET",
       new LambdaIntegration(lambdaConstruct.postLambdas["getPostsByUserIdLambda"]),
       {
         operationName: "GetPostByUserId",
+        requestParameters: {
+          "method.request.querystring.status": false, // Optional parameter
+        },
       }
     );
 
     // Define the /posts/search resource
     const searchPosts = posts.addResource("search");
+    const searchPostsString = searchPosts.addResource("{searchString}");
     // GET /posts/search - Search posts
-    searchPosts.addMethod("GET", new LambdaIntegration(lambdaConstruct.postLambdas["searchPostsLambda"]), {
+    searchPostsString.addMethod("GET", new LambdaIntegration(lambdaConstruct.postLambdas["searchPostsLambda"]), {
       operationName: "SearchPosts",
     });
 
@@ -155,8 +159,9 @@ export class ApigatewayConstruct extends Construct {
 
     // Define the /users/search resource
     const searchUsers = users.addResource("search");
+    const searchUsersString = searchUsers.addResource("{searchString}");
     // GET /users/search - Search posts
-    searchUsers.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["searchUsersLambda"]), {
+    searchUsersString.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["searchUsersLambda"]), {
       operationName: "SearchUsers",
     });
 
@@ -360,6 +365,11 @@ export class ApigatewayConstruct extends Construct {
     // POST /items/{item-id} - add details
     itemID.addMethod("POST", new LambdaIntegration(lambdaConstruct.itemLambdas["addDetailsLambda"]), {
       operationName: "AddDetails",
+    });
+
+    // PUT /items/{item-id} - update item details
+    itemID.addMethod("PUT", new LambdaIntegration(lambdaConstruct.itemLambdas["updateItemDetailsLambda"]), {
+      operationName: "UpdateItemDetails",
     });
 
     // Define the /items/post/{post-id} resource

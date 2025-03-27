@@ -40,14 +40,12 @@ export default function Navbar() {
 const styles = StyleSheet.create({
     navbar: {
         width,
-        position: "absolute",
         bottom: 0,
-        paddingTop: 12,
         flexDirection: "row",
         borderTopWidth: 1.5,
         justifyContent: "space-around",
         alignItems: "center",
-        backgroundColor: Colors.light.background,
+        backgroundColor:'white'
     },
     navItem: {
         flex: 1,

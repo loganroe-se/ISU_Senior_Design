@@ -1,7 +1,8 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, Image } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useRouter, useLocalSearchParams } from "expo-router";
+import { preview_post_styles } from "@/styles/post";
 
 export default function PreviewPost() {
   const router = useRouter();
@@ -17,28 +18,28 @@ export default function PreviewPost() {
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Preview Your Post</Text>
+    <View style={preview_post_styles.container}>
+      <Text style={preview_post_styles.title}>Preview Your Post</Text>
 
       {image && (
         <Image
           source={{ uri: Array.isArray(image) ? image[0] : image }}
-          style={styles.image}
+          style={preview_post_styles.image}
         />
       )}
-      {caption && <Text style={styles.caption}>{caption}</Text>}
+      {caption && <Text style={preview_post_styles.caption}>{caption}</Text>}
 
       <Button
         mode="outlined"
         onPress={handleGoBack} // Go back to the Post screen
-        style={styles.button}
+        style={preview_post_styles.button}
       >
         Previous
       </Button>
       <Button
         mode="contained"
         onPress={handleSubmitPost} // Submit the post
-        style={styles.button}
+        style={preview_post_styles.button}
       >
         Submit Post
       </Button>
@@ -46,33 +47,4 @@ export default function PreviewPost() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 20,
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 20,
-    textAlign: "center",
-  },
-  image: {
-    width: 300,
-    height: 300,
-    borderRadius: 10,
-    marginBottom: 15,
-  },
-  caption: {
-    fontSize: 16,
-    marginBottom: 20,
-    textAlign: "center",
-    paddingHorizontal: 10,
-  },
-  button: {
-    width: "80%",
-    marginVertical: 10,
-  },
-});
+

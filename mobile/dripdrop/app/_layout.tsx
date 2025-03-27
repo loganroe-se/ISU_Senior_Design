@@ -16,9 +16,11 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   return (
+    <PaperProvider>
     <UserProvider>
       <AppContent />
     </UserProvider>
+    </PaperProvider>
   );
 }
 
@@ -45,14 +47,9 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <PaperProvider>
-        {/* Wrap everything inthe SafeAreaView */}
-        <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === "dark" ? "light" : "dark" }}>
-          <Slot />
-          {!hideNavbar && <Navbar />}
-          <StatusBar />
-        </SafeAreaView>
-      </PaperProvider >
+      <Slot />
+      {!hideNavbar && <Navbar />}
+      <StatusBar/>
     </ThemeProvider>
        
   );

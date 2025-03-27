@@ -7,10 +7,8 @@ from datetime import datetime, date
 
 def handler(event, context):
     try:
-        # Parse the body
-        body = json.loads(event['body'])
-
-        search_string = body.get('searchString')
+        # Get search string from path parameters
+        search_string = event['pathParameters'].get('searchString')
         
         if not search_string:
             return create_response(400, 'Missing searchString')
