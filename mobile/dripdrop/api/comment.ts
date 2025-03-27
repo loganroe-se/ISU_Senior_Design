@@ -3,10 +3,9 @@ import { Comment } from "@/types/Comment";
 import { apiRequest } from "./api";
 
 // Fetch comments for a specific post
-export const fetchCommentsByPostID = async (
-  postID: number
-): Promise<Comment[]> => {
-  return apiRequest<Comment[]>("GET", `/comment/post/${postID}`);
+export const fetchCommentsByPostID = async (postID: number): Promise<Comment[]> => {
+  const response = await apiRequest<Comment[]>('GET', `/comment/post/${postID}`);
+  return typeof response === 'string' ? [] : response;
 };
 
 // Create a new comment

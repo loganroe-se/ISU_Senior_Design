@@ -39,13 +39,14 @@ def getCommentsForPost(post_id):
         comments = post.comments
 
         if not comments:
-            return 404, "No comments found for this post."
+            return 200, "No comments found for this post."
 
         # Format comments into a list of dictionaries
         comments_list = [
             {
                 "commentID": comment.commentID,
                 "username": comment.user.username,
+                "profilePic": comment.user.profilePicURL,
                 "content": comment.content,
                 "createdDate": comment.createdDate.isoformat()
             }

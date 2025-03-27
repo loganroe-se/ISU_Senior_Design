@@ -9,6 +9,7 @@ import { DarkTheme } from "@react-navigation/native";
 import { useEffect } from "react";
 import { PaperProvider, ThemeProvider, DefaultTheme } from "react-native-paper";
 import Navbar from "@/components/Navbar";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 // Prevent splash screen from hiding until assets load
 SplashScreen.preventAutoHideAsync();
@@ -46,9 +47,11 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === "dark" ? DarkTheme.colors.background : DefaultTheme.colors.background }}>
         <Slot />
         {!hideNavbar && <Navbar />}
         <StatusBar/>
+      </SafeAreaView>
     </ThemeProvider>
        
   );

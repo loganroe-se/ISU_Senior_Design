@@ -16,6 +16,12 @@ export interface Post {
   numLikes: number;
   numComments: number;
 }
+
+export interface FeedPost extends Post {
+  username: string;
+  userHasLiked: boolean;
+}
+
 export interface Marker {
   x: number;
   y: number;
