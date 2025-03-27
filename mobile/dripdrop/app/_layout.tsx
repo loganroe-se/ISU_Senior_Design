@@ -47,9 +47,11 @@ function AppContent() {
 
   return (
     <ThemeProvider theme={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
-      <Slot />
-      {!hideNavbar && <Navbar />}
-      <StatusBar/>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colorScheme === "dark" ? DarkTheme : DefaultTheme }}>
+        <Slot />
+        {!hideNavbar && <Navbar />}
+        <StatusBar/>
+      </SafeAreaView>
     </ThemeProvider>
        
   );

@@ -15,7 +15,7 @@ import Icon from "react-native-vector-icons/FontAwesome";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
-const navbarHeight = 60; // TODO: change this to either dynamic or change it when the navbar is changed
+const navbarHeight = 40; // TODO: change this to either dynamic or change it when the navbar is changed
 const headerHeight = 40;
 
 const Page = () => {
