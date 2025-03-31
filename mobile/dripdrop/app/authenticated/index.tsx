@@ -429,6 +429,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopLeftRadius: 20, // TODO: Can't get the radius to work 
     borderTopRightRadius: 20,
+    paddingTop: 60
   },
   commentHeader: {
     flexDirection: 'row',
