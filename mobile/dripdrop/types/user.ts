@@ -2,7 +2,7 @@ export interface User {
   id: number;
   username: string;
   email: string;
-  profilePic: string;
+  profilePic?: string;
 }
 export interface UserContextType {
   user: User | null;

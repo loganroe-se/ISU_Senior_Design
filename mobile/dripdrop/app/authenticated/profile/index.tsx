@@ -32,8 +32,6 @@ const UserProfile = () => {
 
       setProfileUser(await fetchUserById(uid));
 
-      console.log(profileUser);
-
       const p = await fetchUserPosts(uid);
       const f = await fetchFollowing(uid);
       const fs = await fetchFollowers(uid);

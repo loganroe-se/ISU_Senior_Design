@@ -17,3 +17,28 @@ export const fetchUserEmail = async (
   const user = await apiRequest<User>("GET", `/users/${userID}`);
   return user ? user.email : null;
 };
+
+// Update user by userID
+export const updateUser = async (userData: Partial<User>): Promise<User | null> => {
+  //Build request body
+  let body = {
+    "username": userData.username,
+    "email": userData.email
+  }
+  
+  await fetch(`https://api.dripdropco.com/users/${userData.id}`, {
+    method: "PUT",
+    body: JSON.stringify(body),
+  });
+
+  return null;
+};
+
+// Delete user by userID
+export const deleteUser = async (uid: number): Promise<User | null> => {
+  await fetch(`https://api.dripdropco.com/users/${uid}`, {
+    method: "DELETE",
+  });
+
+  return null;
+};

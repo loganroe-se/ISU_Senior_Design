@@ -1,12 +1,60 @@
+import { deleteUser, fetchUserById, updateUser } from "@/api/user";
+import { useUserContext } from "@/context/UserContext";
+import { User } from "@/types/user";
 import { router } from "expo-router";
-import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
+import { useEffect, useState } from "react";
+import { View, Text, TouchableOpacity, StyleSheet, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-const saveProfile = () => {
-    router.replace(`/authenticated/profile` as any);
-}
-
 const UserEditProfile = () => {
+    const { user, signOut } = useUserContext();
+    const [newUsername, setNewUsername] = useState('');
+
+    const [profileUser, setProfileUser] = useState<User | null>(null);
+    let newUser: User = {
+        id: -1,
+        email: "",
+        username: "",
+        profilePic: ""
+    };
+    let uid = user ? user.id : -1;
+
+    useEffect(() => {
+        const getUser = async () => {
+            setProfileUser(await fetchUserById(uid));
+        }
+
+        getUser();
+    }, [user]);
+
+    console.log(profileUser);
+
+    const saveProfile = async () => {
+        if(profileUser) {
+            newUser = profileUser;
+            newUser.username = newUsername;
+            
+            await updateUser(newUser).then(response => {
+                signOut;
+                router.replace(`/authenticated/profile` as any)
+            });
+        }
+        else {
+            router.replace(`/authenticated/profile` as any);
+        }
+    }
+    
+    const deleteProfile = async () => {
+        if(profileUser) {
+            await deleteUser(profileUser.id).then(response => {
+                router.replace(`/authenticated/profile` as any)
+            });
+        }
+        else {
+            router.replace(`/authenticated/profile` as any);
+        }
+    }
+
     return(
         <SafeAreaView style={{height: "100%"}}>
             <Text style={{textAlign: "center", marginTop: 24, fontWeight: "bold", fontSize: 16}}>Profile Settings</Text>
@@ -17,7 +65,11 @@ const UserEditProfile = () => {
                 <View style={editStyle.inputGroup}>
                     <Text>Username</Text>
                     <View style={editStyle.input}>
-                        <Text>BobertBoy123</Text>
+                        <TextInput
+                            placeholder={profileUser?.username}
+                            value={newUsername}
+                            onChangeText={setNewUsername}
+                        />
                     </View>
                 </View>
                 <View style={editStyle.inputGroup}>
