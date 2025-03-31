@@ -14,7 +14,9 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
-import Icon from "react-native-vector-icons/MaterialCommunityIcons";
+import { FeedPost } from "@/types/post";
+import Icon from "react-native-vector-icons/FontAwesome";
+import { Colors } from "@/constants/Colors";
 
 interface Post {
   postID: number;
@@ -33,7 +35,7 @@ const windowHeight = Dimensions.get("window").height;
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<any[]>([]);
-  const [posts, setPosts] = useState<Post[]>([]);
+  const [posts, setPosts] = useState<FeedPost[]>([]);
   const [searchType, setSearchType] = useState<"accounts" | "posts">(
     "accounts"
   );
@@ -53,7 +55,7 @@ export default function SearchScreen() {
     }
   };
 
-  const fetchPosts = async (searchTerm: string): Promise<Post[]> => {
+  const fetchPosts = async (searchTerm: string): Promise<FeedPost[]> => {
     try {
       const response = await fetch(
         `https://api.dripdropco.com/posts/search/${searchTerm}`
@@ -124,33 +126,38 @@ export default function SearchScreen() {
     Alert.alert("Comments", "View all comments for this post.");
   };
 
-  const renderPostInModal = ({ item }: { item: Post }) => {
+  const renderPostInModal = ({ item }: { item: FeedPost }) => {
     return (
       <View style={styles.modalContent}>
         <TouchableOpacity style={styles.backButton} onPress={closeModal}>
           <Icon name="arrow-left" size={30} color="black" />
         </TouchableOpacity>
-        <Image
-          source={{
-            uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`,
-          }}
-          style={styles.modalImage}
-        />
-        <View style={styles.modalTextContainer}>
+        <View style={styles.underArrow}>
           <Text style={styles.modalUsername}>{item.username}</Text>
-          <Text style={styles.modalCaption}>{item.caption}</Text>
-          <View style={styles.modalActions}>
-            <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
-              <Icon
-                name="heart"
-                size={30}
-                color={item.numLikes > 0 ? "red" : "grey"}
-              />
-              <Text style={styles.modalLikeText}>{item.numLikes}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={handleComments}>
-              <Icon name="comment" size={30} color="grey" />
-            </TouchableOpacity>
+          <Image
+            source={{
+              uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`,
+            }}
+            style={styles.modalImage}
+          />
+          <View style={styles.modalTextContainer}>
+            <View style={styles.modalActions}>
+              <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
+                <Icon
+                  name={item.userHasLiked ? "heart" : "heart-o"}
+                  size={30}
+                  color={item.userHasLiked ? "red" : Colors.light.contrast}
+                  onPress={() => handleLike()}
+                  style={styles.icon}
+                />
+                <Text style={styles.modalLikeText}>{item.numLikes}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={handleComments} style={styles.commentIcon}>
+                <Icon name="comment-o" size={30} color="black" />
+              </TouchableOpacity>
+            </View>
+            <Text style={styles.modalUsername}>{item.username}</Text>
+            <Text style={styles.modalCaption}>{item.caption}</Text>
           </View>
         </View>
       </View>
@@ -375,8 +382,6 @@ const styles = StyleSheet.create({
   modalImage: {
     width: "100%",
     height: 500,
-    marginTop: 120,
-    marginBottom: 20,
   },
   modalTextContainer: {
     marginTop: 10,
@@ -393,11 +398,13 @@ const styles = StyleSheet.create({
   modalActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    marginTop: 20,
   },
   likeButton: {
     flexDirection: "row",
     alignItems: "center",
+  },
+  icon: {
+    marginRight: 10,
   },
   modalLikeText: {
     marginLeft: 5,
@@ -408,4 +415,14 @@ const styles = StyleSheet.create({
     left: 10,
     paddingTop: 50,
   },
+  underArrow:{
+    marginTop: 80
+  },
+  commentIcon: {
+    flexDirection: 'row', // Align items horizontally
+    alignItems: 'center', // Vertically center items
+    justifyContent: 'flex-start', // Align items to the start (left)
+    width: '100%', // Ensure the container spans the full width
+    paddingLeft: 20
+  }
 });
