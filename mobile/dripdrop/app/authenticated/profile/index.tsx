@@ -10,6 +10,7 @@ import { profileStyle } from "@/styles/profile";
 import { router, useLocalSearchParams } from "expo-router";
 import { fetchUserById } from "@/api/user";
 import { User } from "@/types/user.interface";
+import { launchImageLibrary } from "react-native-image-picker";
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -40,6 +41,8 @@ const UserProfile = () => {
       setFollowing(f);
       setFollowers(fs);
 
+      console.log(posts);
+
       setPosts(posts.filter(post => post.status == "PUBLIC"));
       setPrivatePosts(posts.filter(post => post.status == "PRIVATE"));
     };
@@ -52,6 +55,29 @@ const UserProfile = () => {
       router.replace(`/authenticated/profile/edit` as any);
     }
   }
+
+  const openImagePicker = () => {
+    const options = {
+      mediaType: 'photo', // Specifies the media type to pick. Use 'photo' for images.
+      includeBase64: false, // Determines whether to include the base64 representation of the selected image in the response.
+      maxHeight: 2000, // Specifies the maximum height of the selected image.
+      maxWidth: 2000 // Specifies the maximum width of the selected image.
+    };
+  
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+      } else if (response.error) {
+      } else if (response.customButton) {
+      } else {
+        const source = { uri: response.assets[0].uri };
+        console.log(source);
+  
+        return source;
+      }
+    });
+  
+    return null;
+  };
 
   if (!user) {
     return (
@@ -67,10 +93,20 @@ const UserProfile = () => {
       <View>
         <View style={profileStyle.profileContainer}>
           <View style={profileStyle.avatarContainer}>
-            <Avatar.Image
-              size={90}
-              source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
-            />
+            {
+              user.id === profileUser?.id ?
+              <TouchableOpacity onPress={openImagePicker}>
+                <Avatar.Image
+                  size={90}
+                  source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+                />
+              </TouchableOpacity>
+              :
+              <Avatar.Image
+                size={90}
+                source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+              />
+            }
           </View>
           <View>
             <View style={profileStyle.userHeader}>
