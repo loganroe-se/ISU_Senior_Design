@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput } from "react-native";
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput, SafeAreaView } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useUserContext } from "@/context/UserContext";
@@ -268,76 +268,77 @@ const Page = () => {
               visible={commentModalVisible}
               onRequestClose={() => setCommentModalVisible(false)}
             >
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-                  <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                    <View style={styles.commentContainer}>
-                      {/* Header - Swipe down indicator */}
-                      <PanGestureHandler
-                        onGestureEvent={(event) => {
-                          if (event.nativeEvent.translationY > 50) {
-                            setCommentModalVisible(false);
-                          }
-                        }}
-                      >
-                        <View style={styles.modalHeader}>
-                          <View style={styles.swipeIndicator}/>
-                          <Text style={styles.commentsText}>Comments</Text>
-                        </View>
-                      </PanGestureHandler>
+              <SafeAreaView style={{ flex: 1 }}>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                      <View style={styles.commentContainer}>
+                        {/* Header - Swipe down indicator */}
+                        <PanGestureHandler
+                          onGestureEvent={(event) => {
+                            if (event.nativeEvent.translationY > 50) {
+                              setCommentModalVisible(false);
+                            }
+                          }}
+                        >
+                          <View style={styles.modalHeader}>
+                            <View style={styles.swipeIndicator}/>
+                            <Text style={styles.commentsText}>Comments</Text>
+                          </View>
+                        </PanGestureHandler>
 
-                      {/* Comments List */}
-                      <KeyboardAwareScrollView style={[styles.commentList, { maxHeight: windowHeight - 150 }]} keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }} onScroll={Keyboard.dismiss} scrollEnabled={true}>
-                        {loadingComments ? (
-                          <ActivityIndicator size="large" color={Colors.light.primary}/>
-                        ) : comments.length > 0 ? (
-                          comments.map((comment) => (
-                            <View key={comment.commentID} style={styles.commentItem}>
-                              <Image 
-                                source={{ uri: `https://cdn.dripdropco.com/${comment.profilePic !== "default" ? comment.profilePic : "profilePics/default.jpg" }?format=png` }}
-                                style={styles.profilePicture}
-                              />
-                              <View style={styles.commentTextContainer}>
-                                <View style={styles.commentHeader}>
-                                  <Text style={styles.commentUsername}>{comment.username}</Text>
-                                  <Text style={styles.commentDate}>{comment.createdDate}</Text>
+                        {/* Comments List */}
+                        <KeyboardAwareScrollView style={[styles.commentList, { maxHeight: windowHeight - 150 }]} keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }} onScroll={Keyboard.dismiss} scrollEnabled={true}>
+                          {loadingComments ? (
+                            <ActivityIndicator size="large" color={Colors.light.primary}/>
+                          ) : comments.length > 0 ? (
+                            comments.map((comment) => (
+                              <View key={comment.commentID} style={styles.commentItem}>
+                                <Image 
+                                  source={{ uri: `https://cdn.dripdropco.com/${comment.profilePic !== "default" ? comment.profilePic : "profilePics/default.jpg" }?format=png` }}
+                                  style={styles.profilePicture}
+                                />
+                                <View style={styles.commentTextContainer}>
+                                  <View style={styles.commentHeader}>
+                                    <Text style={styles.commentUsername}>{comment.username}</Text>
+                                    <Text style={styles.commentDate}>{comment.createdDate}</Text>
+                                  </View>
+                                  <Text>{comment.content}</Text>
                                 </View>
-                                <Text>{comment.content}</Text>
                               </View>
-                            </View>
-                          ))
-                        ) : (
-                          <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
-                        )}
-                      </KeyboardAwareScrollView>
-
-                      {/* Comment Input */}
-                      <View style={styles.inputContainer}>
-                        <TextInput 
-                          ref={commentInputRef}
-                          style={styles.commentInput}
-                          placeholder="Add a comment..."
-                          value={commentText}
-                          onChangeText={setCommentText}
-                          autoFocus={true}
-                          multiline={true}
-                          numberOfLines={5}
-                          scrollEnabled={true}
-                        />
-                        <TouchableOpacity onPress={handleAddComment}>
-                          {loadingAddComment ? (
-                            <ActivityIndicator size="small" color={Colors.light.primary}/>
+                            ))
                           ) : (
-                            <Text style={styles.sendButton}>Post</Text>
+                            <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
                           )}
-                        </TouchableOpacity>
+                        </KeyboardAwareScrollView>
+
+                        {/* Comment Input */}
+                        <View style={styles.inputContainer}>
+                          <TextInput 
+                            ref={commentInputRef}
+                            style={styles.commentInput}
+                            placeholder="Add a comment..."
+                            value={commentText}
+                            onChangeText={setCommentText}
+                            autoFocus={true}
+                            multiline={true}
+                            numberOfLines={5}
+                            scrollEnabled={true}
+                          />
+                          <TouchableOpacity onPress={handleAddComment}>
+                            {loadingAddComment ? (
+                              <ActivityIndicator size="small" color={Colors.light.primary}/>
+                            ) : (
+                              <Text style={styles.sendButton}>Post</Text>
+                            )}
+                          </TouchableOpacity>
+                        </View>
                       </View>
-                    </View>
-                    
-                  </TouchableWithoutFeedback>
-                </KeyboardAvoidingView>
-              </GestureHandlerRootView>
-              
+                      
+                    </TouchableWithoutFeedback>
+                  </KeyboardAvoidingView>
+                </GestureHandlerRootView>
+              </SafeAreaView>
             </Modal>}
           </View>
         )}
@@ -429,7 +430,6 @@ const styles = StyleSheet.create({
     padding: 10,
     borderTopLeftRadius: 20, // TODO: Can't get the radius to work 
     borderTopRightRadius: 20,
-    paddingTop: 60
   },
   commentHeader: {
     flexDirection: 'row',
