@@ -214,17 +214,18 @@ export default function Post() {
             <TouchableOpacity
               onPress={handleContinue}
               disabled={loading || !image || caption.trim() === ""}
-              style={post_styles.continueButton}
-
+              style={[
+                post_styles.continueButton,
+                (loading || !image || caption.trim() === "") && post_styles.disabledButton, // Apply the disabled button style
+              ]}
             >
               <Text
-                style={[post_styles.continueText,
-                  loading && post_styles.loadingText]
-                }
+                style={[post_styles.continueText, loading && post_styles.loadingText, (loading || !image || caption.trim() === "") && post_styles.disabledText]}
               >
                 {loading ? "Loading..." : "Continue"}
               </Text>
             </TouchableOpacity>
+
           </View>
 
           {/* Top Half: Selected Image */}

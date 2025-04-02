@@ -55,7 +55,7 @@ const Page = () => {
 
         try {
             const response = await fetch("https://api.dripdropco.com/items/1", {
-                method: "POST",
+                method: "{PUT}",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(itemData),
             });
@@ -64,7 +64,7 @@ const Page = () => {
 
             Alert.alert("Success", "Item approved and saved!");
 
-            // ✅ Store approved state for the image marker
+            //Store approved state for the image marker
             await AsyncStorage.setItem("image_marker_approved", "true");
 
             // ✅ Navigate back to image_marker screen

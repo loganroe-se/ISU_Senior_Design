@@ -6,8 +6,8 @@ import Entypo from '@expo/vector-icons/Entypo';
 
 
 type ToolbarProps = {
-    mode: "cursor" | "add" | "delete" | "move";
-    setMode: (mode: "cursor" | "add" | "delete" | "move") => void;
+    mode: "cursor" | "add" | "delete";
+    setMode: (mode: "cursor" | "add" | "delete" ) => void;
 };
 
 const Toolbar = ({ mode, setMode }: ToolbarProps) => {
@@ -37,19 +37,13 @@ const Toolbar = ({ mode, setMode }: ToolbarProps) => {
                 <Ionicons name="trash" size={24} color={mode === "delete" ? Colors.light.primary : "#000"} />
             </TouchableOpacity>
 
-            {/* Move Mode Button */}
-            <TouchableOpacity
-                style={[styles.toolbarButton, mode === "move" && styles.activeButton]}
-                onPress={() => setMode("move")}
-            >
-                <Ionicons name="move" size={24} color={mode === "move" ? Colors.light.primary : "#000"} />
-            </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
     toolbar: {
+        width: '100%',
         flexDirection: "row",
         justifyContent: "space-around",
         alignItems: "center",

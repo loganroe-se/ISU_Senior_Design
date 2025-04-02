@@ -1,14 +1,17 @@
-import React from "react";
+import React, { useState , useEffect} from "react";
 import { View, Image } from "react-native";
 import { Button, Text } from "react-native-paper";
 import { useRouter, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { preview_post_styles } from "@/styles/post";  // Import the styles from the post.tsx file
 import { Colors } from "@/constants/Colors";  // Import your app's color constants
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProcessingScreen() {
   const router = useRouter();
   const { caption, image } = useLocalSearchParams();
+  const [storedUsername, setStoredUsername] = useState<string | null>(null);
+
 
   const handleNavigateToImageMarker = () => {
     // Navigate to the ImageMarker screen with the current caption and image data
@@ -16,7 +19,16 @@ export default function ProcessingScreen() {
       pathname: "./image_marker",
       params: { caption, image }, // Pass caption and image as parameters
     });
-  };
+  }; 
+  // Fetch the username from AsyncStorage when the component mounts
+  useEffect(() => {
+    const fetchUsername = async () => {
+      const username = await AsyncStorage.getItem("username");
+      setStoredUsername(username);
+    };
+
+    fetchUsername();
+  }, []);
 
     return (
       <View style={preview_post_styles.container}>
@@ -28,7 +40,13 @@ export default function ProcessingScreen() {
             style={preview_post_styles.image}
           />
         )}
-        {caption && <Text style={preview_post_styles.caption}>{caption}</Text>}
+        {caption && storedUsername && (
+          <Text style={preview_post_styles.caption}>
+            <Text style={{ fontWeight: "bold", color: 'blac?' }}>{storedUsername} </Text>
+            {caption}
+          </Text>
+        )}
+
 
         <Button
           mode="contained"

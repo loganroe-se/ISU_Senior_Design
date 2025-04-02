@@ -17,31 +17,11 @@ const ImageMarkerScreen = () => {
     const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set()); // Track verified markers
     const [loading, setLoading] = useState(true); // Track loading state
     const [isHelpModalVisible, setIsHelpModalVisible] = useState(false); // State for help modal
-    const [mode, setMode] = useState<"cursor" | "add" | "delete" | "move">("cursor"); // Toolbar mode
+    const [mode, setMode] = useState<"cursor" | "add" | "delete">("cursor"); // Toolbar mode
     const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null); // Selected marker for moving or deleting
     const [newMarkerPosition, setNewMarkerPosition] = useState<{ x: number; y: number } | null>(null); // New marker position
     const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for delete confirmation dialog
 
-    // PanResponder for moving markers
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => mode === "move",
-            onPanResponderMove: (event, gestureState) => {
-                if (mode === "move" && selectedMarker) {
-                    const { moveX, moveY } = gestureState;
-                    const updatedMarkers = markers.map((m) =>
-                        m.clothingItemID === selectedMarker.clothingItemID
-                            ? { ...m, xCoord: moveX, yCoord: moveY }
-                            : m
-                    );
-                    setMarkers(updatedMarkers);
-                }
-            },
-            onPanResponderRelease: () => {
-                setSelectedMarker(null); // Deselect marker after moving
-            },
-        })
-    ).current;
 
     // Fetch the coordinates from the API
     useEffect(() => {
@@ -114,8 +94,6 @@ const ImageMarkerScreen = () => {
         } else if (mode === "delete") {
             setSelectedMarker(marker);
             setIsDeleteConfirmationVisible(true);
-        } else if (mode === "move") {
-            setSelectedMarker(marker);
         }
     };
 
@@ -200,7 +178,7 @@ const ImageMarkerScreen = () => {
                                     borderColor: Colors.light.primary,
                                 },
                             ]}
-                            {...panResponder.panHandlers}
+                    
                         >
                             {mode === "delete" && selectedMarker?.clothingItemID === marker.clothingItemID && (
                                 <Ionicons name="trash" size={16} color="red" style={image_marker_styles.deleteIcon} />

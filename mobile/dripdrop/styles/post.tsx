@@ -10,12 +10,14 @@ export const preview_post_styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
+
     },
     title: {
         fontSize: 20,
         fontWeight: "bold",
         marginBottom: 20,
         textAlign: "center",
+        color: 'black'
     },
     image: {
         width: 300,
@@ -28,6 +30,7 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 10,
+        color: 'black'
     },
     button: {
         width: "80%",
@@ -148,6 +151,7 @@ export const post_styles = StyleSheet.create({
     },
     continueButton: {
         padding: 8,
+        borderRadius: 4
     },
     continueText: {
         fontSize: 16,
@@ -157,6 +161,12 @@ export const post_styles = StyleSheet.create({
     loadingText: {
         color: 'grey',
         opacity: 0.7,
+    },
+    disabledButton: {
+        backgroundColor: "#d3d3d3", // Grey out the button when disabled
+    },
+    disabledText: {
+        color: "#a1a1a1", // Lighter color for the text when disabled
     },
     takePhotoButton: {
         flexDirection: "row",
