@@ -1,5 +1,5 @@
 // item_details.tsx
-import { Text, View, Alert, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import { Text, View, Alert, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import React, { useState, useEffect } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { item_details_styles } from "@/styles/post";
 import { updateItem, getItem } from "@/api/items";
 import { Item } from "@/types/Item";
+import { TextInput, Button } from 'react-native-paper';
 
 const Page = () => {
     const [coordinates, setCoordinates] = useState({ xCoord: 0, yCoord: 0 });
@@ -185,58 +186,97 @@ const Page = () => {
             >
                 <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
 
+                {/* Name Input */}
                 <TextInput
-                    placeholder="Name"
+                    label="Item Name"
+                    mode="outlined"
                     value={item.name}
                     onChangeText={(text) => handleChange('name', text)}
                     style={item_details_styles.input}
+                    placeholder="e.g. Nike Air Max"
+                    theme={{ colors: { primary: '#6200ee' } }}
                 />
+
+                {/* Brand Input */}
                 <TextInput
-                    placeholder="Brand"
+                    label="Brand"
+                    mode="outlined"
                     value={item.brand}
                     onChangeText={(text) => handleChange('brand', text)}
                     style={item_details_styles.input}
+                    placeholder="e.g. Nike, Adidas"
+                    theme={{ colors: { primary: '#6200ee' } }}
                 />
+
+                {/* Category Input */}
                 <TextInput
-                    placeholder="Category"
+                    label="Category"
+                    mode="outlined"
                     value={item.category}
                     onChangeText={(text) => handleChange('category', text)}
                     style={item_details_styles.input}
+                    placeholder="e.g. Shoes, T-Shirt"
+                    theme={{ colors: { primary: '#6200ee' } }}
                 />
+
+                {/* Price Input */}
                 <TextInput
-                    placeholder="Price"
+                    label="Price ($)"
+                    mode="outlined"
                     value={item.price.toString()}
                     onChangeText={(text) => handleChange('price', text)}
                     keyboardType="numeric"
                     style={item_details_styles.input}
+                    placeholder="e.g. 99.99"
+                    theme={{ colors: { primary: '#6200ee' } }}
+                    left={<TextInput.Affix text="$" />}
                 />
+
+                {/* URL Input */}
                 <TextInput
-                    placeholder="Item URL"
+                    label="Item URL"
+                    mode="outlined"
                     value={item.itemURL}
                     onChangeText={(text) => handleChange('itemURL', text)}
                     style={item_details_styles.input}
+                    placeholder="https://example.com/item"
+                    theme={{ colors: { primary: '#6200ee' } }}
                 />
+
+                {/* Size Input */}
                 <TextInput
-                    placeholder="Size"
+                    label="Size"
+                    mode="outlined"
                     value={item.size}
                     onChangeText={(text) => handleChange('size', text)}
                     style={item_details_styles.input}
+                    placeholder="e.g. M, 10, 28x32"
+                    theme={{ colors: { primary: '#6200ee' } }}
                 />
             </ScrollView>
+
+            {/* Buttons remain the same */}
             <View style={item_details_styles.buttonContainer}>
-                <TouchableOpacity onPress={() => router.back()} style={item_details_styles.backButton}>
-                    <Text style={item_details_styles.buttonText}>Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSave} style={item_details_styles.saveButton} disabled={isLoading}>
-                    {isLoading ? (
-                        <ActivityIndicator color="#fff" />
-                    ) : (
-                        <Text style={item_details_styles.buttonText}>Save</Text>
-                    )}
-                </TouchableOpacity>
+                <Button
+                    mode="outlined"
+                    onPress={() => router.back()}
+                    style={item_details_styles.backButton}
+                >
+                    Back
+                </Button>
+                <Button
+                    mode="contained"
+                    onPress={handleSave}
+                    style={item_details_styles.saveButton}
+                    loading={isLoading}
+                    disabled={isLoading}
+                >
+                    Save
+                </Button>
             </View>
         </SafeAreaView>
     );
+
 };
 
 export default Page;

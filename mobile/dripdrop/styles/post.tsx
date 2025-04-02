@@ -357,7 +357,6 @@ export const item_details_styles = StyleSheet.create({
         alignSelf: 'center',
         bottom: '-.1%'
     },
-
     backButton: {
         borderWidth: 1.5,
         borderColor: "black",
@@ -368,7 +367,7 @@ export const item_details_styles = StyleSheet.create({
         justifyContent: "center",
         flex: 1,
         marginRight: 8, // Add spacing between buttons
-        backgroundColor: "#fff", // White background for the button
+        backgroundColor: "#0",
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
@@ -378,7 +377,7 @@ export const item_details_styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginLeft: 8, // Add spacing between buttons
+        marginLeft: 8,
     },
     buttonText: {
         fontSize: 16,
@@ -398,14 +397,9 @@ export const item_details_styles = StyleSheet.create({
     },
     input: {
         height: 50,
-        borderColor: "#ccc",
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 12,
         marginBottom: 16,
-        width: "100%",
         backgroundColor: "#fff", // White background for inputs
-        fontSize: 16,
+
     },
     loadingContainer: {
         flex: 1,
