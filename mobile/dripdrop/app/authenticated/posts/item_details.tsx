@@ -1,22 +1,28 @@
+// item_details.tsx
 import { Text, View, Alert, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import React, { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import { useRouter } from "expo-router"; // Import useRouter for navigation
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { item_details_styles } from "@/styles/post";
+import { updateItem } from "@/api/items";
+import { Item } from "@/types/Item";
 
 const Page = () => {
     const [email, setEmail] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
-    const [name, setName] = useState<string>("");
-    const [brand, setBrand] = useState<string>("");
-    const [category, setCategory] = useState<string>("");
-    const [price, setPrice] = useState<string>("");
-    const [itemURL, setItemURL] = useState<string>("");
-    const [size, setSize] = useState<string>("");
-    const [isLoading, setIsLoading] = useState<boolean>(false); // New state for loading indicator
-
-    const router = useRouter(); // Initialize the router
+    const [item, setItem] = useState<Omit<Item, 'id'>>({
+        name: "",
+        brand: "",
+        category: "",
+        price: 0,
+        itemURL: "",
+        size: "",
+    });
+    const params = useLocalSearchParams();
+    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const markerId = params.markerId as string
+    const router = useRouter();
 
     useEffect(() => {
         const getUserData = async () => {
@@ -24,7 +30,6 @@ const Page = () => {
                 const storedEmail = await AsyncStorage.getItem("email");
                 const storedUsername = await AsyncStorage.getItem("username");
 
-                // Set them to state if they exist
                 if (storedEmail && storedUsername) {
                     setEmail(storedEmail);
                     setUsername(storedUsername);
@@ -38,101 +43,105 @@ const Page = () => {
         };
 
         getUserData();
-    }, []); // Empty array ensures this effect runs only once when the component mounts
+    }, []);
 
-    const handleSave = async () => {
-        setIsLoading(true);
+const handleSave = async () => {
+    if (!markerId) {
+        Alert.alert("Error", "No marker ID found");
+        return;
+    }
 
+    setIsLoading(true);
+
+    try {
+        const numericMarkerId = parseInt(markerId);
+        if (isNaN(numericMarkerId)) {
+            throw new Error("Invalid marker ID");
+        }
+
+        // Create the item data without the id field
         const itemData = {
-            name,
-            brand,
-            category,
-            price: parseFloat(price), // Ensure price is a number
-            itemURL,
-            size,
-            isApproved: true, // ✅ Mark image as approved
+            name: item.name,
+            brand: item.brand,
+            category: item.category,
+            price: Number(item.price) || 0,
+            itemURL: item.itemURL,
+            size: item.size,
         };
 
-        try {
-            const response = await fetch("https://api.dripdropco.com/items/1", {
-                method: "{PUT}",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(itemData),
-            });
+        const response = await updateItem(numericMarkerId, itemData);
+        console.log("API Response:", response); // Log the response
 
-            if (!response.ok) throw new Error("Failed to save item details.");
-
-            Alert.alert("Success", "Item approved and saved!");
-
-            //Store approved state for the image marker
-            await AsyncStorage.setItem("image_marker_approved", "true");
-
-            // ✅ Navigate back to image_marker screen
-            router.push("./image_marker");
-        } catch (error) {
-            Alert.alert("Error", "Failed to save item details.");
-        } finally {
-            setIsLoading(false);
-        }
+        Alert.alert("Success", "Item approved and saved!");
+        await AsyncStorage.setItem("image_marker_approved", "true");
+        router.back();
+    } catch (error) {
+        console.error("Detailed Save Error:", error);
+        Alert.alert("Error", error instanceof Error ? error.message : "Failed to save item details");
+    } finally {
+        setIsLoading(false);
+    }
+};
+    const handleChange = (field: keyof Item, value: string) => {
+        setItem(prev => ({
+            ...prev,
+            [field]: field === 'price' ? value.replace(/[^0-9.]/g, '') : value
+        }));
     };
-
 
     return (
         <SafeAreaView style={item_details_styles.container}>
             <ScrollView
                 contentContainerStyle={item_details_styles.scrollContainer}
-                style={item_details_styles.scrollView} // Apply scrollView style
+                style={item_details_styles.scrollView}
             >
                 <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
 
-                {/* Input fields for item details */}
                 <TextInput
                     placeholder="Name"
-                    value={name}
-                    onChangeText={setName}
+                    value={item.name}
+                    onChangeText={(text) => handleChange('name', text)}
                     style={item_details_styles.input}
                 />
                 <TextInput
                     placeholder="Brand"
-                    value={brand}
-                    onChangeText={setBrand}
+                    value={item.brand}
+                    onChangeText={(text) => handleChange('brand', text)}
                     style={item_details_styles.input}
                 />
                 <TextInput
                     placeholder="Category"
-                    value={category}
-                    onChangeText={setCategory}
+                    value={item.category}
+                    onChangeText={(text) => handleChange('category', text)}
                     style={item_details_styles.input}
                 />
                 <TextInput
                     placeholder="Price"
-                    value={price}
-                    onChangeText={setPrice}
+                    value={item.price.toString()}
+                    onChangeText={(text) => handleChange('price', text)}
                     keyboardType="numeric"
                     style={item_details_styles.input}
                 />
                 <TextInput
                     placeholder="Item URL"
-                    value={itemURL}
-                    onChangeText={setItemURL}
+                    value={item.itemURL}
+                    onChangeText={(text) => handleChange('itemURL', text)}
                     style={item_details_styles.input}
                 />
                 <TextInput
                     placeholder="Size"
-                    value={size}
-                    onChangeText={setSize}
+                    value={item.size}
+                    onChangeText={(text) => handleChange('size', text)}
                     style={item_details_styles.input}
                 />
-
             </ScrollView>
-            {/* Buttons above the navbar */}
             <View style={item_details_styles.buttonContainer}>
                 <TouchableOpacity onPress={() => router.back()} style={item_details_styles.backButton}>
                     <Text style={item_details_styles.buttonText}>Back</Text>
                 </TouchableOpacity>
                 <TouchableOpacity onPress={handleSave} style={item_details_styles.saveButton} disabled={isLoading}>
                     {isLoading ? (
-                        <ActivityIndicator color="#fff" /> // Show loading indicator when isLoading is true
+                        <ActivityIndicator color="#fff" />
                     ) : (
                         <Text style={item_details_styles.buttonText}>Save</Text>
                     )}
