@@ -1,0 +1,76 @@
+import json
+from utils import create_response, handle_exception
+from sqlalchemy import select 
+from sqlalchemy_utils import create_session
+from dripdrop_orm_objects import Post, Image, ClothingItemTag, Tag, Coordinate, ClothingItem, Item
+from sqlalchemy.exc import IntegrityError
+
+
+def handler(event, context):
+    try: 
+        # Extract the request body
+        body = json.loads(event['body'])
+
+        # Get the image id
+        image_id = body.get('image_id')
+        
+        # Loop over the body to store all the items in a dictionary
+        items= {}
+        for item in body['clothing_items']:
+            items[item['item']] = {
+                'x_coordinate': item['coordinates'['xmax']] - item['coordinates'['xmin']],
+                'y_coordinate': item['coordinates'['ymax']] - item['coordinates'['ymin']],
+                'attributes': item['attributes']
+            }
+
+        status_code, message = update_database(image_id, items)
+
+        return create_response(status_code, message)
+    
+    except Exception as e:
+        return create_response(500, f"Error updating user: {str(e)}")
+    
+def update_database(image_id, items):
+    # Try to update the database
+    try:
+        # Create the session
+        session = create_session()
+
+        # Fetch post id for this image
+        # post = (session.execute(select(Post).join(Image).where(Image.imageID == image_id)).scalars().first())
+        # if not post:
+        #     return 404, f'Post with imageID: {image_id} does not exist'
+        post_id = (session.execute(select(Image.postID).where(Image.imageID == image_id)).scalars().first())
+        if not post_id:
+            return 404, f'Image with imageID: {image_id} does not exist'
+        
+        # Loop over the items and update the database
+        for item in items:
+            new_coordinates = Coordinate(xCoord=item['x_coordinate'],yCoord=item['y_coordinate'])
+            session.add(new_coordinates)
+
+            new_clothing_item = ClothingItem()
+            session.add(new_clothing_item)
+            for tag in item['attributes']:
+                new_tag = Tag(tag=tag)
+                session
+                new_clothing_item_tag = ClothingItemTag(tagID = new_tag.tagID, clothingItemID = new_clothing_item.clothingItemID)
+                session.add(new_clothing_item_tag)
+
+            new_item = Item(imageID = image_id, clothingItemID = new_clothing_item.clothingItemID, coordinateID = new_coordinates.coordinateID)
+            session.add(new_item)
+
+        # Commit the session
+        session.commit()
+        
+        return 200, f'All tables populated successfully for imageID: {image_id}'
+
+    except Exception as e:
+        # Call a helper to handle the exception
+        code, msg = handle_exception(e, "Error occurred when updating database")
+        return code, msg
+
+    finally:
+        if 'session' in locals() and session:
+            session.close()
+    
