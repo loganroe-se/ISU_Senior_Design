@@ -8,6 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
 import Toolbar from "@/components/Toolbar"; // Adjust the path as needed
+import { fetchMarkers } from "@/api/items";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
@@ -44,20 +45,19 @@ const ImageMarkerScreen = () => {
 
     // Fetch the coordinates from the API
     useEffect(() => {
-        const fetchMarkers = async () => {
+        const loadMarkers = async () => {
             try {
-                const response = await fetch("https://api.dripdropco.com/items/post/1");
-                const data: Marker[] = await response.json(); // Explicitly type the response data
+                const data = await fetchMarkers();
                 setMarkers(data);
             } catch (error) {
                 console.error("Error fetching markers:", error);
             } finally {
-                setLoading(false); // Set loading to false after fetching
+                setLoading(false);
             }
         };
-
-        fetchMarkers();
+        loadMarkers();
     }, []);
+
 
     useEffect(() => {
         if (verifiedMarkerId) {

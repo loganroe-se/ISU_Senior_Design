@@ -41,47 +41,41 @@ const Page = () => {
     }, []); // Empty array ensures this effect runs only once when the component mounts
 
     const handleSave = async () => {
-        setIsLoading(true); // Set loading to true when the save process starts
+        setIsLoading(true);
 
-        // Prepare the request body
         const itemData = {
             name,
             brand,
             category,
-            price: parseFloat(price), // Convert price to a number
+            price: parseFloat(price), // Ensure price is a number
             itemURL,
             size,
+            isApproved: true, // ✅ Mark image as approved
         };
 
         try {
-            // Send a POST request to the backend
             const response = await fetch("https://api.dripdropco.com/items/1", {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(itemData),
             });
 
-            if (!response.ok) {
-                throw new Error("Failed to save item details.");
-            }
+            if (!response.ok) throw new Error("Failed to save item details.");
 
-            const result = await response.json();
-            console.log("Item saved successfully:", result);
+            Alert.alert("Success", "Item approved and saved!");
 
-            // Show success message
-            Alert.alert("Success", "Item details saved successfully!");
+            // ✅ Store approved state for the image marker
+            await AsyncStorage.setItem("image_marker_approved", "true");
 
-            // Optionally, navigate back or reset the form
-            router.back(); // Navigate back to the previous screen
+            // ✅ Navigate back to image_marker screen
+            router.push("./image_marker");
         } catch (error) {
-            console.error("Error saving item details:", error);
-            Alert.alert("Error", "Failed to save item details. Please try again.");
+            Alert.alert("Error", "Failed to save item details.");
         } finally {
-            setIsLoading(false); // Set loading to false when the save process completes
+            setIsLoading(false);
         }
     };
+
 
     return (
         <SafeAreaView style={item_details_styles.container}>
