@@ -228,8 +228,8 @@ export const image_marker_styles = StyleSheet.create({
     },
     marker: {
         position: "absolute",
-        width: '8%', 
-        height: '8%', 
+        width: '8%',
+        height: '8%',
         borderRadius: '100%', // Circular marker
         backgroundColor: "grey", // Default color for unverified markers
         opacity: 0.7, // Semi-transparent
@@ -308,7 +308,7 @@ export const image_marker_styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
     },
-        editButton: {
+    editButton: {
         position: "absolute",
         top: 16,
         right: 16,
@@ -331,7 +331,7 @@ export const image_marker_styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
     },
-    
+
 });
 
 
@@ -407,5 +407,12 @@ export const item_details_styles = StyleSheet.create({
         backgroundColor: "#fff", // White background for inputs
         fontSize: 16,
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+
 });
 

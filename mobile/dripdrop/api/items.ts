@@ -60,9 +60,12 @@ export const getItem = async (itemId: number): Promise<Item | null> => {
   try {
     const response = await fetch(`https://api.dripdropco.com/items/${itemId}`);
     if (!response.ok) {
+      // If 404 or other error, return null
       return null;
     }
-    return await response.json();
+    const data = await response.json();
+    // Verify the response actually contains item data
+    return data?.id ? data : null;
   } catch (error) {
     console.error("Error fetching item:", error);
     return null;
@@ -70,28 +73,25 @@ export const getItem = async (itemId: number): Promise<Item | null> => {
 };
 
 
-export const updateItem = async (
-  itemId: number,
-  itemData: Omit<Item, "id">
-): Promise<Item> => {
-  try {
-    const response = await fetch(`https://api.dripdropco.com/items/${itemId}`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(itemData), // Send just the item data without id
+
+export const updateItem = async (itemId: number, itemData: any): Promise<Item> => {
+    const endpoint = `https://api.dripdropco.com/items/${itemId}`;
+    const method = (await getItem(itemId)) ? "PUT" : "POST";
+    
+    const response = await fetch(method === "PUT" ? endpoint : "https://api.dripdropco.com/items", {
+        method,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(itemData),
     });
 
     if (!response.ok) {
-      const errorData = await response.json(); // Get more error details
-      throw new Error(errorData.message || "Failed to update item");
+        const errorData = await response.json();
+        throw new Error(errorData.message || `Failed to ${method === "PUT" ? "update" : "create"} item`);
     }
+
     return await response.json();
-  } catch (error) {
-    console.error("API Error:", error);
-    throw error;
-  }
 };
 
 export const createItem = async (

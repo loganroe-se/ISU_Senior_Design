@@ -9,6 +9,7 @@ import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
 import Toolbar from "@/components/Toolbar"; // Adjust the path as needed
 import { fetchMarkers } from "@/api/items";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
@@ -63,6 +64,15 @@ const ImageMarkerScreen = () => {
                 yCoord: newMarkerPosition.y,
             };
             setMarkers((prev) => [...prev, newMarker]);
+
+            // Store coordinates in AsyncStorage
+            AsyncStorage.setItem(`marker_${newMarker.clothingItemID}_coords`,
+                JSON.stringify({
+                    xCoord: newMarkerPosition.x,
+                    yCoord: newMarkerPosition.y
+                })
+            );
+
             setNewMarkerPosition(null);
         }
     };
@@ -89,7 +99,11 @@ const ImageMarkerScreen = () => {
         if (mode === "cursor" && !verifiedMarkers.has(marker.clothingItemID)) {
             router.push({
                 pathname: "./item_details",
-                params: { markerId: marker.clothingItemID },
+                params: {
+                    markerId: marker.clothingItemID.toString(),
+                    xCoord: marker.xCoord.toString(),
+                    yCoord: marker.yCoord.toString()
+                },
             });
         } else if (mode === "delete") {
             setSelectedMarker(marker);
