@@ -102,7 +102,8 @@ const ImageMarkerScreen = () => {
                 params: {
                     markerId: marker.clothingItemID.toString(),
                     xCoord: marker.xCoord.toString(),
-                    yCoord: marker.yCoord.toString()
+                    yCoord: marker.yCoord.toString(),
+                    postId: postId
                 },
             });
         } else if (mode === "delete") {

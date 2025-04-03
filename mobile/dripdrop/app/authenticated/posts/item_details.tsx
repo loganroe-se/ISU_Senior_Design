@@ -8,11 +8,11 @@ import { item_details_styles } from "@/styles/post";
 import { updateItem, getItem } from "@/api/items";
 import { getPostById } from "@/api/post"; 
 import { Item } from "@/types/Item";
+import { Post } from "@/types/post";
 import { TextInput, Button } from 'react-native-paper';
 import { Colors } from "@/constants/Colors";
 
 const Page = () => {
-    const [coordinates, setCoordinates] = useState({ xCoord: 0, yCoord: 0 });
     const params = useLocalSearchParams();
     const postId = params.postId as string;
     const xCoord = params.xCoord as string | undefined;
@@ -30,12 +30,13 @@ const Page = () => {
         itemURL: "",
         size: "",
     });
-    const [post, setPost] = useState<any>(null); // Add state for post data
+    const [post, setPost] = useState<Post | null>(null); // Add state for post data
 
     const router = useRouter();
 
     useEffect(() => {
         const loadData = async () => {
+            console.log("PARAMS: " + params)
             try {
                 // Load user data
                 const storedEmail = await AsyncStorage.getItem("email");
@@ -54,12 +55,11 @@ const Page = () => {
                     const numericPostId = parseInt(postId);
                     if (!isNaN(numericPostId)) {
                         const postData = await getPostById(numericPostId);
-                        console.log("POST: " + post);
+                        console.log("POSTDATA Caption: " + postData.caption);
                         setPost(postData);
 
-                        // If there's an image, use the first image's ID
                         const imageId = postData.images?.[0]?.imageID;
-
+                
                         if (imageId) {
                             // Check cache first
                             const cachedItem = await AsyncStorage.getItem(`item_${imageId}`);
@@ -137,8 +137,8 @@ const Page = () => {
                 size: item.size,
                 ...(!itemExists && {
                     image_id: imageId.toString(),
-                    xCoord: coordinates.xCoord,
-                    yCoord: coordinates.yCoord
+                    xCoord: xCoord,
+                    yCoord: yCoord
                 })
             };
 
@@ -217,7 +217,7 @@ const Page = () => {
                     onChangeText={(text) => handleChange('name', text)}
                     style={item_details_styles.input}
                     placeholder="e.g. Nike Air Max"
-                    theme={{ colors: { primary: '#6200ee' } }}
+                    textColor="#000000" 
                     activeUnderlineColor={Colors.light.primary}
                     activeOutlineColor={Colors.light.primary}
                 />
@@ -230,7 +230,7 @@ const Page = () => {
                     onChangeText={(text) => handleChange('brand', text)}
                     style={item_details_styles.input}
                     placeholder="e.g. Nike, Adidas"
-                    theme={{ colors: { primary: '#6200ee' } }}
+                    textColor="#000000" 
                     activeUnderlineColor={Colors.light.primary}
                     activeOutlineColor={Colors.light.primary}
                 />
@@ -243,22 +243,22 @@ const Page = () => {
                     onChangeText={(text) => handleChange('category', text)}
                     style={item_details_styles.input}
                     placeholder="e.g. Shoes, T-Shirt"
-                    theme={{ colors: { primary: '#6200ee' } }}
+                    textColor="#000000" 
                     activeUnderlineColor={Colors.light.primary}
                     activeOutlineColor={Colors.light.primary}
                 />
 
                 {/* Price Input */}
                 <TextInput
-                    label="Price ($)"
+                    label="Price"
                     mode="outlined"
                     value={item.price.toString()}
                     onChangeText={(text) => handleChange('price', text)}
                     keyboardType="numeric"
                     style={item_details_styles.input}
                     placeholder="e.g. 99.99"
-                    theme={{ colors: { primary: '#6200ee' } }}
                     left={<TextInput.Affix text="$" />}
+                    textColor="#000000" 
                     activeUnderlineColor={Colors.light.primary}
                     activeOutlineColor={Colors.light.primary}
                 />
@@ -271,7 +271,7 @@ const Page = () => {
                     onChangeText={(text) => handleChange('itemURL', text)}
                     style={item_details_styles.input}
                     placeholder="https://example.com/item"
-                    theme={{ colors: { primary: '#6200ee' } }}
+                    textColor="#000000" 
                     activeUnderlineColor={Colors.light.primary}
                     activeOutlineColor={Colors.light.primary}
                 />
@@ -284,13 +284,12 @@ const Page = () => {
                     onChangeText={(text) => handleChange('size', text)}
                     style={item_details_styles.input}
                     placeholder="e.g. M, 10, 28x32"
-                    theme={{ colors: { primary: '#6200ee' } }}
+                    textColor="#000000" 
                     activeUnderlineColor={Colors.light.primary}
                     activeOutlineColor={Colors.light.primary}
                 />
             </ScrollView>
 
-            {/* Buttons remain the same */}
             <View style={item_details_styles.buttonContainer}>
                 <Button
                     mode="outlined"

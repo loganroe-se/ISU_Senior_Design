@@ -4,7 +4,7 @@ import { Dimensions, StyleSheet } from "react-native";
 
 
 
-export const preview_post_styles = StyleSheet.create({
+export const processing_post_styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
@@ -352,7 +352,7 @@ export const item_details_styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        padding: 10,
+
         position: "absolute", // Position the buttons absolutely
         alignSelf: 'center',
         bottom: '-.1%'
@@ -360,24 +360,20 @@ export const item_details_styles = StyleSheet.create({
     backButton: {
         borderWidth: 1.5,
         borderColor: "black",
-        paddingVertical: 12,
-        paddingHorizontal: 24,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginRight: 8, // Add spacing between buttons
+        margin: 8, 
         backgroundColor: "#0",
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginLeft: 8,
+        margin: 8,
     },
     buttonText: {
         fontSize: 16,
@@ -393,7 +389,6 @@ export const item_details_styles = StyleSheet.create({
     text: {
         fontSize: 18,
         marginBottom: 10,
-        color: "#555", // Medium gray text color
     },
     input: {
         height: 50,
