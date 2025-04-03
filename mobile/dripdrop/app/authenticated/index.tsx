@@ -329,6 +329,7 @@ const Page = () => {
               keyExtractor={(item) => item.postID.toString()}
               onScroll={onScroll}
               scrollEventThrottle={16}
+              showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const imageHeight = imageDimensions[item.postID];
                 const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
