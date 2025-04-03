@@ -1,4 +1,4 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput, SafeAreaView, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button } from "react-native";
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput, SafeAreaView, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useUserContext } from "@/context/UserContext";
@@ -13,7 +13,6 @@ import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
 import { GestureHandlerRootView, PanGestureHandler, TouchableWithoutFeedback } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/FontAwesome";
-import { apiRequest } from "@/api/api";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -40,6 +39,7 @@ const Page = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [hasSeenPosts, setHasSeenPosts] = useState(false);
   const [noMorePosts, setNoMorePosts] = useState(false);
+
 
   useEffect(() => {
     const getUserData = async () => {
@@ -79,6 +79,23 @@ const Page = () => {
         });
     }
   }, [userID]);
+
+  // // Ensure posts get marked as seen once the app is closed/minimized --- TODO: Does not properly track posts seen so this does not work yet
+  // useEffect(() => {
+  //   const appStateListener = AppState.addEventListener('change', (nextAppState) => {
+  //     console.log(nextAppState);
+  //     if (nextAppState === 'background' || nextAppState === 'inactive') {
+  //       if (seenPosts.size > 0) {
+  //         console.log(Array.from(seenPosts));
+  //         markPostsAsSeen({ userID: Number(userID), postIDs: Array.from(seenPosts) });
+  //       }
+  //     }
+  //   });
+
+  //   return () => {
+  //     appStateListener.remove();
+  //   };
+  // }, [seenPosts]);
 
   // Handle a like
   const handleLike = useCallback(async (postID: number) => {
@@ -209,6 +226,7 @@ const Page = () => {
                   return uniquePosts
                 });
                 setNoMorePosts(false);
+                setLoading(false);
               }
             } else {
               setError('Failed to fetch feed');
@@ -289,8 +307,6 @@ const Page = () => {
       getNewPosts();
     } catch (error) {
       console.error("Error resetting feed:", error);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -375,6 +391,14 @@ const Page = () => {
                 ) : null
               }
             />
+
+            {/* There are no posts, ask if the user wants to reset feed */}
+            {feedData.length === 0 && <View
+              style={{ justifyContent: "center", alignItems: "center", minHeight: windowHeight }}
+            >
+              <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+              <Button title="Reset Feed" onPress={resetFeed} />
+            </View>}
 
             {/* Comment Modal */}
             {commentModalVisible && <Modal 
