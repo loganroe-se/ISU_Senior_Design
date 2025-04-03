@@ -61,32 +61,18 @@ const Page = () => {
                         const imageId = postData.images?.[0]?.imageID;
                 
                         if (imageId) {
-                            // Check cache first
-                            const cachedItem = await AsyncStorage.getItem(`item_${imageId}`);
-                            if (cachedItem) {
-                                const parsedItem = JSON.parse(cachedItem);
-                                setItem({
-                                    name: parsedItem.name || "",
-                                    brand: parsedItem.brand || "",
-                                    category: parsedItem.category || "",
-                                    price: parsedItem.price || 0,
-                                    itemURL: parsedItem.itemURL || "",
-                                    size: parsedItem.size || "",
-                                });
-                            } else {
-                                // Fallback to API
                                 const existingItem = await getItem(imageId);
                                 if (existingItem) {
                                     setItem({
-                                        name: existingItem.name || "",
-                                        brand: existingItem.brand || "",
-                                        category: existingItem.category || "",
+                                        name: existingItem.name,
+                                        brand: existingItem.brand,
+                                        category: existingItem.category,
                                         price: existingItem.price || 0,
-                                        itemURL: existingItem.itemURL || "",
-                                        size: existingItem.size || "",
+                                        itemURL: existingItem.itemURL,
+                                        size: existingItem.size,
                                     });
                                 }
-                            }
+                            
                         }
                     }
                 }

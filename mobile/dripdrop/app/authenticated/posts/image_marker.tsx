@@ -8,7 +8,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
 import Toolbar from "@/components/Toolbar"; 
-import { fetchMarkers } from "@/api/items";
+import { fetchMarkers, deleteMarker } from "@/api/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ImageMarkerScreen = () => {
@@ -47,6 +47,11 @@ const ImageMarkerScreen = () => {
         }
     }, [verifiedMarkerId]);
 
+    const refreshMarkers = async () => {
+        const data = await fetchMarkers(Number(postId));
+        setMarkers(data || []);
+    };
+
     // Handle adding a new marker
     const handleAddMarker = (event: any) => {
         if (mode !== "add") return;
@@ -83,15 +88,25 @@ const ImageMarkerScreen = () => {
     };
 
     // Handle deleting a marker
-    const handleDeleteMarker = (markerId: number) => {
-        setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
-        setVerifiedMarkers((prev) => {
-            const newSet = new Set(prev);
-            newSet.delete(markerId);
-            return newSet;
-        });
-        setSelectedMarker(null);
-        setIsDeleteConfirmationVisible(false);
+    const handleDeleteMarker = async (markerId: number) => {
+        try {
+            console.log("Attempting to delete marker with ID:", markerId); 
+            // First, make the API call to delete the marker
+            await deleteMarker(markerId);
+
+            // Then update the local state if the API call succeeds
+            setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
+            setVerifiedMarkers((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(markerId);
+                return newSet;
+            });
+            setSelectedMarker(null);
+            setIsDeleteConfirmationVisible(false);
+        } catch (error) {
+            console.error("Error deleting marker:", error);
+            Alert.alert("Error", "Failed to delete the marker. Please try again.");
+        }
     };
 
     // Handle marker press (for verification)
@@ -190,14 +205,11 @@ const ImageMarkerScreen = () => {
                                     top: marker.yCoord,
                                     backgroundColor: verifiedMarkers.has(marker.clothingItemID) ? "green" : "grey",
                                     borderWidth: selectedMarker?.clothingItemID === marker.clothingItemID ? 2 : 0,
-                                    borderColor: Colors.light.primary,
+                                    borderColor: mode === "delete" ? "red" : Colors.light.primary,
                                 },
                             ]}
                     
                         >
-                            {mode === "delete" && selectedMarker?.clothingItemID === marker.clothingItemID && (
-                                <Ionicons name="trash" size={16} color="red" style={image_marker_styles.deleteIcon} />
-                            )}
                         </TouchableOpacity>
                     ))}
                     {newMarkerPosition && (
