@@ -161,11 +161,6 @@ export default function Post() {
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      const previewPost = {
-        caption,
-        imageUri: manipulatedImage.uri,
-      };
-
       const newPost: sendPost = {
         userID: id,
         caption,
@@ -173,8 +168,9 @@ export default function Post() {
       };
 
       const response = await createPost(newPost);
+      const postId = response.postID;
+      console.log("Created post with ID:", postId);
 
-      console.log("Post preview:", previewPost);
       setSnackbarVisible(true);
       setCaption("");
       setImage(null);
@@ -184,16 +180,16 @@ export default function Post() {
         params: {
           caption: caption,
           image: image,
+          postId: postId
         },
       });
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Failed to create post preview. Please try again.");
+      alert("Failed to create post. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
   const numColumns = Math.min(
     Math.floor(Dimensions.get("window").width / (Dimensions.get("window").width / 4)),
     4
@@ -289,7 +285,6 @@ export default function Post() {
               numberOfLines={4}
               placeholder="Write a caption..."
               activeUnderlineColor={Colors.light.primary} // Set the focus color to your primary color
-
               activeOutlineColor={Colors.light.primary} //
             />
           </View>

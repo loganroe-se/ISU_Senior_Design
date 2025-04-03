@@ -3,9 +3,9 @@ import { Marker } from "@/types/Marker"; // Import the Marker type
 import { Item } from "@/types/Item";
 
 // Fetch markers
-export const fetchMarkers = async (): Promise<Marker[]> => {
+export const fetchMarkers = async (postID: number): Promise<Marker[]> => {
   try {
-    const response = await fetch("https://api.dripdropco.com/items/post/1");
+    const response = await fetch(`https://api.dripdropco.com/items/post/${postID}`);
     if (!response.ok) {
       throw new Error("Failed to fetch markers");
     }

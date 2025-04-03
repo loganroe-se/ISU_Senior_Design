@@ -6,20 +6,22 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { item_details_styles } from "@/styles/post";
 import { updateItem, getItem } from "@/api/items";
+import { getPostById } from "@/api/post"; 
 import { Item } from "@/types/Item";
 import { TextInput, Button } from 'react-native-paper';
+import { Colors } from "@/constants/Colors";
 
 const Page = () => {
     const [coordinates, setCoordinates] = useState({ xCoord: 0, yCoord: 0 });
     const params = useLocalSearchParams();
-    const markerId = params.markerId as string;
+    const postId = params.postId as string;
     const xCoord = params.xCoord as string | undefined;
     const yCoord = params.yCoord as string | undefined;
 
     const [email, setEmail] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isLoadingItem, setIsLoadingItem] = useState<boolean>(true); // New loading state for item data
+    const [isLoadingItem, setIsLoadingItem] = useState<boolean>(true);
     const [item, setItem] = useState<Omit<Item, 'id'>>({
         name: "",
         brand: "",
@@ -28,6 +30,7 @@ const Page = () => {
         itemURL: "",
         size: "",
     });
+    const [post, setPost] = useState<any>(null); // Add state for post data
 
     const router = useRouter();
 
@@ -45,34 +48,44 @@ const Page = () => {
                     Alert.alert("No user data", "User is not logged in.");
                 }
 
-                // Load item data - check cache first, then API
-                if (markerId) {
-                    const numericMarkerId = parseInt(markerId);
-                    if (!isNaN(numericMarkerId)) {
-                        // Check cache first
-                        const cachedItem = await AsyncStorage.getItem(`item_${numericMarkerId}`);
-                        if (cachedItem) {
-                            const parsedItem = JSON.parse(cachedItem);
-                            setItem({
-                                name: parsedItem.name || "",
-                                brand: parsedItem.brand || "",
-                                category: parsedItem.category || "",
-                                price: parsedItem.price || 0,
-                                itemURL: parsedItem.itemURL || "",
-                                size: parsedItem.size || "",
-                            });
-                        } else {
-                            // Fallback to API
-                            const existingItem = await getItem(numericMarkerId);
-                            if (existingItem) {
+                // Load post data
+                if (postId) {
+                    console.log("POSTID: " + postId);
+                    const numericPostId = parseInt(postId);
+                    if (!isNaN(numericPostId)) {
+                        const postData = await getPostById(numericPostId);
+                        console.log("POST: " + post);
+                        setPost(postData);
+
+                        // If there's an image, use the first image's ID
+                        const imageId = postData.images?.[0]?.imageID;
+
+                        if (imageId) {
+                            // Check cache first
+                            const cachedItem = await AsyncStorage.getItem(`item_${imageId}`);
+                            if (cachedItem) {
+                                const parsedItem = JSON.parse(cachedItem);
                                 setItem({
-                                    name: existingItem.name || "",
-                                    brand: existingItem.brand || "",
-                                    category: existingItem.category || "",
-                                    price: existingItem.price || 0,
-                                    itemURL: existingItem.itemURL || "",
-                                    size: existingItem.size || "",
+                                    name: parsedItem.name || "",
+                                    brand: parsedItem.brand || "",
+                                    category: parsedItem.category || "",
+                                    price: parsedItem.price || 0,
+                                    itemURL: parsedItem.itemURL || "",
+                                    size: parsedItem.size || "",
                                 });
+                            } else {
+                                // Fallback to API
+                                const existingItem = await getItem(imageId);
+                                if (existingItem) {
+                                    setItem({
+                                        name: existingItem.name || "",
+                                        brand: existingItem.brand || "",
+                                        category: existingItem.category || "",
+                                        price: existingItem.price || 0,
+                                        itemURL: existingItem.itemURL || "",
+                                        size: existingItem.size || "",
+                                    });
+                                }
                             }
                         }
                     }
@@ -85,24 +98,32 @@ const Page = () => {
         };
 
         loadData();
-    }, [markerId, xCoord, yCoord]);
+    }, [postId, xCoord, yCoord]);
 
     const handleSave = async () => {
-        if (!markerId) {
-            Alert.alert("Error", "No marker ID found");
+        console.log("POST:  "+ post)
+        console.log("POSTIDDDD:  " + postId)
+        if (!postId || !post) {
+            Alert.alert("Error", "No post ID found or post not loaded");
             return;
         }
 
         setIsLoading(true);
 
         try {
-            const numericMarkerId = parseInt(markerId);
-            if (isNaN(numericMarkerId)) {
-                throw new Error("Invalid marker ID");
+            const numericPostId = parseInt(postId);
+            if (isNaN(numericPostId)) {
+                throw new Error("Invalid post ID");
+            }
+
+            // Use the first image's ID from the post
+            const imageId = post.images[0]?.imageID;
+            if (!imageId) {
+                throw new Error("No image ID found in post");
             }
 
             // Check if item exists
-            const existingItem = await getItem(numericMarkerId);
+            const existingItem = await getItem(imageId);
             const itemExists = existingItem?.id !== undefined;
             console.log('Item exists:', itemExists);
 
@@ -115,7 +136,7 @@ const Page = () => {
                 itemURL: item.itemURL,
                 size: item.size,
                 ...(!itemExists && {
-                    image_id: numericMarkerId.toString(),
+                    image_id: imageId.toString(),
                     xCoord: coordinates.xCoord,
                     yCoord: coordinates.yCoord
                 })
@@ -123,7 +144,7 @@ const Page = () => {
 
             // Save to API
             const endpoint = itemExists
-                ? `https://api.dripdropco.com/items/${numericMarkerId}`
+                ? `https://api.dripdropco.com/items/${imageId}`
                 : 'https://api.dripdropco.com/items';
 
             const method = itemExists ? 'PUT' : 'POST';
@@ -144,7 +165,7 @@ const Page = () => {
 
             // Cache the item data locally
             await AsyncStorage.setItem(
-                `item_${numericMarkerId}`,
+                `item_${imageId}`,
                 JSON.stringify(savedItem)
             );
 
@@ -161,6 +182,8 @@ const Page = () => {
             setIsLoading(false);
         }
     };
+
+// ... rest of the component remains the same ...
 
     const handleChange = (field: keyof Item, value: string) => {
         setItem(prev => ({
@@ -195,6 +218,8 @@ const Page = () => {
                     style={item_details_styles.input}
                     placeholder="e.g. Nike Air Max"
                     theme={{ colors: { primary: '#6200ee' } }}
+                    activeUnderlineColor={Colors.light.primary}
+                    activeOutlineColor={Colors.light.primary}
                 />
 
                 {/* Brand Input */}
@@ -206,6 +231,8 @@ const Page = () => {
                     style={item_details_styles.input}
                     placeholder="e.g. Nike, Adidas"
                     theme={{ colors: { primary: '#6200ee' } }}
+                    activeUnderlineColor={Colors.light.primary}
+                    activeOutlineColor={Colors.light.primary}
                 />
 
                 {/* Category Input */}
@@ -217,6 +244,8 @@ const Page = () => {
                     style={item_details_styles.input}
                     placeholder="e.g. Shoes, T-Shirt"
                     theme={{ colors: { primary: '#6200ee' } }}
+                    activeUnderlineColor={Colors.light.primary}
+                    activeOutlineColor={Colors.light.primary}
                 />
 
                 {/* Price Input */}
@@ -230,6 +259,8 @@ const Page = () => {
                     placeholder="e.g. 99.99"
                     theme={{ colors: { primary: '#6200ee' } }}
                     left={<TextInput.Affix text="$" />}
+                    activeUnderlineColor={Colors.light.primary}
+                    activeOutlineColor={Colors.light.primary}
                 />
 
                 {/* URL Input */}
@@ -241,6 +272,8 @@ const Page = () => {
                     style={item_details_styles.input}
                     placeholder="https://example.com/item"
                     theme={{ colors: { primary: '#6200ee' } }}
+                    activeUnderlineColor={Colors.light.primary}
+                    activeOutlineColor={Colors.light.primary}
                 />
 
                 {/* Size Input */}
@@ -252,6 +285,8 @@ const Page = () => {
                     style={item_details_styles.input}
                     placeholder="e.g. M, 10, 28x32"
                     theme={{ colors: { primary: '#6200ee' } }}
+                    activeUnderlineColor={Colors.light.primary}
+                    activeOutlineColor={Colors.light.primary}
                 />
             </ScrollView>
 

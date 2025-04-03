@@ -3,17 +3,17 @@ import { View, Image, TouchableOpacity, ActivityIndicator, Modal, Alert, Text, P
 import { Button } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Marker } from '@/types/Marker'; // Import the Marker type
+import { Marker } from '@/types/Marker'; 
 import { SafeAreaView } from "react-native-safe-area-context";
 import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
-import Toolbar from "@/components/Toolbar"; // Adjust the path as needed
+import Toolbar from "@/components/Toolbar"; 
 import { fetchMarkers } from "@/api/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
-    const { caption, image, verifiedMarkerId } = useLocalSearchParams();
+    const { caption, image, postId, verifiedMarkerId } = useLocalSearchParams();
     const [markers, setMarkers] = useState<Marker[]>([]); // Store marker data
     const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set()); // Track verified markers
     const [loading, setLoading] = useState(true); // Track loading state
@@ -24,12 +24,12 @@ const ImageMarkerScreen = () => {
     const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for delete confirmation dialog
 
 
-    // Fetch the coordinates from the API
     useEffect(() => {
         const loadMarkers = async () => {
             try {
-                const data = await fetchMarkers();
-                setMarkers(data);
+                const data = await fetchMarkers(Number(postId));
+                if(data)
+                    setMarkers(data);
             } catch (error) {
                 console.error("Error fetching markers:", error);
             } finally {
@@ -37,7 +37,7 @@ const ImageMarkerScreen = () => {
             }
         };
         loadMarkers();
-    }, []);
+    }, [postId]);
 
 
     useEffect(() => {

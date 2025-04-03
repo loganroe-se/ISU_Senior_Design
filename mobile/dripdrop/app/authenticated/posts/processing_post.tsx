@@ -9,7 +9,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function ProcessingScreen() {
   const router = useRouter();
-  const { caption, image } = useLocalSearchParams();
+  const { caption, image, postId } = useLocalSearchParams();
   const [storedUsername, setStoredUsername] = useState<string | null>(null);
 
 
@@ -17,8 +17,9 @@ export default function ProcessingScreen() {
     // Navigate to the ImageMarker screen with the current caption and image data
     router.push({
       pathname: "./image_marker",
-      params: { caption, image }, // Pass caption and image as parameters
+      params: { caption, image, postId }, // Pass caption and image as parameters
     });
+    console.log("Passed the following POSTID: " + postId)
   }; 
   // Fetch the username from AsyncStorage when the component mounts
   useEffect(() => {
