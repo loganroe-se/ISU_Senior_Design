@@ -56,21 +56,40 @@ export const deleteMarker = async (itemId: number): Promise<void> => {
 };
 
 
-export const getItem = async (itemId: number): Promise<Item | null> => {
+
+export const getMarker = async (itemId: number): Promise<Marker | null> => {
   try {
-    const response = await fetch(`https://api.dripdropco.com/items/${itemId}`);
-    if (!response.ok) {
-      // If 404 or other error, return null
-      return null;
-    }
+    const response = await fetch(`https://api.dripdropco.com/items/post/${itemId}`);
+    if (!response.ok) return null;
+
     const data = await response.json();
-    // Verify the response actually contains item data
-    return data?.id ? data : null;
+    console.log("DATA IN GET Marker:", data);
+
+    // Ensure we return a single object if API gives an array
+    return Array.isArray(data) ? data[0] : data;
   } catch (error) {
     console.error("Error fetching item:", error);
     return null;
   }
 };
+
+export const getItem = async (itemId: number): Promise<Item | null> => {
+  try {
+    const response = await fetch(`https://api.dripdropco.com/items/${itemId}`);
+    if (!response.ok) return null;
+
+    const data = await response.json();
+    console.log("DATA IN GET ITEM:", data);
+
+    // Ensure we return a single object if API gives an array
+    return Array.isArray(data) ? data[0] : data;
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    return null;
+  }
+};
+
+
 
 
 

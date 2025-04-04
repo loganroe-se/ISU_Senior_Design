@@ -10,10 +10,11 @@ import { Ionicons } from "@expo/vector-icons";
 import Toolbar from "@/components/Toolbar"; 
 import { fetchMarkers, deleteMarker } from "@/api/items";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getPostById } from "@/api/post";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
-    const { caption, image, postId, verifiedMarkerId } = useLocalSearchParams();
+    const { caption, image, postId, verifiedMarkerId, refresh } = useLocalSearchParams();
     const [markers, setMarkers] = useState<Marker[]>([]); // Store marker data
     const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set()); // Track verified markers
     const [loading, setLoading] = useState(true); // Track loading state
@@ -23,34 +24,69 @@ const ImageMarkerScreen = () => {
     const [newMarkerPosition, setNewMarkerPosition] = useState<{ x: number; y: number } | null>(null); // New marker position
     const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for delete confirmation dialog
 
+    const loadMarkers = React.useCallback(async () => {
+        try {
+            setLoading(true);
+            console.log("Post iD: ", postId);
 
-    useEffect(() => {
-        const loadMarkers = async () => {
-            try {
-                const data = await fetchMarkers(Number(postId));
-                if(data)
-                    setMarkers(data);
-            } catch (error) {
-                console.error("Error fetching markers:", error);
-            } finally {
-                setLoading(false);
+            // Add validation
+            if (!postId || isNaN(Number(postId))) {
+                throw new Error("Invalid post ID");
             }
-        };
-        loadMarkers();
+
+            const numericPostId = Number(postId);
+            const postData = await getPostById(numericPostId);
+            console.log("post Data : ", postData);
+
+            if (!postData?.images?.[0]?.imageID) {
+                throw new Error("Post data is incomplete");
+            }
+
+            const imageID = postData.images[0].imageID;
+            console.log("Image id: ", imageID);
+            const data = await fetchMarkers(imageID);
+            console.log("Refreshed markers data: ", JSON.stringify(data));
+
+            if (data) setMarkers(data);
+        } catch (error) {
+            console.error("Error fetching markers:", error);
+            Alert.alert("Error", "Failed to load markers. Please try again.");
+        } finally {
+            setLoading(false);
+        }
     }, [postId]);
 
+    useEffect(() => {
+        loadMarkers();
+    }, [loadMarkers]);
+
+    useEffect(() => {
+        const saveImageToAsyncStorage = async () => {
+            if (image) {
+                try {
+                    await AsyncStorage.setItem('iamge', image.toString());
+                    console.log("Image saved successfully!");
+                } catch (error) {
+                    console.error("Failed to save image to AsyncStorage:", error);
+                }
+            }
+        };
+        saveImageToAsyncStorage();
+    }, [image]);  // This will run whenever the image is updated
+
+    useEffect(() => {
+        if (refresh) {
+            loadMarkers();
+        }
+    }, [refresh]);
 
     useEffect(() => {
         if (verifiedMarkerId) {
             const id = Number(verifiedMarkerId);
+            console.log("Verified Marker ID: ", verifiedMarkerId)
             setVerifiedMarkers((prev) => new Set(prev).add(id));
         }
     }, [verifiedMarkerId]);
-
-    const refreshMarkers = async () => {
-        const data = await fetchMarkers(Number(postId));
-        setMarkers(data || []);
-    };
 
     // Handle adding a new marker
     const handleAddMarker = (event: any) => {
@@ -64,26 +100,20 @@ const ImageMarkerScreen = () => {
     const confirmAddMarker = () => {
         if (newMarkerPosition) {
             const newMarker: Marker = {
-                clothingItemID: markers.length + 1,
+                clothingItemID: Date.now() + Math.random(), // Temporary unique ID
                 xCoord: newMarkerPosition.x,
                 yCoord: newMarkerPosition.y,
             };
             setMarkers((prev) => [...prev, newMarker]);
-
-            // Store coordinates in AsyncStorage
-            AsyncStorage.setItem(`marker_${newMarker.clothingItemID}_coords`,
-                JSON.stringify({
-                    xCoord: newMarkerPosition.x,
-                    yCoord: newMarkerPosition.y
-                })
-            );
-
+            AsyncStorage.setItem(`marker_${newMarker.clothingItemID}_coords`, JSON.stringify(newMarker));
             setNewMarkerPosition(null);
         }
     };
 
+
     // Cancel adding a new marker
     const cancelAddMarker = () => {
+        setSelectedMarker(null);
         setNewMarkerPosition(null);
     };
 
@@ -118,7 +148,8 @@ const ImageMarkerScreen = () => {
                     markerId: marker.clothingItemID.toString(),
                     xCoord: marker.xCoord.toString(),
                     yCoord: marker.yCoord.toString(),
-                    postId: postId
+                    postId: postId,
+                    image: image.toString(),
                 },
             });
         } else if (mode === "delete") {
@@ -191,7 +222,7 @@ const ImageMarkerScreen = () => {
                     onResponderRelease={handleAddMarker} // Add marker on tap
                 >
                     <Image
-                        source={{ uri: Array.isArray(image) ? image[0] : image }}
+                        source={{ uri: image.toString()  }}
                         style={image_marker_styles.image}
                     />
                     {markers.map((marker, index) => (

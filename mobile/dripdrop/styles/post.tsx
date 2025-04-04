@@ -369,6 +369,7 @@ export const item_details_styles = StyleSheet.create({
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
+        borderWidth: 1.5,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",

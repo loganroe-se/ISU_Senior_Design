@@ -1,28 +1,63 @@
 // item_details.tsx
-import { Text, View, Alert, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import React, { useState, useEffect } from "react";
+import {
+    Text,
+    View,
+    Alert,
+    ScrollView,
+    ActivityIndicator,
+} from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TextInput, Button } from "react-native-paper";
+
 import { item_details_styles } from "@/styles/post";
-import { updateItem, getItem } from "@/api/items";
-import { getPostById } from "@/api/post"; 
+import { updateItem, getItem, getMarker } from "@/api/items";
+import { getPostById } from "@/api/post";
 import { Item } from "@/types/Item";
 import { Post } from "@/types/post";
-import { TextInput, Button } from 'react-native-paper';
 import { Colors } from "@/constants/Colors";
+
+type ItemFormData = Omit<Item, "id">;
+
+const API_BASE_URL = "https://api.dripdropco.com/items";
 
 const Page = () => {
     const params = useLocalSearchParams();
+    const router = useRouter();
+
+    // Extract and type route params
     const postId = params.postId as string;
     const xCoord = params.xCoord as string | undefined;
     const yCoord = params.yCoord as string | undefined;
+    const markerId = params.markerId as string | undefined;
 
+    // State management
     const [email, setEmail] = useState<string | null>(null);
     const [username, setUsername] = useState<string | null>(null);
-    const [isLoading, setIsLoading] = useState<boolean>(false);
-    const [isLoadingItem, setIsLoadingItem] = useState<boolean>(true);
-    const [item, setItem] = useState<Omit<Item, 'id'>>({
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingItem, setIsLoadingItem] = useState(true);
+    const [post, setPost] = useState<Post | null>(null);
+    const [image, setImage] = useState<string | null>(null);
+
+    useEffect(() => {
+        const loadImageFromAsyncStorage = async () => {
+            try {
+                const savedImage = await AsyncStorage.getItem('selectedImage');
+                if (savedImage) {
+                    setImage(savedImage);
+                }
+            } catch (error) {
+                console.error("Failed to load image from AsyncStorage:", error);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        loadImageFromAsyncStorage();
+    }, []);
+
+    const [item, setItem] = useState<ItemFormData>({
         name: "",
         brand: "",
         category: "",
@@ -30,17 +65,16 @@ const Page = () => {
         itemURL: "",
         size: "",
     });
-    const [post, setPost] = useState<Post | null>(null); // Add state for post data
 
-    const router = useRouter();
-
+    // Load initial data
     useEffect(() => {
         const loadData = async () => {
-            console.log("PARAMS: " + params)
             try {
                 // Load user data
-                const storedEmail = await AsyncStorage.getItem("email");
-                const storedUsername = await AsyncStorage.getItem("username");
+                const [storedEmail, storedUsername] = await Promise.all([
+                    AsyncStorage.getItem("email"),
+                    AsyncStorage.getItem("username"),
+                ]);
 
                 if (storedEmail && storedUsername) {
                     setEmail(storedEmail);
@@ -49,31 +83,36 @@ const Page = () => {
                     Alert.alert("No user data", "User is not logged in.");
                 }
 
-                // Load post data
-                if (postId) {
-                    console.log("POSTID: " + postId);
+                // Load post and item data if marker exists
+                if (markerId) {
+                    console.log("MARKER ID: ", markerId)
                     const numericPostId = parseInt(postId);
-                    if (!isNaN(numericPostId)) {
-                        const postData = await getPostById(numericPostId);
-                        console.log("POSTDATA Caption: " + postData.caption);
-                        setPost(postData);
+                    if (isNaN(numericPostId)) {
+                        console.log("Invalid numeric postId:", postId);
+                        return;
+                    }
 
-                        const imageId = postData.images?.[0]?.imageID;
-                
-                        if (imageId) {
-                                const existingItem = await getItem(imageId);
-                                if (existingItem) {
-                                    setItem({
-                                        name: existingItem.name,
-                                        brand: existingItem.brand,
-                                        category: existingItem.category,
-                                        price: existingItem.price || 0,
-                                        itemURL: existingItem.itemURL,
-                                        size: existingItem.size,
-                                    });
-                                }
-                            
-                        }
+                    const postData = await getPostById(numericPostId);
+                    setPost(postData);
+                    console.log("POST DATA: ", postData)
+
+                    const imageId = postData.images?.[0]?.imageID;
+                    if (!imageId) {
+                        console.log("No imageId in postData.images[0]");
+                        return;
+                    }
+
+                    const existingItem = await getItem(parseInt(markerId));
+                    if (existingItem?.id) {
+                        console.log("Existing item: ", existingItem)
+                        setItem({
+                            name: existingItem.name,
+                            brand: existingItem.brand,
+                            category: existingItem.category,
+                            price: existingItem.price || 0,
+                            itemURL: existingItem.itemURL,
+                            size: existingItem.size,
+                        });
                     }
                 }
             } catch (error) {
@@ -84,11 +123,56 @@ const Page = () => {
         };
 
         loadData();
-    }, [postId, xCoord, yCoord]);
+    }, [postId, markerId]);
+
+    const handleChange = (field: keyof ItemFormData, value: string) => {
+        setItem((prev) => ({
+            ...prev,
+            [field]: field === "price" ? value.replace(/[^0-9.]/g, "") : value,
+        }));
+    };
+
+    const saveItem = async (
+        itemExists: boolean,
+        itemData: any,
+        clothingItemID?: number
+    ): Promise<Response> => {
+        const url = itemExists
+            ? `${API_BASE_URL}/${clothingItemID}`
+            : API_BASE_URL;
+
+        const method = itemExists ? "PUT" : "POST";
+        console.log("ITEM EXITS?: ", itemExists)
+
+        console.log("📝 Save Item Triggered");
+        console.log("➡️ HTTP Method:", method);
+        console.log("📍 URL:", url);
+        console.log("📦 Item Data:", JSON.stringify(itemData, null, 2));
+
+        try {
+            const response = await fetch(url, {
+                method,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(itemData),
+            });
+
+            const responseText = await response.text();
+            console.log("✅ Raw Response Text:", responseText);
+            console.log("📡 Status Code:", response.status);
+
+            return new Response(responseText, {
+                status: response.status,
+                statusText: response.statusText,
+            });
+        } catch (error) {
+            console.error("❌ Error making request:", error);
+            throw error;
+        }
+    };
+
+
 
     const handleSave = async () => {
-        console.log("POST:  "+ post)
-        console.log("POSTIDDDD:  " + postId)
         if (!postId || !post) {
             Alert.alert("Error", "No post ID found or post not loaded");
             return;
@@ -98,94 +182,91 @@ const Page = () => {
 
         try {
             const numericPostId = parseInt(postId);
-            if (isNaN(numericPostId)) {
-                throw new Error("Invalid post ID");
-            }
+            if (isNaN(numericPostId)) throw new Error("Invalid post ID");
 
-            // Use the first image's ID from the post
             const imageId = post.images[0]?.imageID;
-            if (!imageId) {
-                throw new Error("No image ID found in post");
-            }
+            if (!imageId) throw new Error("No image ID found in post");
 
-            // Check if item exists
-            const existingItem = await getItem(imageId);
-            const itemExists = existingItem?.id !== undefined;
-            console.log('Item exists:', itemExists);
+            if (!markerId) throw new Error("No marker ID provided");
 
-            // Prepare payload
+            const existingItem = await getMarker(parseInt(markerId));
+            const itemExists = !!existingItem?.clothingItemID;
+
             const itemData = {
-                name: item.name,
-                brand: item.brand,
-                category: item.category,
-                price: Number(item.price) || 0,
-                itemURL: item.itemURL,
-                size: item.size,
-                ...(!itemExists && {
-                    image_id: imageId.toString(),
-                    xCoord: xCoord,
-                    yCoord: yCoord
-                })
+                ...item,
+                price: Number(item.price),
+                image_id: imageId,
+                ...(!itemExists && { xCoord, yCoord }),
             };
 
-            // Save to API
-            const endpoint = itemExists
-                ? `https://api.dripdropco.com/items/${imageId}`
-                : 'https://api.dripdropco.com/items';
+            console.log("about to SAVE item with info: ", itemData)
 
-            const method = itemExists ? 'PUT' : 'POST';
-
-            const response = await fetch(endpoint, {
-                method,
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(itemData)
-            });
-
+            const response = await saveItem(itemExists, itemData, existingItem?.clothingItemID);
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || `Failed to ${method} item`);
+                throw new Error(errorData.message || `Failed to save item`);
             }
 
-            const savedItem = await response.json();
-            console.log('Saved item:', savedItem);
+            //const responseText = await response.text(); //TODO: Change this to work with the updated reponse
+            const responseText = "Item with id: 142 processed successfully!"
+            console.log("Response text: ", responseText)
+            const responseMatch = responseText.match(/Item with id: (\d+)/);
+            console.log("Response match: ", responseMatch)
 
-            // Cache the item data locally
-            await AsyncStorage.setItem(
-                `item_${imageId}`,
-                JSON.stringify(savedItem)
-            );
-
+            const itemId = responseMatch![1];
+            await AsyncStorage.setItem(`item_${imageId}`, JSON.stringify(itemData));
             Alert.alert("Success", itemExists ? "Item updated!" : "Item created!");
-            router.back();
+            await handleSubmit(itemId);
 
         } catch (error) {
-            console.error('Save failed:', error);
-            Alert.alert(
-                "Error",
-                error instanceof Error ? error.message : "Failed to save item"
-            );
+            console.error("Save failed:", error);
+            Alert.alert("Error", error instanceof Error ? error.message : "Failed to save item");
         } finally {
             setIsLoading(false);
         }
     };
 
-// ... rest of the component remains the same ...
 
-    const handleChange = (field: keyof Item, value: string) => {
-        setItem(prev => ({
-            ...prev,
-            [field]: field === 'price' ? value.replace(/[^0-9.]/g, '') : value
-        }));
+    const handleSubmit = async (newClothingItemID: string) => {
+        try {
+            if (!markerId) return;
+
+            const storedMarker = await AsyncStorage.getItem(`marker_${markerId}_coords`);
+            console.log("Stored marker: ", storedMarker)
+            if (storedMarker) {
+                const parsedMarker = JSON.parse(storedMarker);
+                parsedMarker.clothingItemID = newClothingItemID;
+                await AsyncStorage.setItem(
+                    `marker_${newClothingItemID}_coords`,
+                    JSON.stringify(parsedMarker)
+                );
+            }
+
+            router.replace({
+                pathname: "./image_marker",
+                params: { verifiedMarkerId: newClothingItemID, image, refresh: 'true', postId: postId },
+            });
+        } catch (error) {
+            Alert.alert("Error", "Failed to update item.");
+        }
     };
 
     if (isLoadingItem) {
         return (
             <SafeAreaView style={item_details_styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#0000ff" />
+                <ActivityIndicator size="large" color={Colors.light.primary} />
                 <Text>Loading item data...</Text>
             </SafeAreaView>
         );
     }
+
+    const inputProps = {
+        mode: "outlined" as const,
+        style: item_details_styles.input,
+        textColor: "#000000",
+        activeUnderlineColor: Colors.light.primary,
+        activeOutlineColor: Colors.light.primary,
+    };
 
     return (
         <SafeAreaView style={item_details_styles.container}>
@@ -195,84 +276,54 @@ const Page = () => {
             >
                 <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
 
-                {/* Name Input */}
                 <TextInput
+                    {...inputProps}
                     label="Item Name"
-                    mode="outlined"
                     value={item.name}
-                    onChangeText={(text) => handleChange('name', text)}
-                    style={item_details_styles.input}
+                    onChangeText={(text) => handleChange("name", text)}
                     placeholder="e.g. Nike Air Max"
-                    textColor="#000000" 
-                    activeUnderlineColor={Colors.light.primary}
-                    activeOutlineColor={Colors.light.primary}
                 />
 
-                {/* Brand Input */}
                 <TextInput
+                    {...inputProps}
                     label="Brand"
-                    mode="outlined"
                     value={item.brand}
-                    onChangeText={(text) => handleChange('brand', text)}
-                    style={item_details_styles.input}
+                    onChangeText={(text) => handleChange("brand", text)}
                     placeholder="e.g. Nike, Adidas"
-                    textColor="#000000" 
-                    activeUnderlineColor={Colors.light.primary}
-                    activeOutlineColor={Colors.light.primary}
                 />
 
-                {/* Category Input */}
                 <TextInput
+                    {...inputProps}
                     label="Category"
-                    mode="outlined"
                     value={item.category}
-                    onChangeText={(text) => handleChange('category', text)}
-                    style={item_details_styles.input}
+                    onChangeText={(text) => handleChange("category", text)}
                     placeholder="e.g. Shoes, T-Shirt"
-                    textColor="#000000" 
-                    activeUnderlineColor={Colors.light.primary}
-                    activeOutlineColor={Colors.light.primary}
                 />
 
-                {/* Price Input */}
                 <TextInput
+                    {...inputProps}
                     label="Price"
-                    mode="outlined"
                     value={item.price.toString()}
-                    onChangeText={(text) => handleChange('price', text)}
+                    onChangeText={(text) => handleChange("price", text)}
                     keyboardType="numeric"
-                    style={item_details_styles.input}
                     placeholder="e.g. 99.99"
                     left={<TextInput.Affix text="$" />}
-                    textColor="#000000" 
-                    activeUnderlineColor={Colors.light.primary}
-                    activeOutlineColor={Colors.light.primary}
                 />
 
-                {/* URL Input */}
                 <TextInput
+                    {...inputProps}
                     label="Item URL"
-                    mode="outlined"
                     value={item.itemURL}
-                    onChangeText={(text) => handleChange('itemURL', text)}
-                    style={item_details_styles.input}
+                    onChangeText={(text) => handleChange("itemURL", text)}
                     placeholder="https://example.com/item"
-                    textColor="#000000" 
-                    activeUnderlineColor={Colors.light.primary}
-                    activeOutlineColor={Colors.light.primary}
                 />
 
-                {/* Size Input */}
                 <TextInput
+                    {...inputProps}
                     label="Size"
-                    mode="outlined"
                     value={item.size}
-                    onChangeText={(text) => handleChange('size', text)}
-                    style={item_details_styles.input}
+                    onChangeText={(text) => handleChange("size", text)}
                     placeholder="e.g. M, 10, 28x32"
-                    textColor="#000000" 
-                    activeUnderlineColor={Colors.light.primary}
-                    activeOutlineColor={Colors.light.primary}
                 />
             </ScrollView>
 
@@ -296,7 +347,6 @@ const Page = () => {
             </View>
         </SafeAreaView>
     );
-
 };
 
 export default Page;
