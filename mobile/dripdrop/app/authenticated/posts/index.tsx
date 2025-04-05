@@ -151,7 +151,7 @@ export default function Post() {
       alert("Please select an image first!");
       return;
     }
-
+    Keyboard.dismiss();
     setLoading(true);
 
     try {
@@ -161,11 +161,6 @@ export default function Post() {
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
-      const previewPost = {
-        caption,
-        imageUri: manipulatedImage.uri,
-      };
-
       const newPost: sendPost = {
         userID: id,
         caption,
@@ -173,8 +168,9 @@ export default function Post() {
       };
 
       const response = await createPost(newPost);
+      const postId = response.postID;
+      console.log("Created post with ID:", postId);
 
-      console.log("Post preview:", previewPost);
       setSnackbarVisible(true);
       setCaption("");
       setImage(null);
@@ -184,16 +180,16 @@ export default function Post() {
         params: {
           caption: caption,
           image: image,
+          postId: postId
         },
       });
     } catch (error) {
       console.error("Error creating post:", error);
-      alert("Failed to create post preview. Please try again.");
+      alert("Failed to create post. Please try again.");
     } finally {
       setLoading(false);
     }
   };
-
   const numColumns = Math.min(
     Math.floor(Dimensions.get("window").width / (Dimensions.get("window").width / 4)),
     4
@@ -205,6 +201,7 @@ export default function Post() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={post_styles.container}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
         >
           {/* Top Navigation Bar */}
           <View style={post_styles.topBar}>
@@ -214,17 +211,18 @@ export default function Post() {
             <TouchableOpacity
               onPress={handleContinue}
               disabled={loading || !image || caption.trim() === ""}
-              style={post_styles.continueButton}
-
+              style={[
+                post_styles.continueButton,
+                (loading || !image || caption.trim() === "") && post_styles.disabledButton, // Apply the disabled button style
+              ]}
             >
               <Text
-                style={[post_styles.continueText,
-                  loading && post_styles.loadingText]
-                }
+                style={[post_styles.continueText, loading && post_styles.loadingText, (loading || !image || caption.trim() === "") && post_styles.disabledText]}
               >
                 {loading ? "Loading..." : "Continue"}
               </Text>
             </TouchableOpacity>
+
           </View>
 
           {/* Top Half: Selected Image */}
@@ -288,7 +286,6 @@ export default function Post() {
               numberOfLines={4}
               placeholder="Write a caption..."
               activeUnderlineColor={Colors.light.primary} // Set the focus color to your primary color
-
               activeOutlineColor={Colors.light.primary} //
             />
           </View>
