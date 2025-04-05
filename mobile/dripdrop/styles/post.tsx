@@ -46,9 +46,10 @@ export const post_styles = StyleSheet.create({
         flex: 1,
     },
     cardContainer: {
-        borderRadius: 12,
-        elevation: 5,
-        backgroundColor: '#f2f2f2'
+        backgroundColor: '#f2f2f2',
+        width:'90%',
+        alignSelf:'center',
+        margin:'4%'
     },
     imageContainer: {
         alignItems: "center",
