@@ -6,6 +6,7 @@ import {
     Alert,
     ScrollView,
     ActivityIndicator,
+    KeyboardAvoidingView, Platform
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -18,6 +19,7 @@ import { getPostById } from "@/api/post";
 import { Item } from "@/types/Item";
 import { Post } from "@/types/post";
 import { Colors } from "@/constants/Colors";
+
 
 type ItemFormData = Omit<Item, "id">;
 
@@ -262,62 +264,64 @@ const Page = () => {
 
     return (
         <SafeAreaView style={item_details_styles.container}>
-            <ScrollView
-                contentContainerStyle={item_details_styles.scrollContainer}
-                style={item_details_styles.scrollView}
-            >
-                <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+                <ScrollView
+                    contentContainerStyle={item_details_styles.scrollContainer}
+                    style={item_details_styles.scrollView}
+                >
+                    <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
 
-                <TextInput
-                    {...inputProps}
-                    label="Item Name"
-                    value={item.name}
-                    onChangeText={(text) => handleChange("name", text)}
-                    placeholder="e.g. Nike Air Max"
-                />
+                    <TextInput
+                        {...inputProps}
+                        label="Item Name"
+                        value={item.name}
+                        onChangeText={(text) => handleChange("name", text)}
+                        placeholder="e.g. Nike Air Max"
+                    />
 
-                <TextInput
-                    {...inputProps}
-                    label="Brand"
-                    value={item.brand}
-                    onChangeText={(text) => handleChange("brand", text)}
-                    placeholder="e.g. Nike, Adidas"
-                />
+                    <TextInput
+                        {...inputProps}
+                        label="Brand"
+                        value={item.brand}
+                        onChangeText={(text) => handleChange("brand", text)}
+                        placeholder="e.g. Nike, Adidas"
+                    />
 
-                <TextInput
-                    {...inputProps}
-                    label="Category"
-                    value={item.category}
-                    onChangeText={(text) => handleChange("category", text)}
-                    placeholder="e.g. Shoes, T-Shirt"
-                />
+                    <TextInput
+                        {...inputProps}
+                        label="Category"
+                        value={item.category}
+                        onChangeText={(text) => handleChange("category", text)}
+                        placeholder="e.g. Shoes, T-Shirt"
+                    />
 
-                <TextInput
-                    {...inputProps}
-                    label="Price"
-                    value={item.price.toString()}
-                    onChangeText={(text) => handleChange("price", text)}
-                    keyboardType="numeric"
-                    placeholder="e.g. 99.99"
-                    left={<TextInput.Affix text="$" />}
-                />
+                    <TextInput
+                        {...inputProps}
+                        label="Price"
+                        value={item.price.toString()}
+                        onChangeText={(text) => handleChange("price", text)}
+                        keyboardType="numeric"
+                        placeholder="e.g. 99.99"
+                        left={<TextInput.Affix text="$" />}
+                    />
 
-                <TextInput
-                    {...inputProps}
-                    label="Item URL"
-                    value={item.itemURL}
-                    onChangeText={(text) => handleChange("itemURL", text)}
-                    placeholder="https://example.com/item"
-                />
+                    <TextInput
+                        {...inputProps}
+                        label="Item URL"
+                        value={item.itemURL}
+                        onChangeText={(text) => handleChange("itemURL", text)}
+                        placeholder="https://example.com/item"
+                    />
 
-                <TextInput
-                    {...inputProps}
-                    label="Size"
-                    value={item.size}
-                    onChangeText={(text) => handleChange("size", text)}
-                    placeholder="e.g. M, 10, 28x32"
-                />
-            </ScrollView>
+                    <TextInput
+                        {...inputProps}
+                        label="Size"
+                        value={item.size}
+                        onChangeText={(text) => handleChange("size", text)}
+                        placeholder="e.g. M, 10, 28x32"
+                    />
+                </ScrollView>
+            </KeyboardAvoidingView>
 
             <View style={item_details_styles.buttonContainer}>
                 <Button

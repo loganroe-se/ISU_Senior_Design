@@ -151,7 +151,7 @@ export default function Post() {
       alert("Please select an image first!");
       return;
     }
-
+    Keyboard.dismiss();
     setLoading(true);
 
     try {
@@ -201,6 +201,7 @@ export default function Post() {
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
           style={post_styles.container}
+          keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
         >
           {/* Top Navigation Bar */}
           <View style={post_styles.topBar}>
