@@ -27,7 +27,6 @@ const ImageMarkerScreen = () => {
     const loadMarkers = React.useCallback(async () => {
         try {
             setLoading(true);
-            console.log("Post iD: ", postId);
 
             // Add validation
             if (!postId || isNaN(Number(postId))) {
@@ -36,16 +35,13 @@ const ImageMarkerScreen = () => {
 
             const numericPostId = Number(postId);
             const postData = await getPostById(numericPostId);
-            console.log("post Data : ", postData);
 
             if (!postData?.images?.[0]?.imageID) {
                 throw new Error("Post data is incomplete");
             }
 
             const imageID = postData.images[0].imageID;
-            console.log("Image id: ", imageID);
             const data = await fetchMarkers(imageID);
-            console.log("Refreshed markers data: ", JSON.stringify(data));
 
             if (data) setMarkers(data);
         } catch (error) {
@@ -65,7 +61,6 @@ const ImageMarkerScreen = () => {
             if (image) {
                 try {
                     await AsyncStorage.setItem('iamge', image.toString());
-                    console.log("Image saved successfully!");
                 } catch (error) {
                     console.error("Failed to save image to AsyncStorage:", error);
                 }

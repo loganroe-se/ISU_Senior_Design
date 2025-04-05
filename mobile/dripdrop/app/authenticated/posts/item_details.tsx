@@ -85,7 +85,6 @@ const Page = () => {
 
                 // Load post and item data if marker exists
                 if (markerId) {
-                    console.log("MARKER ID: ", markerId)
                     const numericPostId = parseInt(postId);
                     if (isNaN(numericPostId)) {
                         console.log("Invalid numeric postId:", postId);
@@ -94,7 +93,6 @@ const Page = () => {
 
                     const postData = await getPostById(numericPostId);
                     setPost(postData);
-                    console.log("POST DATA: ", postData)
 
                     const imageId = postData.images?.[0]?.imageID;
                     if (!imageId) {
@@ -103,15 +101,14 @@ const Page = () => {
                     }
 
                     const existingItem = await getItem(parseInt(markerId));
-                    if (existingItem?.id) {
-                        console.log("Existing item: ", existingItem)
+                    if (typeof existingItem !== "string") {
                         setItem({
-                            name: existingItem.name,
-                            brand: existingItem.brand,
-                            category: existingItem.category,
-                            price: existingItem.price || 0,
-                            itemURL: existingItem.itemURL,
-                            size: existingItem.size,
+                            name: existingItem!.name,
+                            brand: existingItem!.brand,
+                            category: existingItem!.category,
+                            price: existingItem!.price || 0,
+                            itemURL: existingItem!.itemURL,
+                            size: existingItem!.size,
                         });
                     }
                 }
@@ -157,8 +154,6 @@ const Page = () => {
             });
 
             const responseText = await response.text();
-            console.log("✅ Raw Response Text:", responseText);
-            console.log("📡 Status Code:", response.status);
 
             return new Response(responseText, {
                 status: response.status,
@@ -199,8 +194,6 @@ const Page = () => {
                 ...(!itemExists && { xCoord, yCoord }),
             };
 
-            console.log("about to SAVE item with info: ", itemData)
-
             const response = await saveItem(itemExists, itemData, existingItem?.clothingItemID);
             if (!response.ok) {
                 const errorData = await response.json();
@@ -211,7 +204,6 @@ const Page = () => {
             const responseText = "Item with id: 142 processed successfully!"
             console.log("Response text: ", responseText)
             const responseMatch = responseText.match(/Item with id: (\d+)/);
-            console.log("Response match: ", responseMatch)
 
             const itemId = responseMatch![1];
             await AsyncStorage.setItem(`item_${imageId}`, JSON.stringify(itemData));
