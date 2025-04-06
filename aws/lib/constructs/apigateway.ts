@@ -5,9 +5,10 @@ import { DnsConstruct } from "./dns";
 import { LambdasConstruct } from "./lambdas";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { StaticSiteProps } from "../interfaces/staticProps.interface";
+import { CognitoConstruct } from "./cognito";
 
 export class ApigatewayConstruct extends Construct {
-  constructor(scope: Construct, id: string, props: StaticSiteProps, dnsConstruct: DnsConstruct, lambdaConstruct: LambdasConstruct) {
+  constructor(scope: Construct, id: string, props: StaticSiteProps, dnsConstruct: DnsConstruct, lambdaConstruct: LambdasConstruct, CognitoConstruct: CognitoConstruct) {
     super(scope, id);
     // API Gateway setup with custom domain
     const api = new RestApi(this, "UserApi", {

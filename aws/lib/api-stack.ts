@@ -6,6 +6,7 @@ import { DatabaseConstruct } from "./constructs/database";
 import { LambdasConstruct } from "./constructs/lambdas";
 import { ApigatewayConstruct } from "./constructs/apigateway";
 import { IAMConstruct } from "./constructs/ssm";
+import { CognitoConstruct } from "./constructs/cognito";
 
 export class ApiStack extends cdk.Stack {
   constructor(parent: cdk.App, name: string, props: cdk.StackProps) {
@@ -30,6 +31,8 @@ export class ApiStack extends cdk.Stack {
       vpcConstruct,
       databaseConstuct
     );
+
+    new CognitoConstruct(this, "CognitoConstruct");
 
     new IAMConstruct(this, "SSMiamConstruct"); 
 
