@@ -58,7 +58,6 @@ def _create_session():
     SessionLocal = sessionmaker(bind=engine)
     return SessionLocal()
 
-@contextmanager
 def session_handler(func):
     @wraps(func)
     def wrapper(*args, **kwargs):

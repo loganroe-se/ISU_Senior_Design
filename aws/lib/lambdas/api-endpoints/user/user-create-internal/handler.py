@@ -30,7 +30,7 @@ def create_internal_user(session, user_id, username, email, dob):
         parsed_dob = date.fromisoformat(dob)
 
         new_user = User(
-            userID=user_id,  # assuming userID maps to UUID in your ORM
+            uuid=user_id,  # assuming userID maps to UUID in your ORM
             username=username,
             email=email,
             dob=parsed_dob
