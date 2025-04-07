@@ -1,53 +1,41 @@
 import json
 from utils import create_response, handle_exception
 from sqlalchemy import select
-from sqlalchemy_utils import create_session
+from sqlalchemy_utils import session_handler, get_user_by_email
 from dripdrop_orm_objects import Like
 
 def handler(event, context):    
     try:
-        # Parse the data from event
         body = json.loads(event['body'])
-
-        # Get all body attributes
-        userId = body.get('userId')
         postId = body.get('postId')
 
-        # Check for missing required values
-        if not userId or not postId:
+        if not postId:
             return create_response(400, 'Missing required field')
         
-        # Call function to remove the like
-        status_code, message = deleteLike(userId, postId)
+        email = event['requestContext']['authorizer']['claims']['email']
 
-        # Return response
+        status_code, message = deleteLike(email, postId)
         return create_response(status_code, message)
-    
+
     except Exception as e:
         print(f"Error: {e}")
         return create_response(500, f"Error unliking post: {str(e)}")
-    
 
-def deleteLike(userId, postId):
+
+@session_handler
+def deleteLike(session, email, postId):
     try:
-        # Create session
-        session = create_session()
+        user = get_user_by_email(session, email)
 
-        # Fetch like relationship
-        like = session.execute(select(Like).where((Like.userID == userId) & (Like.postID == postId))).scalars().first()
+        like = session.execute(
+            select(Like).where((Like.userID == user.userID) & (Like.postID == postId))
+        ).scalars().first()
 
-        if like:
-            session.delete(like)
-            session.commit()
-            return 200, "Like was removed successfully."
-        else:
+        if not like:
             return 404, "Like was not found."
 
-    except Exception as e:
-        # Handle exception
-        code, msg = handle_exception(e, "Error accessing database")
-        return code, msg
+        session.delete(like)
+        return 200, "Like was removed successfully."
 
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+    except Exception as e:
+        return handle_exception(e, "Error accessing database")

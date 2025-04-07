@@ -74,7 +74,7 @@ def session_handler(func):
             session.close()
     return wrapper
 
-@session_handler
+
 def get_user_by_email(session, email):
     try:
         return session.query(User).filter_by(email=email).first()

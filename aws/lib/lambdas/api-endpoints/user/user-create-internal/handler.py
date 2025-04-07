@@ -1,14 +1,14 @@
-# create_internal_user.py
 import json
 from datetime import date
-from sqlalchemy_utils import create_session
+from sqlalchemy_utils import session_handler
 from dripdrop_orm_objects import User
 from utils import create_response, handle_exception
 
 def handler(event, context):
     try:
         body = json.loads(event['body'])
-        user_id = body.get('user_id')        #  get UUID
+
+        user_id = body.get('user_id')  # UUID from Cognito
         username = body.get('username')
         email = body.get('email')
         dob = body.get('dob')
@@ -16,18 +16,28 @@ def handler(event, context):
         if not all([user_id, username, email, dob]):
             return create_response(400, "Missing fields")
 
-        dob = date.fromisoformat(dob)
-        session = create_session()
-        new_user = User(uuid=user_id, username=username, email=email, dob=dob)  #  set UUID as userID
-        session.add(new_user)
-        session.commit()
-
-        return create_response(201, "User added to DB")
+        status_code, message = create_internal_user(user_id, username, email, dob)
+        return create_response(status_code, message)
 
     except Exception as e:
         code, msg = handle_exception(e, "Error writing to DB")
         return create_response(code, msg)
 
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+
+@session_handler
+def create_internal_user(session, user_id, username, email, dob):
+    try:
+        parsed_dob = date.fromisoformat(dob)
+
+        new_user = User(
+            userID=user_id,  # assuming userID maps to UUID in your ORM
+            username=username,
+            email=email,
+            dob=parsed_dob
+        )
+
+        session.add(new_user)
+        return 201, "User added to DB"
+
+    except Exception as e:
+        return handle_exception(e, "Failed to add user to DB")
