@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
 import { useRouter } from 'expo-router';
 import Modal from 'react-native-modal';
@@ -17,8 +17,26 @@ const SignUpScreen = () => {
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false); // Modal for entering confirmation code
 
+  // Timer states
+  const [timeLeft, setTimeLeft] = useState(60); // Time left in seconds
+  const [isExpired, setIsExpired] = useState(false); // Flag for expiration
+
+  useEffect(() => {
+    // Start the countdown timer when confirmation code modal is visible
+    if (isConfirmationModalVisible && timeLeft > 0) {
+      const timer = setInterval(() => {
+        setTimeLeft((prevTime) => prevTime - 1); // Decrease time left by 1 second
+      }, 1000);
+
+      // Cleanup the interval when timer ends or modal is closed
+      return () => clearInterval(timer);
+    } else if (timeLeft === 0) {
+      setIsExpired(true); // Mark as expired when timer reaches 0
+    }
+  }, [timeLeft, isConfirmationModalVisible]);
+
   const handleSignUp = async () => {
-    // Check if all fields are filled
+    // Sign-up form validation
     if (!username || !email || !password || !confirmPassword) {
       Alert.alert("Incomplete Fields", "Please fill in all the fields", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
@@ -26,7 +44,7 @@ const SignUpScreen = () => {
       return;
     }
 
-    // Validate email format using a regular expression
+    // Email and password validation
     const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     if (!emailRegex.test(email)) {
       Alert.alert("Invalid Email", "Please enter a valid email address", [
@@ -35,7 +53,6 @@ const SignUpScreen = () => {
       return;
     }
 
-    // Password validation
     const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
     if (!passwordRegex.test(password)) {
       Alert.alert("Password Requirements", 
@@ -49,7 +66,6 @@ const SignUpScreen = () => {
       return;
     }
 
-    // Check if passwords match
     if (password !== confirmPassword) {
       Alert.alert("Invalid Input", "Passwords do not match", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
@@ -89,7 +105,7 @@ const SignUpScreen = () => {
           ]);
         }
       } catch (error) {
-        console.error("Error during signup:", error);  // Log the actual error to the console for debugging
+        console.error("Error during signup:", error);
         Alert.alert("Error", "An unexpected error occurred: " + (error as { message: string }).message, [
           { text: "OK", onPress: () => console.log("OK Pressed") },
         ]);
@@ -116,7 +132,6 @@ const SignUpScreen = () => {
       const response = await fetch('https://api.dripdropco.com/confirm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        
         body: JSON.stringify({ username, email, dob: formattedBirthday, confirmation_code }),
       });
 
@@ -192,6 +207,18 @@ const SignUpScreen = () => {
           />
           <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
           <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
+
+          {/* Timer for Code Expiration */}
+          {isConfirmationModalVisible && !isExpired && (
+            <Text style={styles_signup.timerText}>
+              Time until code expires: {timeLeft}s
+            </Text>
+          )}
+          {isExpired && (
+            <Text style={styles_signup.expiredText}>
+              Code has expired. Please request a new one.
+            </Text>
+          )}
         </View>
       </Modal>
 
