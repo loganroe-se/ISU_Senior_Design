@@ -45,16 +45,18 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const data = await response.json();
-      const { name, email, sub } = decodeJWT(data.id_token).payload;
+      const { name, email, sub, exp} = decodeJWT(data.id_token).payload;
 
       const signedInUser: User = {
         username: name,
         email: email,
         id: parseInt(sub),
+        exp: exp,
+        id_token: data.id_token,
         access_token: data.access_token,
         refresh_token: data.refresh_token
       };
-      console.log(name);
+      console.log(exp);
 
       setUser(signedInUser);
       await AsyncStorage.setItem("user", JSON.stringify(signedInUser));

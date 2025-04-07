@@ -3,11 +3,13 @@ export interface User {
   username: String,
   email: String,
   id: number,
-  access_token: number,
-  refresh_token: number
+  exp: String,
+  id_token: String,
+  access_token: String,
+  refresh_token: String
 }
 export interface UserProfile extends User {
-  profilePic: string;
+  profilePic: String;
 
 }
 export interface UserContextType {
