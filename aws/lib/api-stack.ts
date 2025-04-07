@@ -25,14 +25,15 @@ export class ApiStack extends cdk.Stack {
       vpcConstruct
     );
 
+    const cognitoConstruct = new CognitoConstruct(this, "CognitoConstruct");
+
     const lambdaConstruct = new LambdasConstruct(
       this,
       "lambdasConstruct",
       vpcConstruct,
-      databaseConstuct
+      databaseConstuct,
+      cognitoConstruct
     );
-
-    new CognitoConstruct(this, "CognitoConstruct");
 
     new IAMConstruct(this, "SSMiamConstruct"); 
 
@@ -44,7 +45,8 @@ export class ApiStack extends cdk.Stack {
         siteSubDomain: this.node.tryGetContext("apisubdomain"),
       },
       dnsConstruct,
-      lambdaConstruct
+      lambdaConstruct,
+      cognitoConstruct
     );
   }
 }

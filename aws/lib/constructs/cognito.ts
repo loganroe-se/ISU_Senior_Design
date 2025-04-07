@@ -24,6 +24,9 @@ export class CognitoConstruct extends Construct {
     this.userPoolClient = new cognito.UserPoolClient(this, "UserPoolClient", {
       userPool: this.userPool,
       generateSecret: false,
+      authFlows: {
+        userPassword: true
+      }
     });
 
     // Assuming userPool is passed in or imported
@@ -35,5 +38,6 @@ export class CognitoConstruct extends Construct {
         identitySource: "method.request.header.Authorization",
       }
     );
+    
   }
 }

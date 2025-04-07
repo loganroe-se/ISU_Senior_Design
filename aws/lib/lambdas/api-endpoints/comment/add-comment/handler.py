@@ -2,7 +2,7 @@ import json
 from datetime import date
 from utils import create_response, handle_exception
 from sqlalchemy import select
-from sqlalchemy_utils import create_session
+from sqlalchemy_utils import session_scope
 from dripdrop_orm_objects import Comment, User, Post
 
 def handler(event, context):
@@ -29,11 +29,10 @@ def handler(event, context):
         print(f"Error: {e}")
         return create_response(500, f"Error creating comment: {str(e)}")
 
-def createComment(userId, postId, content):
+@session_handler
+def createComment(session, userId, postId, content):
     try:
         # Create session
-        session = create_session()
-
         # Check if the user and post exist
         user_exists = session.execute(select(User).where(User.userID == userId)).scalars().first()
         post_exists = session.execute(select(Post).where(Post.postID == postId)).scalars().first()
