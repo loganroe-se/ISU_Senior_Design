@@ -24,6 +24,7 @@ export const updateUser = async (userData: Partial<User>): Promise<User | null> 
   let body = {
     "username": userData.username,
     "email": userData.email
+    "bearer":
   }
   
   await fetch(`https://api.dripdropco.com/users/${userData.id}`, {

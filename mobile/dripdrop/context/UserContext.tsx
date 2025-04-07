@@ -1,12 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { User, UserTokens, UserContextType } from "@/types/user.interface";
+import { User,  UserContextType } from "@/types/user.interface";
 import { router } from "expo-router";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<UserTokens | null>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Load user data from AsyncStorage on app start
@@ -47,10 +47,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const data = await response.json();
       const { name, email, sub } = decodeJWT(data.id_token).payload;
 
-      const signedInUser: UserTokens = {
-        name: name,
+      const signedInUser: User = {
+        username: name,
         email: email,
-        id: sub,
+        id: parseInt(sub),
         access_token: data.access_token,
         refresh_token: data.refresh_token
       };
