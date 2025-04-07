@@ -6,6 +6,7 @@ import { DatabaseConstruct } from "./constructs/database";
 import { LambdasConstruct } from "./constructs/lambdas";
 import { ApigatewayConstruct } from "./constructs/apigateway";
 import { IAMConstruct } from "./constructs/ssm";
+import { CognitoConstruct } from "./constructs/cognito";
 
 export class ApiStack extends cdk.Stack {
   constructor(parent: cdk.App, name: string, props: cdk.StackProps) {
@@ -24,11 +25,14 @@ export class ApiStack extends cdk.Stack {
       vpcConstruct
     );
 
+    const cognitoConstruct = new CognitoConstruct(this, "CognitoConstruct");
+
     const lambdaConstruct = new LambdasConstruct(
       this,
       "lambdasConstruct",
       vpcConstruct,
-      databaseConstuct
+      databaseConstuct,
+      cognitoConstruct
     );
 
     new IAMConstruct(this, "SSMiamConstruct"); 
@@ -41,7 +45,8 @@ export class ApiStack extends cdk.Stack {
         siteSubDomain: this.node.tryGetContext("apisubdomain"),
       },
       dnsConstruct,
-      lambdaConstruct
+      lambdaConstruct,
+      cognitoConstruct
     );
   }
 }
