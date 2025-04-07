@@ -1,5 +1,5 @@
 export interface sendPost {
-  userID: number;
+  userID: String;
   caption: string;
   images?: string[];
   postID?: number;

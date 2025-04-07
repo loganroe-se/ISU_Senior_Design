@@ -1,13 +1,12 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchUserEmail } from "@/api/user";
-import { User, UserContextType } from "@/types/user.interface";
+import { User, UserTokens, UserContextType } from "@/types/user.interface";
 import { router } from "expo-router";
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<UserTokens | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
 
   // Load user data from AsyncStorage on app start
@@ -26,8 +25,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     loadUser();
   }, []);
+  
 
-  const signIn = useCallback(async (username: string, password: string): Promise<void> => {
+  const signIn = useCallback(async (userEmail: string, password: string): Promise<void> => {
     try {
       setLoading(true);
 
@@ -35,7 +35,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          email: username,
+          email: userEmail,
           password,
         }),
       });
@@ -45,13 +45,16 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
 
       const data = await response.json();
-      const userWithEmail = await fetchUserEmail(data.id);
+      const { name, email, sub } = decodeJWT(data.id_token).payload;
 
-      const signedInUser: User = {
-        id: data.id,
-        username: data.username,
-        email: userWithEmail ?? "",
+      const signedInUser: UserTokens = {
+        name: name,
+        email: email,
+        id: sub,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token
       };
+      console.log(name);
 
       setUser(signedInUser);
       await AsyncStorage.setItem("user", JSON.stringify(signedInUser));
@@ -75,6 +78,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setLoading(false);
     }
   }, []);
+  const decodeJWT = (token: string) => {
+    const [header, payload, signature] = token.split('.');
+  
+    // Decode the base64 URL safe encoded header and payload
+    const decodedHeader = JSON.parse(atob(header.replace(/_/g, '/').replace(/-/g, '+')));
+    const decodedPayload = JSON.parse(atob(payload.replace(/_/g, '/').replace(/-/g, '+')));
+  
+    return { header: decodedHeader, payload: decodedPayload };
+  };
 
   return (
     <UserContext.Provider value={{ user, signIn, signOut, loading }}>

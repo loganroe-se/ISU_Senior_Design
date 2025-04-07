@@ -33,8 +33,8 @@ export default function Login() {
   };
 
   const handleAutoLogin = () => {
-    setEmail("test");
-    setPassword("test");
+    setEmail("zfoote3@gmail.com");
+    setPassword("hello1@T");
   };
 
   const onGoToSignUp = () => {
