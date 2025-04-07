@@ -12,10 +12,13 @@ const SignUpScreen = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [birthday, setBirthday] = useState(new Date()); // Store birthday as Date object
+  const [confirmation_code, setconfirmation_code] = useState(""); // State for confirmation code
   const [isModalVisible, setModalVisible] = useState(false);
-  const [isLoading, setIsLoading] = useState(false); //Loading state
+  const [isLoading, setIsLoading] = useState(false); // Loading state
+  const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false); // Modal for entering confirmation code
 
   const handleSignUp = async () => {
+    // Check if all fields are filled
     if (!username || !email || !password || !confirmPassword) {
       Alert.alert("Incomplete Fields", "Please fill in all the fields", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
@@ -23,6 +26,30 @@ const SignUpScreen = () => {
       return;
     }
 
+    // Validate email format using a regular expression
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert("Invalid Email", "Please enter a valid email address", [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+      return;
+    }
+
+    // Password validation
+    const passwordRegex = /^(?=.*[0-9])(?=.*[!@#$%^&*(),.?":{}|<>])(?=.*[a-z])(?=.*[A-Z]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      Alert.alert("Password Requirements", 
+        "Password must be at least 8 characters long and include:\n" +
+        "• One uppercase letter\n" +
+        "• One lowercase letter\n" +
+        "• One number\n" +
+        "• One special character (e.g., !, @, #, $, etc.)", [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+      return;
+    }
+
+    // Check if passwords match
     if (password !== confirmPassword) {
       Alert.alert("Invalid Input", "Passwords do not match", [
         { text: "OK", onPress: () => console.log("OK Pressed") },
@@ -52,28 +79,65 @@ const SignUpScreen = () => {
 
         if (response.ok) {
           console.log("Sign up successful");
-          Alert.alert("Success", "Account successfully created", [
-            { text: "OK", onPress: () => console.log("Ok pressed") },
+          Alert.alert("Success", "Account successfully created. A confirmation code has been sent to your email.", [
+            { text: "OK", onPress: () => setIsConfirmationModalVisible(true) }, // Show confirmation code input modal
           ]);
-          router.replace("/auth/signin"); // Navigate to the login page
         } else {
           const errorData = await response.json();
-          Alert.alert("Error", errorData.error, [
+          Alert.alert("Error", errorData.error || "Unknown error occurred", [
             { text: "Try Again", onPress: () => console.log("Try again pressed") },
           ]);
         }
       } catch (error) {
-        Alert.alert("Error", "An unexpected error occurred", [
+        console.error("Error during signup:", error);  // Log the actual error to the console for debugging
+        Alert.alert("Error", "An unexpected error occurred: " + (error as { message: string }).message, [
           { text: "OK", onPress: () => console.log("OK Pressed") },
         ]);
       }
       setIsLoading(false);
-
     } else {
-      Alert.alert("Age Restriction", "Must be 13 years or older to use this application", [
-        { text: "OK", onPress: () => setModalVisible(false) },
+      Alert.alert("Error", "You must be at least 13 years old to create an account.", [
+        { text: "OK", onPress: () => console.log("OK pressed") },
       ]);
     }
+  };
+
+  const handleconfirmation_codeSubmit = async () => {
+    if (!confirmation_code) {
+      Alert.alert("Incomplete Code", "Please enter the confirmation code sent to your email", [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const formattedBirthday = birthday.toISOString().split('T')[0]; // Re-format the birthday in case it's needed
+      const response = await fetch('https://api.dripdropco.com/confirm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        
+        body: JSON.stringify({ username, email, dob: formattedBirthday, confirmation_code }),
+      });
+
+      if (response.ok) {
+        console.log("Confirmation successful");
+        Alert.alert("Success", "Your account has been confirmed and activated.", [
+          { text: "OK", onPress: () => router.replace("/auth/signin") }, // Navigate to the login page
+        ]);
+      } else {
+        const errorData = await response.json();
+        Alert.alert("Error", errorData.error || "Unknown error occurred", [
+          { text: "Try Again", onPress: () => console.log("Try again pressed") },
+        ]);
+      }
+    } catch (error) {
+      console.error("Error during confirmation:", error);
+      Alert.alert("Error", "An unexpected error occurred: " + (error as { message: string }).message, [
+        { text: "OK", onPress: () => console.log("OK Pressed") },
+      ]);
+    }
+    setIsLoading(false);
   };
 
   const onGoToSignIn = () => {
@@ -96,6 +160,7 @@ const SignUpScreen = () => {
         <Text style={styles_signup.signInText}>Already have an account? Sign In</Text>
       </TouchableOpacity>
 
+      {/* Birthday Modal */}
       <Modal isVisible={isModalVisible}>
         <View style={styles_signup.modalContent}>
           <Text style={styles_signup.modalText}>Select Your Birthday</Text>
@@ -113,6 +178,23 @@ const SignUpScreen = () => {
           <Button title="Confirm" onPress={handleBirthdaySelect} />
         </View>
       </Modal>
+
+      {/* Confirmation Code Modal */}
+      <Modal isVisible={isConfirmationModalVisible}>
+        <View style={styles_signup.modalContent}>
+          <Text style={styles_signup.modalText}>Enter Confirmation Code</Text>
+          <TextInput
+            style={styles_signup.input}
+            placeholder="Confirmation Code"
+            placeholderTextColor="grey"
+            value={confirmation_code}
+            onChangeText={setconfirmation_code}
+          />
+          <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
+          <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
+        </View>
+      </Modal>
+
       {/* Loading Spinner */}
       {isLoading && (
         <View style={styles_signup.loadingContainer}>
