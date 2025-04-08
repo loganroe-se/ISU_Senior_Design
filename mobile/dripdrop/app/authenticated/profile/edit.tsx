@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 const UserEditProfile = () => {
     const { user, signOut } = useUserContext();
     const [newUsername, setNewUsername] = useState('');
+    const [newEmail, setNewEmail] = useState('');
 
     const [profileUser, setProfileUser] = useState<User | null>(null);
     let newUser: User = {
@@ -33,6 +34,7 @@ const UserEditProfile = () => {
         if(profileUser) {
             newUser = profileUser;
             newUser.username = newUsername;
+            newUser.email = newEmail;
             
             await updateUser(newUser).then(response => {
                 signOut;
@@ -69,6 +71,16 @@ const UserEditProfile = () => {
                             placeholder={profileUser?.username}
                             value={newUsername}
                             onChangeText={setNewUsername}
+                        />
+                    </View>
+                </View>
+                <View style={editStyle.inputGroup}>
+                    <Text>Email</Text>
+                    <View style={editStyle.input}>
+                        <TextInput
+                            placeholder={profileUser?.email}
+                            value={newEmail}
+                            onChangeText={setNewEmail}
                         />
                     </View>
                 </View>
