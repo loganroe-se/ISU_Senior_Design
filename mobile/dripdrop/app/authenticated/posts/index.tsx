@@ -25,6 +25,8 @@ import { sendPost } from "@/types/post";
 import { useUserContext } from "@/context/UserContext";
 import * as ImagePicker from "expo-image-picker"; // For camera functionality
 import { Camera } from "expo-camera"; // For camera functionality
+import ImageAdjustmentModal from "@/components/ImageAdjustmentModal";
+
 
 export default function Post() {
   const [caption, setCaption] = useState("");
@@ -292,33 +294,13 @@ export default function Post() {
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
 
-      {/* Modal for Image Adjustment (Only for gallery images) */}
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={post_styles.modalContainer}>
-          <View style={post_styles.frame}>
-            <Image
-              source={{ uri: selectedImageUri || "" }} // Fallback to an empty string if null
-              style={post_styles.adjustableImage}
-              resizeMode="contain"
-            />
-          </View>
-          <Button
-            mode="contained"
-            onPress={handleSaveAdjustedImage}
-            style={[post_styles.modal_button, post_styles.saveButton]}
-          >
-            Save
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={() => setModalVisible(false)}
-            style={[post_styles.modal_button, post_styles.cancelButton]}
-            textColor="red"
-          >
-            Cancel
-          </Button>
-        </View>
-      </Modal>
+      <ImageAdjustmentModal
+        visible={modalVisible}
+        imageUri={selectedImageUri}
+        onSave={handleSaveAdjustedImage}
+        onCancel={() => setModalVisible(false)}
+      />
+
     </SafeAreaView>
   );
 }
