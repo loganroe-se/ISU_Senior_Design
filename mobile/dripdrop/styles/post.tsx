@@ -47,9 +47,9 @@ export const post_styles = StyleSheet.create({
     },
     cardContainer: {
         backgroundColor: '#f2f2f2',
-        width:'90%',
-        alignSelf:'center',
-        margin:'4%'
+        width: '90%',
+        alignSelf: 'center',
+        margin: '4%'
     },
     imageContainer: {
         alignItems: "center",
@@ -58,10 +58,10 @@ export const post_styles = StyleSheet.create({
     },
     image: {
         width: "100%",
-        height: 200,
+        height: 300,
         borderRadius: 10,
         marginVertical: 10,
-        objectFit: 'contain',
+        resizeMode: 'contain'
     },
     removeIconContainer: {
         position: "absolute", // Position the X icon absolutely
@@ -112,8 +112,8 @@ export const post_styles = StyleSheet.create({
         backgroundColor: "rgba(0, 0, 0, 0.8)",
     },
     frame: {
-        width: 300,
-        height: 300,
+        width: '100%',
+        height: '60%',
         borderWidth: 2,
         borderColor: "#fff",
         overflow: "hidden",
@@ -365,7 +365,7 @@ export const item_details_styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        margin: 8, 
+        margin: 8,
         backgroundColor: "#0",
     },
     saveButton: {
