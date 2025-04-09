@@ -33,8 +33,6 @@ export default function Post() {
   const [photos, setPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
   const [adjustedImageUri, setAdjustedImageUri] = useState<string | null>(null);
@@ -173,8 +171,6 @@ export default function Post() {
       const response = await createPost(newPost);
       const postId = response.postID;
       console.log("Created post with ID:", postId);
-
-      setSnackbarVisible(true);
       setCaption("");
       setImage(null);
       setAdjustedImageUri(null);
