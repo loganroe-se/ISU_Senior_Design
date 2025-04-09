@@ -124,10 +124,23 @@ export class ApigatewayConstruct extends Construct {
         operationName: "PublishPost",
       }
     );
+
+    // Define the /posts/ai-recommendations/{id} resource
+    const aiRecommendations = posts.addResource("ai-recommendations");
+    const aiRecommendationsID = publishPost.addResource("{id}");
+    // POST /posts/ai-recommendations/{id} - Publish Post
+    aiRecommendationsID.addMethod(
+      "POST",
+      new LambdaIntegration(lambdaConstruct.postLambdas["GetAiRecommendationsLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetAiRecommendations",
+      }
+    );
     
     // ---------------------------- Confirm Endpoint -----------------------------
     
-    // define teh /confirm resource
+    // define the /confirm resource
     const confirm = api.root.addResource("confirm");
     confirm.addMethod(
       "POST",
