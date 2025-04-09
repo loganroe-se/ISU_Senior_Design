@@ -25,7 +25,8 @@ def handler(event, context):
 @session_handler
 def getFeed(session, email, limit: int = 20):
     try:
-        userId = get_user_by_email(session, email)
+        user = get_user_by_email(session, email)
+        userID = user.userID
         status, followed_users = getFollowing(session, userID)
         if status != 200:
             return 500, "Error retrieving followed users"
