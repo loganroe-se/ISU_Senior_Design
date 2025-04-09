@@ -16,6 +16,9 @@ import {
 import { Construct } from "constructs";
 import { VpcConstruct } from "./vpc";
 import { DatabaseConstruct } from "./database";
+import { CognitoConstruct } from "./cognito";
+import { Stack } from 'aws-cdk-lib';
+
 
 export class LambdasConstruct extends Construct {
   public readonly userLambdas: Record<string, Function>;
@@ -31,9 +34,14 @@ export class LambdasConstruct extends Construct {
     scope: Construct,
     id: string,
     vpcConstruct: VpcConstruct,
-    databaseConstuct: DatabaseConstruct
+    databaseConstuct: DatabaseConstruct,
+    cognitoConstruct: CognitoConstruct
   ) {
     super(scope, id);
+
+    
+    const region = Stack.of(this).region;
+    const account = Stack.of(this).account;
 
     // IAM Role for Lambda functions with IAM-based RDS Proxy authentication
     const lambdaRole = new Role(this, "LambdaRole", {
@@ -73,19 +81,21 @@ export class LambdasConstruct extends Construct {
     const createLambda = (
       id: string,
       handlerPath: string,
-      functionName: string
+      functionName: string,
+      inVpc? : boolean,
     ) => {
+      const shouldUseVpc = inVpc ?? true;
       const l = new Function(this, id, {
         runtime: Runtime.PYTHON_3_12,
         handler: "handler." + functionName,
         code: Code.fromAsset(handlerPath),
         role: lambdaRole,
         timeout: Duration.seconds(60),
-        vpc: vpcConstruct.vpc,
-        vpcSubnets: vpcConstruct.vpc.selectSubnets({
+        vpc: shouldUseVpc ? vpcConstruct.vpc : undefined,
+        vpcSubnets: shouldUseVpc ? vpcConstruct.vpc.selectSubnets({
           subnetType: SubnetType.PRIVATE_WITH_EGRESS,
-        }),
-        securityGroups: [vpcConstruct.lambdaSecurityGroup],
+        }) : undefined,
+        securityGroups: shouldUseVpc ? [vpcConstruct.lambdaSecurityGroup] : undefined,
         environment: {
           DB_ENDPOINT: databaseConstuct.dbInstance.dbInstanceEndpointAddress, // Use RDS Proxy instead of direct DB
           DB_SECRET_ARN:
@@ -93,7 +103,9 @@ export class LambdasConstruct extends Construct {
           DB_PORT: "3306",
           DB_NAME: databaseConstuct.databaseName,
           REGION: process.env.CDK_DEFAULT_REGION || "us-east-1",
-          SSL_CERT_FILE: "/opt/python/etc/ssl/certs/global-bundle.pem"
+          SSL_CERT_FILE: "/opt/python/etc/ssl/certs/global-bundle.pem",
+          USER_POOL_CLIENT_ID: cognitoConstruct.userPoolClient.userPoolClientId,
+          USER_POOL_ID: cognitoConstruct.userPool.userPoolId
         },
         layers: [sharedLayer],
       });
@@ -106,7 +118,8 @@ export class LambdasConstruct extends Construct {
       createUserLambda: createLambda(
         "CreateUserLambda",
         "lib/lambdas/api-endpoints/user/create-user",
-        "handler"
+        "handler",
+        false
       ),
       deleteUserLambda: createLambda(
         "DeleteUserLambda",
@@ -141,9 +154,35 @@ export class LambdasConstruct extends Construct {
       userSignInLambda: createLambda(
         "UserSignInLambda",
         "lib/lambdas/api-endpoints/user/user-sign-in",
-        "handler"
+        "handler",
+        false
+      ),
+      userSignInConfirmLambda: createLambda(
+        "UserSignInConfirmLambda",
+        "lib/lambdas/api-endpoints/user/user-confirm",
+        "handler",
+        false
+      ),
+      CreateUserInternal: createLambda(
+        "CreateUserInternalLambda",
+        "lib/lambdas/api-endpoints/user/user-create-internal",
+        "handler",
       ),
     };
+
+    this.userLambdas.userSignInConfirmLambda.addToRolePolicy(new PolicyStatement({
+      actions: ['lambda:InvokeFunction'],
+      resources: [`arn:aws:lambda:${region}:${account}:function:DripDropAPI-lambdasConstructCreateUserInternalLamb-*`],
+    }));
+
+    this.userLambdas.userSignInConfirmLambda.addToRolePolicy(new PolicyStatement({
+      actions: ['cognito-idp:AdminGetUser', 'cognito-idp:AdminDeleteUser'],
+      resources: [
+        `arn:aws:cognito-idp:${region}:${account}:userpool/${cognitoConstruct.userPool.userPoolId}`
+      ],
+    }));
+
+    this.userLambdas.userSignInConfirmLambda.addEnvironment("INTERNAL_USER_LAMBDA_NAME", this.userLambdas.CreateUserInternal.functionName)
 
     this.userLambdas["updateUserLambda"].addToRolePolicy(
       new PolicyStatement({

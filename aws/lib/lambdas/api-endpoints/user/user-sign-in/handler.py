@@ -1,56 +1,51 @@
 import json
-from sqlalchemy import select
-from sqlalchemy_utils import create_session
+import os
+import boto3
 from utils import create_response, handle_exception
-from dripdrop_orm_objects import User
-from passlib.hash import bcrypt
+from botocore.exceptions import ClientError
 
+# Cognito Client
+cognito = boto3.client('cognito-idp')
+CLIENT_ID = os.environ['USER_POOL_CLIENT_ID']
 
 def handler(event, context):
     try:
-        # Parse the login data from event
         body = json.loads(event['body'])
 
-        # Get all body attributes
         email = body.get('email')
         password = body.get('password')
 
-        # Check for missing, required values
         if not email or not password:
-             return create_response(400, 'Missing email or password')
+            return create_response(400, 'Missing email or password')
 
-        # Call signIn function
-        status_code, message = signIn(email, password)
+        # Authenticate via Cognito
+        auth_result = cognito.initiate_auth(
+            ClientId=CLIENT_ID,
+            AuthFlow='USER_PASSWORD_AUTH',
+            AuthParameters={
+                'USERNAME': email,
+                'PASSWORD': password
+            }
+        )
 
-        # Return message
-        return create_response(status_code, message)
+        # If auth successful, get tokens
+        tokens = auth_result['AuthenticationResult']
+        id_token = tokens['IdToken']
+        access_token = tokens['AccessToken']
+        refresh_token = tokens['RefreshToken']
+
+        # Look up user info in internal DB
+
+        return create_response(200, {
+            'id_token': id_token,
+            'access_token': access_token,
+            'refresh_token': refresh_token
+        })
+
+    except ClientError as e:
+        error = e.response['Error']['Message']
+        return create_response(401, f"Authentication failed: {error}")
 
     except Exception as e:
-        return create_response(500, f"Error Signing In: {str(e)}")
-    
-
-def signIn(email, password):
-    # Try to sign in
-    try:
-        # Create the session
-        session = create_session()
-
-        # Query the user by email
-        user = session.execute(select(User).where(User.email == email)).scalars().first()
-
-        if user and bcrypt.verify(password, user.password):  # Check hashed password
-            return 200, {
-                    'username': user.username,
-                    'id': user.userID
-                }
-        else:
-            return 401, 'Invalid email or password'
-
-    except Exception as e:
-        # Call a helper to handle the exception
         code, msg = handle_exception(e, "Error signing in")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+        return create_response(code, msg)

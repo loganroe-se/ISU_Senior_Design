@@ -10,6 +10,7 @@ import { profileStyle } from "@/styles/profile";
 import { router, useLocalSearchParams } from "expo-router";
 import { fetchUserById } from "@/api/user";
 import { User } from "@/types/user.interface";
+import { launchImageLibrary } from 'react-native-image-picker';
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -19,29 +20,52 @@ const UserProfile = () => {
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [privatePosts, setPrivatePosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
   const [subPage, setSubPage] = useState("posts");
 
-  let uid = 0;
+  const selectImage = () => {
+    const options = {
+      mediaType: 'photo',
+      quality: 1,
+    };
+
+    launchImageLibrary(options, (response) => {
+      if (response.didCancel) {
+        console.log('User cancelled image picker');
+      } else if (response.errorMessage) {
+        console.log('ImagePicker Error: ', response.errorMessage);
+      } else {
+        let profile = profileUser;
+        if(profile && response.assets) {
+          console.log(response.assets[0].uri);
+          //profile.profilePic = response.assets?[0];
+        }
+      }
+    });
+  };
+
+  let uid = -1;
 
   useEffect(() => {
     const getUserData = async () => {
-      uid = id == null ? user != null ? user.id : 0 : parseInt(id);
+      uid = id == null ? user != null ? user.id : -1 : parseInt(id);
 
-      setProfileUser(await fetchUserById(uid));
+      if(uid != -1) {
+        let userAwait = await fetchUserById(uid);
 
-      const p = await fetchUserPosts(uid);
-      const f = await fetchFollowing(uid);
-      const fs = await fetchFollowers(uid);
+        if(userAwait != null) {
+          setProfileUser(userAwait);
+        }
 
-      setPosts(p);
-      setFollowing(f);
-      setFollowers(fs);
+        const f = await fetchFollowing(uid);
+        const fs = await fetchFollowers(uid);
+        //const p = await fetchUserPosts(uid);
 
-      setPosts(posts.filter(post => post.status == "PUBLIC"));
-      setPrivatePosts(posts.filter(post => post.status == "PRIVATE"));
+        setFollowing(f);
+        setFollowers(fs);
+        //setPosts(p);
+      }
     };
 
     getUserData();
@@ -67,27 +91,31 @@ const UserProfile = () => {
       <View>
         <View style={profileStyle.profileContainer}>
           <View style={profileStyle.avatarContainer}>
-            <Avatar.Image
-              size={90}
-              source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
-            />
+            <TouchableOpacity onPress={selectImage}>
+              <Avatar.Image
+                size={90}
+                source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+              />
+            </TouchableOpacity>
           </View>
-          <View>
+          <View style={{marginLeft: 8}}>
             <View style={profileStyle.userHeader}>
               <Text style={profileStyle.username}>{profileUser?.username}</Text>
             </View>
-            <View style={profileStyle.userDescription}>
-              <Text style={profileStyle.bio}>{"Digital goodies collector 🌈✨"}</Text> {/*Replce with the user's bio once implemente*/}
-            </View>
-            <TouchableOpacity style={profileStyle.actionButton} onPress={actionPress}>
-              <Text style={profileStyle.buttonLabel}>{user.id === profileUser?.id ? "Edit Profile" : "Follow"}</Text>
-            </TouchableOpacity>
-              <TouchableOpacity
-                onPress={signOut} // Call the signOut function from context
-              style={[profileStyle.actionButton, profileStyle.signOutButton]}
-              >
-                <Text style={profileStyle.buttonLabel}>Sign out</Text>
+            <View style={{display: "flex", flexDirection: "row"}}>
+              <TouchableOpacity style={profileStyle.actionButton} onPress={actionPress}>
+                <Text style={profileStyle.buttonLabel}>{user.id === profileUser?.id ? "Edit Profile" : "Follow"}</Text>
               </TouchableOpacity>
+
+              {user.id === profileUser?.id &&
+                <TouchableOpacity
+                  onPress={signOut} // Call the signOut function from context
+                  style={[profileStyle.actionButton, profileStyle.signOutButton, {marginLeft: 8}]}
+                >
+                  <Text style={profileStyle.buttonLabel}>Sign out</Text>
+                </TouchableOpacity>
+              }
+            </View>
 
           </View>
         </View>
@@ -115,13 +143,31 @@ const UserProfile = () => {
             <Text style={subPage === "posts" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Posts</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => {setSubPage("private")}}>
-            <Text style={subPage !== "posts" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Drafts</Text>
+            <Text style={subPage === "private" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Drafts</Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => {setSubPage("review")}}>
+            <Text style={subPage === "review" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Review</Text>
           </TouchableOpacity>
         </View>
       }
       
       {
-        subPage === "posts" ? <FlatList
+        subPage === "posts" && posts.length > 0 ? <FlatList
+          data={posts}
+          keyExtractor={(item: Post) => item.postID.toString()}
+          numColumns={3}
+          contentContainerStyle={profileStyle.gridContainer}
+          renderItem={({ item }) => (
+            <TouchableOpacity style={profileStyle.postContainer}>
+              <Image
+                source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
+                style={profileStyle.postImage}
+              />
+            </TouchableOpacity>
+          )}
+        />
+        : subPage === "private" && posts.length > 0 ?
+        <FlatList
           data={posts}
           keyExtractor={(item: Post) => item.postID.toString()}
           numColumns={3}
@@ -137,7 +183,7 @@ const UserProfile = () => {
         />
         :
         <FlatList
-          data={privatePosts}
+          data={posts}
           keyExtractor={(item: Post) => item.postID.toString()}
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}

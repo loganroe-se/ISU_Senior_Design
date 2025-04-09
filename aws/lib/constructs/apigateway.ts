@@ -5,9 +5,18 @@ import { DnsConstruct } from "./dns";
 import { LambdasConstruct } from "./lambdas";
 import { ApiGateway } from "aws-cdk-lib/aws-route53-targets";
 import { StaticSiteProps } from "../interfaces/staticProps.interface";
+import { CognitoConstruct } from "./cognito";
+import { Lambda } from "aws-cdk-lib/aws-ses-actions";
 
 export class ApigatewayConstruct extends Construct {
-  constructor(scope: Construct, id: string, props: StaticSiteProps, dnsConstruct: DnsConstruct, lambdaConstruct: LambdasConstruct) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: StaticSiteProps,
+    dnsConstruct: DnsConstruct,
+    lambdaConstruct: LambdasConstruct,
+    CognitoConstruct: CognitoConstruct
+  ) {
     super(scope, id);
     // API Gateway setup with custom domain
     const api = new RestApi(this, "UserApi", {
@@ -35,13 +44,19 @@ export class ApigatewayConstruct extends Construct {
       "POST",
       new LambdaIntegration(lambdaConstruct.postLambdas["createPostLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "CreatePost",
       }
     );
     // GET /posts - Get All Posts
-    posts.addMethod("GET", new LambdaIntegration(lambdaConstruct.postLambdas["getPostsLambda"]), {
-      operationName: "GetPosts",
-    });
+    posts.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.postLambdas["getPostsLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetPosts",
+      }
+    );
 
     // Define the /posts/{id} resource
     const post = posts.addResource("{id}");
@@ -51,13 +66,19 @@ export class ApigatewayConstruct extends Construct {
       "DELETE",
       new LambdaIntegration(lambdaConstruct.postLambdas["deletePostLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "DeletePost",
       }
     );
     // GET /posts/{id} - Get Post by ID
-    post.addMethod("GET", new LambdaIntegration(lambdaConstruct.postLambdas["getPostByIdLambda"]), {
-      operationName: "GetPostById",
-    });
+    post.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.postLambdas["getPostByIdLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetPostById",
+      }
+    );
 
     // Define the /posts/user/{userID} resource
     const userPost = posts.addResource("user");
@@ -66,8 +87,11 @@ export class ApigatewayConstruct extends Construct {
     // GET /posts/user/{userID}} - Get Post by User ID
     userID.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.postLambdas["getPostsByUserIdLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.postLambdas["getPostsByUserIdLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetPostByUserId",
         requestParameters: {
           "method.request.querystring.status": false, // Optional parameter
@@ -79,17 +103,41 @@ export class ApigatewayConstruct extends Construct {
     const searchPosts = posts.addResource("search");
     const searchPostsString = searchPosts.addResource("{searchString}");
     // GET /posts/search - Search posts
-    searchPostsString.addMethod("GET", new LambdaIntegration(lambdaConstruct.postLambdas["searchPostsLambda"]), {
-      operationName: "SearchPosts",
-    });
+    searchPostsString.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.postLambdas["searchPostsLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "SearchPosts",
+      }
+    );
 
     // Define the /posts/publish/{id} resource
     const publishPost = posts.addResource("publish");
     const publishPostID = publishPost.addResource("{id}");
     // PUT /posts/publish/{id} - Publish Post
-    publishPostID.addMethod("PUT", new LambdaIntegration(lambdaConstruct.postLambdas["publishPostLambda"]), {
-      operationName: "PublishPost",
-    });
+    publishPostID.addMethod(
+      "PUT",
+      new LambdaIntegration(lambdaConstruct.postLambdas["publishPostLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "PublishPost",
+      }
+    );
+    
+    // ---------------------------- Confirm Endpoint -----------------------------
+    
+    // define teh /confirm resource
+    const confirm = api.root.addResource("confirm");
+    confirm.addMethod(
+      "POST",
+      new LambdaIntegration(
+        lambdaConstruct.userLambdas["userSignInConfirmLambda"]
+      ),
+      {
+        operationName: "ConfirmUser",
+      }
+    );
 
     // ---------------------------- USER ENDPOINTS -------------------------------
 
@@ -106,28 +154,44 @@ export class ApigatewayConstruct extends Construct {
     );
 
     // GET /users - Get All Users
-    users.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["getUsersLambda"]), {
-      operationName: "GetUsers",
-    });
+    users.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.userLambdas["getUsersLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetUsers",
+      }
+    );
 
     // Define the /users/{id} resource
     const user = users.addResource("{id}");
 
     // GET /users/{id} - Get User by ID
-    user.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["getUserByIdLambda"]), {
-      operationName: "GetUserById",
-    });
+    user.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.userLambdas["getUserByIdLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetUserById",
+      }
+    );
 
     // PUT /users/{id} - Update User
-    user.addMethod("PUT", new LambdaIntegration(lambdaConstruct.userLambdas["updateUserLambda"]), {
-      operationName: "UpdateUser",
-    });
+    user.addMethod(
+      "PUT",
+      new LambdaIntegration(lambdaConstruct.userLambdas["updateUserLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "UpdateUser",
+      }
+    );
 
     // DELETE /users/{id} - Delete User
     user.addMethod(
       "DELETE",
       new LambdaIntegration(lambdaConstruct.userLambdas["deleteUserLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "DeleteUser",
       }
     );
@@ -139,8 +203,11 @@ export class ApigatewayConstruct extends Construct {
     // GET /username/{username} - Get User by Username
     get_username.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.userLambdas["getUserByUsernameLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.userLambdas["getUserByUsernameLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetUserByUsername",
       }
     );
@@ -161,9 +228,14 @@ export class ApigatewayConstruct extends Construct {
     const searchUsers = users.addResource("search");
     const searchUsersString = searchUsers.addResource("{searchString}");
     // GET /users/search - Search posts
-    searchUsersString.addMethod("GET", new LambdaIntegration(lambdaConstruct.userLambdas["searchUsersLambda"]), {
-      operationName: "SearchUsers",
-    });
+    searchUsersString.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.userLambdas["searchUsersLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "SearchUsers",
+      }
+    );
 
     // -------------------------------- HAS SEEN ENDPOINTS -------------------------
 
@@ -175,6 +247,7 @@ export class ApigatewayConstruct extends Construct {
       "POST",
       new LambdaIntegration(lambdaConstruct.hasSeenLambdas["markAsSeenLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "MarkAsSeen",
       }
     );
@@ -188,8 +261,11 @@ export class ApigatewayConstruct extends Construct {
     // GET /hasSeen/seenPosts - Get the list of seen posts by a userID
     hasSeenPosts.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.hasSeenLambdas["getSeenPostsByUserIdLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.hasSeenLambdas["getSeenPostsByUserIdLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetSeenPosts",
       }
     );
@@ -200,8 +276,11 @@ export class ApigatewayConstruct extends Construct {
     // DELETE /hasSeen/resetSeen - Resets the list of seen posts for a given userID
     resetSeenPosts.addMethod(
       "DELETE",
-      new LambdaIntegration(lambdaConstruct.hasSeenLambdas["resetSeenPostsForUserIdLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.hasSeenLambdas["resetSeenPostsForUserIdLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "ResetSeenPosts",
       }
     );
@@ -212,8 +291,11 @@ export class ApigatewayConstruct extends Construct {
     // GET /hasSeen/seenUsers - Get the list of users that have seen a post
     hasSeenUsers.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.hasSeenLambdas["getUsersByPostIdLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.hasSeenLambdas["getUsersByPostIdLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetSeenUsers",
       }
     );
@@ -224,13 +306,18 @@ export class ApigatewayConstruct extends Construct {
     const feed = api.root.addResource("feed").addResource("{userID}");
 
     // GET /feed - Gets the feed for a user ID
-    feed.addMethod("GET", new LambdaIntegration(lambdaConstruct.feedLambdas["getFeedLambda"]), {
-      operationName: "GetFeed",
-      requestParameters: {
-        "method.request.path.userID": true,
-        "method.request.querystring.limit": false,
-      },
-    });
+    feed.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.feedLambdas["getFeedLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetFeed",
+        requestParameters: {
+          "method.request.path.userID": true,
+          "method.request.querystring.limit": false,
+        },
+      }
+    );
 
     // ----------------------------- FOLLOW ENDPOINTS -----------------------------
 
@@ -242,6 +329,7 @@ export class ApigatewayConstruct extends Construct {
       "POST",
       new LambdaIntegration(lambdaConstruct.followLambdas["followUserLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "FollowUser",
       }
     );
@@ -249,8 +337,11 @@ export class ApigatewayConstruct extends Construct {
     // DELETE /follow - Unfollow user, delete follow relationship
     follow.addMethod(
       "DELETE",
-      new LambdaIntegration(lambdaConstruct.followLambdas["unfollowUserLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.followLambdas["unfollowUserLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "UnfollowUser",
       }
     );
@@ -265,8 +356,11 @@ export class ApigatewayConstruct extends Construct {
     // GET /follow/{id}/followers - Get Followers for given user id
     followers.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.followLambdas["getFollowersLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.followLambdas["getFollowersLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetFollowers",
       }
     );
@@ -274,8 +368,11 @@ export class ApigatewayConstruct extends Construct {
     // GET /follows/{id}/followers - Get Followers by ID
     following.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.followLambdas["getFollowingLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.followLambdas["getFollowingLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetFollowing",
       }
     );
@@ -286,15 +383,21 @@ export class ApigatewayConstruct extends Construct {
     const like = api.root.addResource("like");
 
     // POST /like - like a post
-    like.addMethod("POST", new LambdaIntegration(lambdaConstruct.likeLambdas["likePostLambda"]), {
-      operationName: "LikePost",
-    });
+    like.addMethod(
+      "POST",
+      new LambdaIntegration(lambdaConstruct.likeLambdas["likePostLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "LikePost",
+      }
+    );
 
     // DELETE /like - unlike a post
     like.addMethod(
       "DELETE",
       new LambdaIntegration(lambdaConstruct.likeLambdas["unlikePostLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "UnlikePost",
       }
     );
@@ -309,6 +412,7 @@ export class ApigatewayConstruct extends Construct {
       "POST",
       new LambdaIntegration(lambdaConstruct.commentLambdas["addCommentLambda"]),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "AddComment",
       }
     );
@@ -319,8 +423,11 @@ export class ApigatewayConstruct extends Construct {
     // DELETE /comment - remove a comment
     commentID.addMethod(
       "DELETE",
-      new LambdaIntegration(lambdaConstruct.commentLambdas["deleteCommentLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.commentLambdas["deleteCommentLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "DeleteComent",
       }
     );
@@ -332,12 +439,14 @@ export class ApigatewayConstruct extends Construct {
     // GET /comment/{post-id} - get comments for a post
     commentPostID.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.commentLambdas["getCommentsLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.commentLambdas["getCommentsLambda"]
+      ),
       {
+        authorizer: CognitoConstruct.authorizer,
         operationName: "GetCommentsByPostId",
       }
     );
-
 
     //--------------------------- ITEM ENDPOINTS -----------------------------
 
@@ -345,40 +454,73 @@ export class ApigatewayConstruct extends Construct {
     const items = api.root.addResource("items");
 
     // POST /items - create item
-    items.addMethod("POST", new LambdaIntegration(lambdaConstruct.itemLambdas["createItemLambda"]), {
-      operationName: "CreateItem",
-    });
+    items.addMethod(
+      "POST",
+      new LambdaIntegration(lambdaConstruct.itemLambdas["createItemLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "CreateItem",
+      }
+    );
 
     // Define the /items/{item-id} resource
     const itemID = items.addResource("{item-id}");
 
     // GET /items/{item-id} - get item details
-    itemID.addMethod("GET", new LambdaIntegration(lambdaConstruct.itemLambdas["getItemDetailsLambda"]), {
-      operationName: "GetItemDetails",
-    });
+    itemID.addMethod(
+      "GET",
+      new LambdaIntegration(
+        lambdaConstruct.itemLambdas["getItemDetailsLambda"]
+      ),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetItemDetails",
+      }
+    );
 
     // DELETE /items/{item-id} - delete item
-    itemID.addMethod("DELETE", new LambdaIntegration(lambdaConstruct.itemLambdas["deleteItemLambda"]), {
-      operationName: "DeleteItem",    
-    });
+    itemID.addMethod(
+      "DELETE",
+      new LambdaIntegration(lambdaConstruct.itemLambdas["deleteItemLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "DeleteItem",
+      }
+    );
 
     // POST /items/{item-id} - add details
-    itemID.addMethod("POST", new LambdaIntegration(lambdaConstruct.itemLambdas["addDetailsLambda"]), {
-      operationName: "AddDetails",
-    });
+    itemID.addMethod(
+      "POST",
+      new LambdaIntegration(lambdaConstruct.itemLambdas["addDetailsLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "AddDetails",
+      }
+    );
 
     // PUT /items/{item-id} - update item details
-    itemID.addMethod("PUT", new LambdaIntegration(lambdaConstruct.itemLambdas["updateItemDetailsLambda"]), {
-      operationName: "UpdateItemDetails",
-    });
+    itemID.addMethod(
+      "PUT",
+      new LambdaIntegration(
+        lambdaConstruct.itemLambdas["updateItemDetailsLambda"]
+      ),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "UpdateItemDetails",
+      }
+    );
 
     // Define the /items/post/{post-id} resource
     const itemPost = items.addResource("post");
     const itemPostID = itemPost.addResource("{post-id}");
-    itemPostID.addMethod("GET", new LambdaIntegration(lambdaConstruct.itemLambdas["getItemsLambda"]), {
-      operationName: "GetItemsByPostId",
-    });
-  
+    itemPostID.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.itemLambdas["getItemsLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetItemsByPostId",
+      }
+    );
 
     // Create an ARecord for API Gateway in Route 53
     new ARecord(this, "ApiAliasRecord", {

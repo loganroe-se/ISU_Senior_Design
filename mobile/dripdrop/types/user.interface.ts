@@ -1,8 +1,16 @@
+
 export interface User {
-  id: number;
-  username: string;
-  email: string;
-  profilePic: string;
+  username: String,
+  email: String,
+  id: String,
+  exp: String,
+  id_token: String,
+  access_token: String,
+  refresh_token: String
+}
+export interface UserProfile extends User {
+  profilePic: String;
+
 }
 export interface UserContextType {
   user: User | null;

@@ -4,18 +4,20 @@ import { Dimensions, StyleSheet } from "react-native";
 
 
 
-export const preview_post_styles = StyleSheet.create({
+export const processing_post_styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
+
     },
     title: {
         fontSize: 20,
         fontWeight: "bold",
         marginBottom: 20,
         textAlign: "center",
+        color: 'black'
     },
     image: {
         width: 300,
@@ -28,6 +30,7 @@ export const preview_post_styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 10,
+        color: 'black'
     },
     button: {
         width: "80%",
@@ -43,9 +46,10 @@ export const post_styles = StyleSheet.create({
         flex: 1,
     },
     cardContainer: {
-        borderRadius: 12,
-        elevation: 5,
-        backgroundColor: '#f2f2f2'
+        backgroundColor: '#f2f2f2',
+        width:'90%',
+        alignSelf:'center',
+        margin:'4%'
     },
     imageContainer: {
         alignItems: "center",
@@ -148,6 +152,7 @@ export const post_styles = StyleSheet.create({
     },
     continueButton: {
         padding: 8,
+        borderRadius: 4
     },
     continueText: {
         fontSize: 16,
@@ -157,6 +162,12 @@ export const post_styles = StyleSheet.create({
     loadingText: {
         color: 'grey',
         opacity: 0.7,
+    },
+    disabledButton: {
+        backgroundColor: "#d3d3d3", // Grey out the button when disabled
+    },
+    disabledText: {
+        color: "#a1a1a1", // Lighter color for the text when disabled
     },
     takePhotoButton: {
         flexDirection: "row",
@@ -218,8 +229,8 @@ export const image_marker_styles = StyleSheet.create({
     },
     marker: {
         position: "absolute",
-        width: '8%', 
-        height: '8%', 
+        width: '8%',
+        height: '8%',
         borderRadius: '100%', // Circular marker
         backgroundColor: "grey", // Default color for unverified markers
         opacity: 0.7, // Semi-transparent
@@ -298,7 +309,7 @@ export const image_marker_styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
     },
-        editButton: {
+    editButton: {
         position: "absolute",
         top: 16,
         right: 16,
@@ -321,7 +332,7 @@ export const image_marker_styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
     },
-    
+
 });
 
 
@@ -342,33 +353,29 @@ export const item_details_styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        padding: 10,
+
         position: "absolute", // Position the buttons absolutely
         alignSelf: 'center',
         bottom: '-.1%'
     },
-
     backButton: {
         borderWidth: 1.5,
         borderColor: "black",
-        paddingVertical: 12,
-        paddingHorizontal: 24,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginRight: 8, // Add spacing between buttons
-        backgroundColor: "#fff", // White background for the button
+        margin: 8, 
+        backgroundColor: "#0",
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        borderWidth: 1.5,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginLeft: 8, // Add spacing between buttons
+        margin: 8,
     },
     buttonText: {
         fontSize: 16,
@@ -384,18 +391,19 @@ export const item_details_styles = StyleSheet.create({
     text: {
         fontSize: 18,
         marginBottom: 10,
-        color: "#555", // Medium gray text color
     },
     input: {
         height: 50,
-        borderColor: "#ccc",
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 12,
         marginBottom: 16,
-        width: "100%",
         backgroundColor: "#fff", // White background for inputs
-        fontSize: 16,
+
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+
 });
 
