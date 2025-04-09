@@ -24,7 +24,6 @@ const UserProfile = () => {
   const [following, setFollowing] = useState<Following[]>([]);
   const [subPage, setSubPage] = useState("posts");
 
-  let uid = 0;
 
   useEffect(() => {
     const getUserData = async () => {

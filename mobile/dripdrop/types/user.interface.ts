@@ -2,7 +2,7 @@
 export interface User {
   username: String,
   email: String,
-  id: number,
+  id: String,
   exp: String,
   id_token: String,
   access_token: String,
