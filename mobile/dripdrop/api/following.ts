@@ -8,12 +8,12 @@ export const fetchUserByUsername = async (username: string): Promise<User> => {
 };
 
 // Fetch user following list by userID
-export const fetchFollowing = async (userID: number): Promise<Following[]> => {
+export const fetchFollowing = async (userID: String): Promise<Following[]> => {
   return apiRequest<Following[]>("GET", `/follow/${userID}/following`);
 };
 
 // Fetch user following list by userID
-export const fetchFollowers = async (userID: number): Promise<Following[]> => {
+export const fetchFollowers = async (userID: String): Promise<Following[]> => {
   return apiRequest<Following[]>("GET", `/follow/${userID}/followers`);
 };
 

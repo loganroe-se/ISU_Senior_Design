@@ -30,7 +30,7 @@ export const getPostById = async (postId: number): Promise<Post> => {
 };
 
 // Fetch all user posts
-export const fetchUserPosts = async (userID: number): Promise<Post[]> => {
+export const fetchUserPosts = async (userID: String): Promise<Post[]> => {
   return apiRequest<Post[]>("GET", `/posts/user/${userID}`);
 };
 
