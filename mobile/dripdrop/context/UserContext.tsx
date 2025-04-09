@@ -50,7 +50,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const signedInUser: User = {
         username: name,
         email: email,
-        id: parseInt(sub),
+        id: sub,
         exp: exp,
         id_token: data.id_token,
         access_token: data.access_token,
