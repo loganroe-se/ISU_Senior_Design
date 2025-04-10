@@ -15,7 +15,7 @@ import * as MediaLibrary from "expo-media-library";
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
-  //const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const { user, signOut } = useUserContext();
 
@@ -82,7 +82,7 @@ const UserProfile = () => {
 
       if(user != null) {
         console.log(user);
-        router.replace(`/authenticated/profile?id=${user.id}` as any);
+        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
       }
     }
 
@@ -92,9 +92,9 @@ const UserProfile = () => {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        //let uid = id == null ? user != null ? user.id.toString() : -1 : id;
+        let uid = id == null ? user != null ? user.id.toString() : -1 : id;
         if(user != null && user.id != null){
-          let uid = user.id;
+          uid = uid.toString();
           let userAwait = await fetchUserById(uid);
           if(userAwait != null) {
             setProfileUser(userAwait);
