@@ -17,6 +17,9 @@ import {
 import { FeedPost } from "@/types/post";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "@/constants/Colors";
+import { searchUsersByUsername } from "@/api/user";
+import { User } from "@/types/user";
+import { fetchUserByUsername } from "@/api/following";
 
 interface Post {
   postID: number;
@@ -43,16 +46,7 @@ export default function SearchScreen() {
   const [initialIndex, setInitialIndex] = useState<number>(0); // Track the initial index for the modal feed
 
   const fetchUsers = async (searchTerm: string): Promise<any[]> => {
-    try {
-      const response = await fetch(
-        `https://api.dripdropco.com/users/search/${searchTerm}`
-      );
-      const data = await response.json();
-      return data;
-    } catch (error) {
-      console.error("Error fetching users:", error);
-      return [];
-    }
+    return await searchUsersByUsername(searchTerm);
   };
 
   const fetchPosts = async (searchTerm: string): Promise<FeedPost[]> => {
@@ -98,8 +92,17 @@ export default function SearchScreen() {
     }
   }, [searchQuery, searchType]);
 
-  const handleUserPress = (id: number) => {
-    router.replace(`/authenticated/profile?id=${id}` as any);
+  const handleUserPress = (username: string) => {
+    const fetchUser = async() => {
+      let user = await fetchUserByUsername(username);
+
+      if(user != null) {
+        console.log(user);
+        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
+      }
+    }
+
+    fetchUser();
   };
 
   const handlePostClick = (post: Post) => {
@@ -216,8 +219,8 @@ export default function SearchScreen() {
           {users.length > 0 ? (
             users.map((item) => (
               <TouchableOpacity
-                key={item.id.toString()} // Ensuring unique key here
-                onPress={() => handleUserPress(item.id)}
+                key={item.uid} // Ensuring unique key here
+                onPress={() => handleUserPress(item.username)}
               >
                 <Text style={styles.userItem}>{item.username}</Text>
               </TouchableOpacity>
