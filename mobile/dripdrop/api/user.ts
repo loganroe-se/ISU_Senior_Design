@@ -40,10 +40,24 @@ export const updateUser = async (userData: Partial<User>): Promise<User | null> 
 };
 
 // Delete user by userID
-export const deleteUser = async (uid: number): Promise<User | null> => {
+export const deleteUser = async (uid: String): Promise<User | null> => {
   await fetch(`https://api.dripdropco.com/users/${uid}`, {
     method: "DELETE",
   });
 
   return null;
+};
+
+// Fetch users by search term
+export const searchUsers = async (searchTerm: string): Promise<User[] | null> => {
+  try {
+    const response = await fetch(
+      `https://api.dripdropco.com/users/search/${searchTerm}`
+    );
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
 };
