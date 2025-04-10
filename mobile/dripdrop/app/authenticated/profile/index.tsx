@@ -67,8 +67,26 @@ const UserProfile = () => {
   };
 
   const getUserPosts = async (id: string) => {
-    const p = await fetchUserPosts(id,subPage);
-    setPosts(p);
+    try {
+      const p = await fetchUserPosts(id,subPage);
+      setPosts(p);
+    }
+    catch {
+
+    }
+  }
+
+  const redirectToUser = async (username: string) => {
+    const fetchUser = async() => {
+      let user = await fetchUserByUsername(username);
+
+      if(user != null) {
+        console.log(user);
+        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
+      }
+    }
+
+    fetchUser();
   }
 
   useEffect(() => {
@@ -101,7 +119,7 @@ const UserProfile = () => {
               setIsFollowing(true);
             }
           }
-
+          
           getUserPosts(uid.toString());
         }
       }
@@ -120,12 +138,15 @@ const UserProfile = () => {
   }, [subPage])
 
   const actionPress = async() => {
-    if(user?.id === profileUser?.id) {
+    if(user?.uuid === profileUser?.uuid) {
       router.replace(`/authenticated/profile/edit` as any);
     }
     else {
       if(!isFollowing && user != null && profileUser != null) {
-        await followUser(user.id,profileUser.id);
+        console.log(user.id, profileUser.uuid);
+        await followUser(user.id,profileUser.uuid);
+
+        setIsFollowing(true);
       }
     }
   }
@@ -267,11 +288,15 @@ const UserProfile = () => {
             </View>
             {
               followModalType == "Followers" ? followers.map((follower) => 
-                <Text style={{color: 'black'}}>{follower.username}</Text>
+                <TouchableOpacity onPress={() => {redirectToUser(follower.username)}}>
+                  <Text style={{color: 'black'}}>{follower.username}</Text>
+                </TouchableOpacity>
               )
               :
               following.map((following) => 
-                <Text style={{color: 'black'}}>{following.username}</Text>
+                <TouchableOpacity onPress={() => {redirectToUser(following.username)}}>
+                  <Text style={{color: 'black'}}>{following.username}</Text>
+                </TouchableOpacity>
               )
             }
           </View>
