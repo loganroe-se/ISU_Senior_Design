@@ -9,18 +9,18 @@ import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
 import { router, useLocalSearchParams } from "expo-router";
 import { fetchUserById } from "@/api/user";
-import { User } from "@/types/user.interface";
+import { User, ProfileUser } from "@/types/user.interface";
 import { Camera } from "expo-camera"; // For camera functionality
 import * as MediaLibrary from "expo-media-library";
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
-  const id = Array.isArray(params.id) ? params.id[0] : params.id;
+  //const id = Array.isArray(params.id) ? params.id[0] : params.id;
 
   const { user, signOut } = useUserContext();
 
   const [photos, setPhotos] = useState<MediaLibrary.Asset[]>([]);
-  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
@@ -82,7 +82,7 @@ const UserProfile = () => {
 
       if(user != null) {
         console.log(user);
-        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
+        router.replace(`/authenticated/profile?id=${user.id}` as any);
       }
     }
 
@@ -92,35 +92,30 @@ const UserProfile = () => {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        let uid = id == null ? user != null ? user.id.toString() : -1 : id;
-
-        if(uid != -1) {
+        //let uid = id == null ? user != null ? user.id.toString() : -1 : id;
+        if(user != null && user.id != null){
+          let uid = user.id;
           let userAwait = await fetchUserById(uid);
-
           if(userAwait != null) {
             setProfileUser(userAwait);
           }
-
           const f = await fetchFollowing(uid);
           const fs = await fetchFollowers(uid);
-          
-
           setFollowing(f);
           setFollowers(fs);
-
-          if(user != null && uid !== parseInt(user.id.toString())) {
-            let userFollower: Following = {
-              userID: parseInt(user.id.toString()),
-              username: user.username.toString(),
-              email: user.email.toString()
-            }
-
-            if(fs.includes(userFollower)) {
-              setIsFollowing(true);
-            }
+          let userFollower: Following = {
+            userID: user.id,
+            username: user.username.toString(),
+            email: user.email.toString()
           }
-          
+
+          if(fs.includes(userFollower)) {
+            setIsFollowing(true);
+          }
+
+
           getUserPosts(uid.toString());
+
         }
       }
       catch {
@@ -133,18 +128,18 @@ const UserProfile = () => {
 
   useEffect(() => {
     if(profileUser) {
-      getUserPosts(profileUser.uuid.toString());
+      getUserPosts(profileUser.id.toString());
     }
   }, [subPage])
 
   const actionPress = async() => {
-    if(user?.uuid === profileUser?.uuid) {
+    if(user?.id === profileUser?.id) {
       router.replace(`/authenticated/profile/edit` as any);
     }
     else {
       if(!isFollowing && user != null && profileUser != null) {
-        console.log(user.id, profileUser.uuid);
-        await followUser(user.id,profileUser.uuid);
+        console.log(user.id, profileUser.id);
+        await followUser(user.id,profileUser.id);
 
         setIsFollowing(true);
       }
