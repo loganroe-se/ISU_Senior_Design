@@ -20,11 +20,11 @@ def getFollowers(session, email):
         user = get_user_by_email(session, email)
 
         if not user:
-            return 404, f"User with ID {user.userID} does not exist."
+            return 404, f"User with email {email} does not exist."
 
         followers = [
             {
-                "userID": follow.follower.userID,
+                "uuid": follow.follower.uuid,
                 "username": follow.follower.username,
             }
             for follow in user.followers
