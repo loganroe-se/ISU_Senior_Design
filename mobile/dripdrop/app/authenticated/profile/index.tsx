@@ -282,13 +282,13 @@ const UserProfile = () => {
             </View>
             {
               followModalType == "Followers" ? followers.map((follower) => 
-                <TouchableOpacity onPress={() => {redirectToUser(follower.username)}}>
+                <TouchableOpacity key={follower.userID} onPress={() => {redirectToUser(follower.username)}}>
                   <Text style={{color: 'black'}}>{follower.username}</Text>
                 </TouchableOpacity>
               )
               :
               following.map((following) => 
-                <TouchableOpacity onPress={() => {redirectToUser(following.username)}}>
+                <TouchableOpacity key={following.userID} onPress={() => {redirectToUser(following.username)}}>
                   <Text style={{color: 'black'}}>{following.username}</Text>
                 </TouchableOpacity>
               )
