@@ -9,7 +9,7 @@ import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
 import { router, useLocalSearchParams } from "expo-router";
 import { fetchUserById } from "@/api/user";
-import { User } from "@/types/user.interface";
+import { User, ProfileUser } from "@/types/user.interface";
 import { Camera } from "expo-camera"; // For camera functionality
 import * as MediaLibrary from "expo-media-library";
 
@@ -20,7 +20,7 @@ const UserProfile = () => {
   const { user, signOut } = useUserContext();
 
   const [photos, setPhotos] = useState<MediaLibrary.Asset[]>([]);
-  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
@@ -93,34 +93,29 @@ const UserProfile = () => {
     const getUserData = async () => {
       try {
         let uid = id == null ? user != null ? user.id.toString() : -1 : id;
-
-        if(uid != -1) {
+        if(user != null && user.id != null){
+          uid = uid.toString();
           let userAwait = await fetchUserById(uid);
-
           if(userAwait != null) {
             setProfileUser(userAwait);
           }
-
           const f = await fetchFollowing(uid);
           const fs = await fetchFollowers(uid);
-          
-
           setFollowing(f);
           setFollowers(fs);
-
-          if(user != null && uid !== parseInt(user.id.toString())) {
-            let userFollower: Following = {
-              userID: parseInt(user.id.toString()),
-              username: user.username.toString(),
-              email: user.email.toString()
-            }
-
-            if(fs.includes(userFollower)) {
-              setIsFollowing(true);
-            }
+          let userFollower: Following = {
+            userID: user.id,
+            username: user.username.toString(),
+            email: user.email.toString()
           }
-          
+
+          if(fs.includes(userFollower)) {
+            setIsFollowing(true);
+          }
+
+
           getUserPosts(uid.toString());
+
         }
       }
       catch {
@@ -133,18 +128,18 @@ const UserProfile = () => {
 
   useEffect(() => {
     if(profileUser) {
-      getUserPosts(profileUser.uuid.toString());
+      getUserPosts(profileUser.id.toString());
     }
   }, [subPage])
 
   const actionPress = async() => {
-    if(user?.uuid === profileUser?.uuid) {
+    if(user?.id === profileUser?.id) {
       router.replace(`/authenticated/profile/edit` as any);
     }
     else {
       if(!isFollowing && user != null && profileUser != null) {
-        console.log(user.id, profileUser.uuid);
-        await followUser(user.id,profileUser.uuid);
+        console.log(user.id, profileUser.id);
+        await followUser(user.id,profileUser.id);
 
         setIsFollowing(true);
       }
@@ -181,14 +176,13 @@ const UserProfile = () => {
                 <Text style={profileStyle.buttonLabel}>{user.username === profileUser?.username ? "Edit Profile" : !isFollowing ? "Follow" : "Following"}</Text>
               </TouchableOpacity>
 
-              {user.username === profileUser?.username &&
                 <TouchableOpacity
                   onPress={signOut} // Call the signOut function from context
                   style={[profileStyle.actionButton, profileStyle.signOutButton, {marginLeft: 8}]}
                 >
                   <Text style={profileStyle.buttonLabel}>Sign out</Text>
                 </TouchableOpacity>
-              }
+              
             </View>
 
           </View>
@@ -288,13 +282,13 @@ const UserProfile = () => {
             </View>
             {
               followModalType == "Followers" ? followers.map((follower) => 
-                <TouchableOpacity onPress={() => {redirectToUser(follower.username)}}>
+                <TouchableOpacity key={follower.userID} onPress={() => {redirectToUser(follower.username)}}>
                   <Text style={{color: 'black'}}>{follower.username}</Text>
                 </TouchableOpacity>
               )
               :
               following.map((following) => 
-                <TouchableOpacity onPress={() => {redirectToUser(following.username)}}>
+                <TouchableOpacity key={following.userID} onPress={() => {redirectToUser(following.username)}}>
                   <Text style={{color: 'black'}}>{following.username}</Text>
                 </TouchableOpacity>
               )

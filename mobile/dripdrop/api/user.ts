@@ -1,4 +1,4 @@
-import { User } from "@/types/user";
+import { User, ProfileUser } from "@/types/user.interface";
 import { apiRequest } from "./api";
 
 export const fetchUsers = async (): Promise<User[] | null> => {
@@ -6,8 +6,8 @@ export const fetchUsers = async (): Promise<User[] | null> => {
 };
 
 // Fetch user by userID
-export const fetchUserById = async (userID: number | string): Promise<User | null> => {
-  return apiRequest<User | null>("GET", `/users/${userID}`);
+export const fetchUserById = async (userID: string): Promise<ProfileUser | null> => {
+  return apiRequest<ProfileUser | null>("GET", `/users/${userID}`);
 };
 
 // Search users by username
