@@ -6,8 +6,13 @@ export const fetchUsers = async (): Promise<User[] | null> => {
 };
 
 // Fetch user by userID
-export const fetchUserById = async (userID: String): Promise<User | null> => {
+export const fetchUserById = async (userID: number | string): Promise<User | null> => {
   return apiRequest<User | null>("GET", `/users/${userID}`);
+};
+
+// Search users by username
+export const searchUsersByUsername = async (searchTerm: string): Promise<User[] | []> => {
+  return apiRequest<User[] | []>("GET", `/users/search/${searchTerm}`);
 };
 
 // Fetch user email by userID
