@@ -34,6 +34,9 @@ def handler(event, context):
     operations_prefix = image_path_array.pop()
     original_image_path = '/'.join(image_path_array)
 
+    print(f"Original image S3 key: {original_image_path}")
+
+
     # Download the original image
     try:
         response = s3_client.get_object(Bucket=S3_ORIGINAL_IMAGE_BUCKET, Key=original_image_path)
@@ -42,6 +45,9 @@ def handler(event, context):
 
     except Exception as e:
         return send_error(500, 'Error downloading original image', e)
+
+    print(f"Downloaded image size: {len(original_image_body)} bytes")
+    print(f"Content-Type: {content_type}")
 
     # Process and transform the image
     try:

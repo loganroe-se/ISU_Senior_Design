@@ -36,14 +36,14 @@ def createComment(session, email, postId, content):
             return 404, "User or post does not exist."
 
         new_comment = Comment(
-            userID=user.userID,
+            uuid=user.uuid,
             postID=postId,
             content=content,
             createdDate=date.today()
         )
 
         session.add(new_comment)
-        return 201, f"User {user.userID} commented on post {postId}"
+        return 201, f"User {user.uuid} commented on post {postId}"
 
     except Exception as e:
         code, msg = handle_exception(e, "Error accessing database")

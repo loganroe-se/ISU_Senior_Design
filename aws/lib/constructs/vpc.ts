@@ -139,6 +139,16 @@ export class VpcConstruct extends Construct {
       }),
     });
 
+    new InterfaceVpcEndpoint(this, "SQS", {
+      vpc: this.vpc,
+      service: InterfaceVpcEndpointAwsService.SQS,
+      securityGroups: [this.lambdaSecurityGroup],
+      subnets: this.vpc.selectSubnets({
+        subnetType: SubnetType.PRIVATE_WITH_EGRESS,
+        availabilityZones: ["us-east-1a", "us-east-1b"],
+      }),
+    });
+
     // IAM Role for RDS IAM Authentication
     this.rdsIAMRole = new Role(this, "RDSIAMAuthRole", {
       assumedBy: new ServicePrincipal("rds.amazonaws.com"),

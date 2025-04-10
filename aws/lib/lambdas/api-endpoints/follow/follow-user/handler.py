@@ -27,10 +27,10 @@ def createFollow(session, followerId, followedId):
     try:
         # Check if both users exist
         follower_exists = session.execute(
-            select(User).where(User.userID == followerId)
+            select(User).where(User.uuid == followerId)
         ).scalars().first()
         followed_exists = session.execute(
-            select(User).where(User.userID == followedId)
+            select(User).where(User.uuid == followedId)
         ).scalars().first()
 
         if not follower_exists or not followed_exists:
