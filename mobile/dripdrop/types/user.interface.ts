@@ -18,3 +18,10 @@ export interface UserContextType {
   signOut: () => void;
   loading: boolean;
 }
+
+export interface NewUser {
+    id: string,
+    email: string,
+    username: string,
+    profilePic: string
+}

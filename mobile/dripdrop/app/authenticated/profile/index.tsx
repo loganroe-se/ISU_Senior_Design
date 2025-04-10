@@ -176,14 +176,13 @@ const UserProfile = () => {
                 <Text style={profileStyle.buttonLabel}>{user.username === profileUser?.username ? "Edit Profile" : !isFollowing ? "Follow" : "Following"}</Text>
               </TouchableOpacity>
 
-              {user.username === profileUser?.username &&
                 <TouchableOpacity
                   onPress={signOut} // Call the signOut function from context
                   style={[profileStyle.actionButton, profileStyle.signOutButton, {marginLeft: 8}]}
                 >
                   <Text style={profileStyle.buttonLabel}>Sign out</Text>
                 </TouchableOpacity>
-              }
+              
             </View>
 
           </View>
