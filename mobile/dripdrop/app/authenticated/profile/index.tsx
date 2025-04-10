@@ -82,7 +82,7 @@ const UserProfile = () => {
 
       if(user != null) {
         console.log(user);
-        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
+        router.replace(`/authenticated/profile?id=${user.id}` as any);
       }
     }
 
