@@ -21,7 +21,7 @@ def getUsers(session):
             {
                 'username': user.username,
                 'email': user.email,
-                'id': user.userID,
+                'uuid': user.uuid,
                 'dob': user.dob.isoformat(),
                 'accountType': user.accountType
             }

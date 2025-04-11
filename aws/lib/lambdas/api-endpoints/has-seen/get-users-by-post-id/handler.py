@@ -35,7 +35,7 @@ def getUsers(session, postID):
             {
                 'username': user.username,
                 'email': user.email,
-                'id': user.userID
+                'uuid': user.uuid
             }
             for user in users
         ]

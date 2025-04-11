@@ -2,7 +2,7 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select
 from sqlalchemy_utils import session_handler
-from dripdrop_orm_objects import Post
+from dripdrop_orm_objects import Post, User
 from datetime import datetime, date
 
 def handler(event, context):
@@ -31,7 +31,7 @@ def searchPosts(session, search_string):
         posts_list = [
             {
                 "postID": post.postID,
-                "userID": post.userID,
+                "uuid": post.user.uuid if post.user else None,
                 "status": post.status,
                 "caption": post.caption,
                 "createdDate": (
