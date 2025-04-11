@@ -1,81 +1,51 @@
 import json
-from sqlalchemy.exc import IntegrityError
-from sqlalchemy_utils import create_session
-from utils import handle_exception, create_response
-from dripdrop_orm_objects import User
-from passlib.hash import bcrypt
+import os
 from datetime import date
+import boto3
+from botocore.exceptions import ClientError
+from utils import create_response
+
+# Cognito setup
+cognito = boto3.client('cognito-idp')
+CLIENT_ID = os.environ['USER_POOL_CLIENT_ID']
 
 def handler(event, context):
     try:
-        # Parse the user data from event
         body = json.loads(event['body'])
 
-        # Get all body attributes
         username = body.get('username')
         email = body.get('email')
         password = body.get('password')
         dob = body.get('dob')
 
-        # Check for missing, required values
         if not username or not email or not password or not dob:
             return create_response(400, 'Missing required field')
-        
-        # Call another function to create the user
-        status_code, message = createUser(username, email, password, dob)
-
-        # Return message
-        return create_response(status_code, message)
-    
-    except Exception as e:
-        print(f"Error: {e}")
-        return create_response(500, f"Error creating user: {str(e)}")
-    
-
-def createUser(username, email, password, dob):
-    # Try to create the user
-    try:
-        # Create the session
-        session = create_session()
-
-        # Hash the password
-        hashed_password = bcrypt.hash(password)
 
         # Validate date format
         try:
-            dob = date.fromisoformat(dob)
+            date.fromisoformat(dob)
         except ValueError:
-            return 400, "Invalid date format. Expected YYYY-MM-DD."
+            return create_response(400, "Invalid date format. Expected YYYY-MM-DD.")
 
-        # Create a new user
-        new_user = User(username=username, email=email, password=hashed_password, dob=dob)
+        # Register user in Cognito
+        cognito.sign_up(
+            ClientId=CLIENT_ID,
+            Username=email,
+            Password=password,
+            UserAttributes=[
+                {'Name': 'email', 'Value': email},
+                {'Name': 'name', 'Value': username},
+                # {'Name': 'birthdate', 'Value': dob}
+            ]
+        )
 
-        # Add the user to the db
-        session.add(new_user)
-        session.commit()
+        return create_response(201, f"User {username} registered successfully. Please confirm your email.")
 
-        # Return message
-        return 201, f"User with username: {username} was created successfully"
+    except cognito.exceptions.UsernameExistsException:
+        return create_response(409, "Email already registered")
 
-    except IntegrityError as e:
-        session.rollback()
-
-        # Check for duplicate email or username in the error message
-        if 'email' in str(e.orig):
-            error_message = 'Email already exists'
-        elif 'username' in str(e.orig):
-            error_message = 'Username already exists'
-        else:
-            error_message = 'Duplicate entry'
-
-        return 409, error_message
+    except ClientError as e:
+        return create_response(500, f"Cognito error: {e.response['Error']['Message']}")
 
     except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Error accessing database")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
-    
+        return create_response(500, f"Unexpected error during registration: {str(e)}")

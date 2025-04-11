@@ -21,7 +21,7 @@ const headerHeight = 40;
 
 const Page = () => {
   const { user } = useUserContext();
-  const [userID, setUserID] = useState<number | null>(null);
+  const [userID, setUserID] = useState<string | null>(null);
   const [feedData, setFeedData] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingComments, setLoadingComments] = useState<boolean>(false);
@@ -152,13 +152,13 @@ const Page = () => {
   // Add a new comment
   const handleAddComment = async () => {
     if (!commentText.trim() || currentPostID === null) return;
-    if ((userID ?? 0) === 0) return;
+    if (userID == null) return;
 
     setLoadingAddComment(true);
 
     const newComment: sendComment = {
       postId: currentPostID,
-      userId: userID ?? 0,
+      userId: userID,
       content: commentText,
     };
 

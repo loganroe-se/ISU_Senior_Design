@@ -8,7 +8,6 @@ export default function AuthenticatedLayout() {
       <Stack.Screen name="profile/index" options={{ title: "Profile" }} />
       <Stack.Screen name="search/index" options={{ title: "Search" }} />
       <Stack.Screen name="posts/index" options={{ title: "All Posts" }} />
-      <Stack.Screen name="posts/preview_post" options={{ title: "Preview Post" }} />
       <Stack.Screen name="posts/processing_post" options={{ title: "Processing Post" }} />
       <Stack.Screen name="posts/image_marker" options={{ title: "Image Marker" }} />
       <Stack.Screen name="posts/item_details" options={{ title: "Item Details" }} />

@@ -8,9 +8,9 @@ Base = declarative_base()
 class User(Base):
     __tablename__ = 'users'
     userID = Column(Integer, primary_key=True)
+    uuid = Column(String(200), nullable=False, unique=True)
     username = Column(String(50), nullable=False, unique=True)
     email = Column(String(50), nullable=False, unique=True)
-    password = Column(String(100), nullable=False)
     profilePicURL = Column(String(2000), default="profilePics/default.jpg")
     accountType = Column(String(10), nullable=False, default="USER_FREE")
     dob = Column(Date, nullable=False)

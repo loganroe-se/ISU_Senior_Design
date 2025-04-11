@@ -1,14 +1,15 @@
 export interface sendPost {
-  userID: number;
+  userID: string;
   caption: string;
   images?: string[];
+  postID?: number;
 }
 
 export interface Post {
   postID: number;
-  userID: number;
+  userID: string;
   status: string;
-  images: { imageURL: string }[];
+  images: { imageURL: string, imageID: number }[];
   username: string;
   caption: string;
   createdDate: string;

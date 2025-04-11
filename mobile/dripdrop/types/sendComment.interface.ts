@@ -1,5 +1,5 @@
 export interface sendComment {
-  userId: number;
+  userId: string;
   postId: number;
   content: string;
 }

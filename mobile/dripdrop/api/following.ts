@@ -1,5 +1,5 @@
 import { Following, Follower } from "@/types/Following";
-import { User } from "@/types/user";
+import { User } from "@/types/user.interface";
 import { apiRequest } from "./api";
 
 // Fetch user by username
@@ -8,19 +8,19 @@ export const fetchUserByUsername = async (username: string): Promise<User> => {
 };
 
 // Fetch user following list by userID
-export const fetchFollowing = async (userID: number): Promise<Following[]> => {
+export const fetchFollowing = async (userID: String): Promise<Following[]> => {
   return apiRequest<Following[]>("GET", `/follow/${userID}/following`);
 };
 
 // Fetch user following list by userID
-export const fetchFollowers = async (userID: number): Promise<Following[]> => {
+export const fetchFollowers = async (userID: String): Promise<Following[]> => {
   return apiRequest<Following[]>("GET", `/follow/${userID}/followers`);
 };
 
 // Follow user
 export const followUser = async (
-  followerID: number,
-  followingID: number
+  followerID: string,
+  followingID: string
 ): Promise<string> => {
   const payload = {
     followerId: followerID.toString(),
