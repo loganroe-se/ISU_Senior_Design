@@ -39,6 +39,7 @@ const Page = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [hasSeenPosts, setHasSeenPosts] = useState(false);
   const [noMorePosts, setNoMorePosts] = useState(false);
+  const [expandedCaptions, setExpandedCaptions] = useState<{ [key: number]: boolean }>({});
 
 
   useEffect(() => {
@@ -174,6 +175,14 @@ const Page = () => {
     } catch (error) {
       console.error("Error adding a new comment: ", error);
     }
+  };
+
+  // See more/less of a caption
+  const toggleCaption = (postID: number) => {
+    setExpandedCaptions(prev => ({
+      ...prev,
+      [postID]: !prev[postID]
+    }));
   };
 
   // Keep track of seen posts
@@ -376,7 +385,16 @@ const Page = () => {
                     </View>
     
                     {/* Display the username & caption */}
-                    <Text style={styles.caption} numberOfLines={3} ellipsizeMode="tail"><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
+                    <Text style={styles.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
+                      <Text style={styles.usernameInline}>{item.username}</Text> {item.caption}
+                    </Text>
+                    {item.caption.length > 100 && (
+                      <TouchableOpacity onPress={() => toggleCaption(item.postID)}>
+                        <Text style={styles.showMoreText}>
+                          {expandedCaptions[item.postID] ? "Show less" : "Show more"}
+                        </Text>
+                      </TouchableOpacity>
+                    )}
     
                     {/* Display the post date */}
                     <Text style={styles.date}>{item.createdDate}</Text>
@@ -663,6 +681,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     padding: 20,
+  },
+  showMoreText: {
+    color: "#a9a9a9",
   }
 });
 
