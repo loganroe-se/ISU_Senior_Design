@@ -36,7 +36,7 @@ def createComment(session, email, postId, content):
             return 404, "User or post does not exist."
 
         new_comment = Comment(
-            uuid=user.uuid,
+            userID=user.userID,
             postID=postId,
             content=content,
             createdDate=date.today()

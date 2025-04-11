@@ -5,9 +5,12 @@ from dripdrop_orm_objects import User
 def handler(event, context):
     try:
         # Get user ID from path parameters
-        email = event['requestContext']['authorizer']['claims']['email']
+        uuid = event['pathParameters'].get('id')
+
+        if not uuid:
+            return create_response(400, 'Missing uuid')
    
-        status_code, message = getFollowers(email)
+        status_code, message = getFollowers(uuid)
         return create_response(status_code, message)
 
     except Exception as e:
@@ -15,12 +18,13 @@ def handler(event, context):
 
 
 @session_handler
-def getFollowers(session, email):
+def getFollowers(session, uuid):
     try:
-        user = get_user_by_email(session, email)
+        user = session.query(User).filter(User.uuid == uuid).one_or_none()
 
+        # If user does not exist, return 404
         if not user:
-            return 404, f"User with email {email} does not exist."
+            return 404, f"User with uuid {uuid} does not exist."
 
         followers = [
             {
