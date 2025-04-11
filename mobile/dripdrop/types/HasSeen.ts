@@ -1,4 +1,4 @@
 export interface MarkAsSeen {
-    userID: number;
+    userID: string;
     postIDs: number[];
 }

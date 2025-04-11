@@ -158,7 +158,6 @@ const Page = () => {
 
     const newComment: sendComment = {
       postId: currentPostID,
-      userId: userID,
       content: commentText,
     };
 
@@ -192,8 +191,8 @@ const Page = () => {
     // Check if at the bottom
     const contentHeight = event.nativeEvent.contentSize.height;
     if (scrollY + screenHeight >= contentHeight - 50 && !isFetching && !hasSeenPosts) {
-      if (seenPosts.size > 0) {
-        markPostsAsSeen({ userID: Number(userID), postIDs: Array.from(seenPosts) });
+      if (seenPosts.size > 0 && userID) {
+        markPostsAsSeen({ userID: userID, postIDs: Array.from(seenPosts) });
         setHasSeenPosts(true);
       }
       getNewPosts();
@@ -212,22 +211,22 @@ const Page = () => {
         getFeed(userID)
           .then((data) => {
             if (data) {
-              if (data.length === 0) {
-                setNoMorePosts(true);
-              } else {
-                setFeedData((prev) => {
-                  const newPostIDs = data.map((p) => p.postID);
-                  const existingPostIDs = prev.map((p) => p.postID);
-                  if (newPostIDs.length > 0 && !newPostIDs.every(id => existingPostIDs.includes(id))) setHasSeenPosts(false);
-                  const uniquePosts = [
-                    ...prev,
-                    ...data.filter((newPost) => !existingPostIDs.includes(newPost.postID)),
-                  ];
-                  return uniquePosts
-                });
-                setNoMorePosts(false);
-                setLoading(false);
-              }
+              setFeedData((prev) => {
+                const newPostIDs = data.map((p) => p.postID);
+                const existingPostIDs = prev.map((p) => p.postID);
+                if (newPostIDs.length > 0 && !newPostIDs.every(id => existingPostIDs.includes(id))) {
+                  setNoMorePosts(false);
+                  setHasSeenPosts(false)
+                } else {
+                  setNoMorePosts(true);
+                }
+                const uniquePosts = [
+                  ...prev,
+                  ...data.filter((newPost) => !existingPostIDs.includes(newPost.postID)),
+                ];
+                return uniquePosts
+              });
+              setLoading(false);
             } else {
               setError('Failed to fetch feed');
             }
@@ -262,7 +261,7 @@ const Page = () => {
         [postID]: calculatedHeight,
       }));
     }, () => {
-      // If the it failes to get a size, there was an error
+      // If it fails to get a size, there was an error
       setImageErrors(prevState => ({
         ...prevState,
         [postID]: true,
@@ -294,13 +293,14 @@ const Page = () => {
 
   // Reset feed
   const resetFeed = async () => {
+    if (!userID) return;
     setFeedData([]);
     setHasSeenPosts(false);
     setNoMorePosts(false);
     setLoading(true);
 
     try {
-      await resetSeenPosts(userID === null ? 0 : userID);
+      await resetSeenPosts(userID);
       setSeenPosts(new Set());
       setPostPositions({});
 
@@ -332,7 +332,7 @@ const Page = () => {
               showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const imageHeight = imageDimensions[item.postID];
-                const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
+                const imageURL = item.images && item.images[0]?.imageURL ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`: "";
     
                 return (
                   <View style={styles.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
@@ -340,7 +340,7 @@ const Page = () => {
                     <Text style={styles.username}>{item.username}</Text>
     
                     {/* Display the post's image */}
-                    {imageErrors[item.postID] ? (
+                    {imageErrors[item.postID] || !(item.images && item.images[0]?.imageURL) ? (
                       <View style={styles.imageErrorBox}>
                         <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
                       </View>
