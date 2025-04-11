@@ -45,7 +45,7 @@ def getFeed(session, email, limit: int = 20):
         feed_posts_serialized = [
             {
                 "postID": post.postID,
-                "userID": post.userID,
+                "uuid": post.userRel.uuid if post.userRel else None,
                 "username": post.userRel.username,
                 "caption": post.caption,
                 "createdDate": (

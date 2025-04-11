@@ -16,8 +16,8 @@ s3_client = boto3.client("s3", region_name=S3_REGION)
 
 def handler(event, context):
     try:
-        user_id = event['pathParameters'].get('id')
-        if not user_id:
+        uuid = event['pathParameters'].get('uuid')
+        if not uuid:
             return create_response(400, 'Missing user ID')
 
         body = json.loads(event['body'])
@@ -30,7 +30,7 @@ def handler(event, context):
         if not any([username, email, password, profilePic]):
             return create_response(400, 'Missing fields to update')
 
-        status_code, message = updateUser(user_id, username, email, password, profilePic)
+        status_code, message = updateUser(uuid, username, email, password, profilePic)
         return create_response(status_code, message)
 
     except Exception as e:
@@ -38,12 +38,12 @@ def handler(event, context):
 
 
 @session_handler
-def updateUser(session, user_id, username, email, password, profilePic):
+def updateUser(session, uuid, username, email, password, profilePic):
     try:
-        user = session.execute(select(User).where(User.userID == user_id)).scalars().first()
+        user = session.execute(select(User).where(User.uuid == uuid)).scalars().first()
 
         if not user:
-            return 404, f'User with userID: {user_id} was not found'
+            return 404, f'User with uuid: {uuid} was not found'
 
         if username:
             user.username = username
@@ -61,7 +61,7 @@ def updateUser(session, user_id, username, email, password, profilePic):
                 s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=decoded_image)
                 user.profilePicURL = s3_key
 
-        return 200, f'User with userID: {user_id} was updated successfully'
+        return 200, f'User with uuid: {uuid} was updated successfully'
 
     except IntegrityError as e:
         session.rollback()

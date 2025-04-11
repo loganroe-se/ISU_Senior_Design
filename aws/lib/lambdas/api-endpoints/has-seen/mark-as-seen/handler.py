@@ -44,7 +44,7 @@ def markAsSeen(session, email, postIDs):
         for postID in valid_postIDs:
             session.add(HasSeen(userID=user.userID, postID=postID, timeViewed=datetime.datetime.now()))
 
-        return 200, f"Posts marked as seen successfully for userID: {email}"
+        return 200, f"Posts marked as seen successfully for email: {email}"
 
     except Exception as e:
         return handle_exception(e, "markAsSeen")
