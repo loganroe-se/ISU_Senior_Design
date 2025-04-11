@@ -26,7 +26,7 @@ def getPosts(session):
         posts_list = [
             {
                 "postID": post.postID,
-                "userID": post.userID,
+                "uuid": post.userRel.uuid,
                 "status": post.status,
                 "caption": post.caption,
                 "createdDate": (
