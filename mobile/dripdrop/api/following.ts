@@ -31,8 +31,8 @@ export const followUser = async (
 
 // Unfollow user
 export const unfollowUser = async (
-  followerID: number,
-  followingID: number
+  followerID: string,
+  followingID: string
 ): Promise<string> => {
   const payload = {
     followerId: followerID.toString(),
