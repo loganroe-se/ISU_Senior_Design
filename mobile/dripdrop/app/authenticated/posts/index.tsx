@@ -23,8 +23,9 @@ import { post_styles } from "@/styles/post";
 import { createPost } from "@/api/post";
 import { sendPost } from "@/types/post";
 import { useUserContext } from "@/context/UserContext";
-import * as ImagePicker from "expo-image-picker"; // For camera functionality
-import { Camera } from "expo-camera"; // For camera functionality
+import * as ImagePicker from "expo-image-picker";
+import { Camera } from "expo-camera";
+import ImageAdjustmentModal from "@/components/ImageAdjustmentModal";
 
 export default function Post() {
   const [caption, setCaption] = useState("");
@@ -32,10 +33,11 @@ export default function Post() {
   const [photos, setPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [snackbarVisible, setSnackbarVisible] = useState(false);
-  const [modalVisible, setModalVisible] = useState(false);
   const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
+  const [adjustedImageUri, setAdjustedImageUri] = useState<string | null>(null);
+  const [imageAdjustmentVisible, setImageAdjustmentVisible] = useState(false);
+
   const router = useRouter();
 
   const { user } = useUserContext();
@@ -81,7 +83,7 @@ export default function Post() {
 
   // Load more photos from the media library
   const loadMorePhotos = async () => {
-    if (loadingMore) return; // Prevent multiple requests
+    if (loadingMore) return;
     setLoadingMore(true);
 
     const media = await MediaLibrary.getAssetsAsync({
@@ -105,7 +107,7 @@ export default function Post() {
   const handleImageSelect = async (selectedImage: MediaLibrary.Asset) => {
     const assetInfo = await MediaLibrary.getAssetInfoAsync(selectedImage.id);
     setSelectedImageUri(assetInfo.localUri || selectedImage.uri);
-    setModalVisible(true); // Open the modal for gallery images
+    setImageAdjustmentVisible(true);
   };
 
   // Handle taking a photo with the camera
@@ -121,28 +123,27 @@ export default function Post() {
 
     const result = await ImagePicker.launchCameraAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true, // Allow the user to adjust the frame in the camera
-      aspect: [1, 1], // Square aspect ratio
+      allowsEditing: true,
+      aspect: [1, 1],
       quality: 1,
     });
 
     if (!result.canceled) {
-      setSelectedImageUri(result.assets[0].uri);
-      setImage(result.assets[0].uri); // Directly set the image without opening the modal
+      setImage(result.assets[0].uri);
     }
   };
 
   // Remove the selected image
   const removeImage = () => {
     setImage(null);
+    setAdjustedImageUri(null);
   };
 
-  // Handle saving the adjusted image (for gallery images)
-  const handleSaveAdjustedImage = async () => {
-    if (selectedImageUri) {
-      setImage(selectedImageUri); // Set the adjusted image
-      setModalVisible(false); // Close the modal
-    }
+  // Handle saving the adjusted image
+  const handleSaveAdjustedImage = (uri: string) => {
+    setAdjustedImageUri(uri);
+    setImage(uri);
+    setImageAdjustmentVisible(false);
   };
 
   // Handle continuing to create the post
@@ -170,10 +171,9 @@ export default function Post() {
       const response = await createPost(newPost);
       const postId = response.postID;
       console.log("Created post with ID:", postId);
-
-      setSnackbarVisible(true);
       setCaption("");
       setImage(null);
+      setAdjustedImageUri(null);
 
       router.push({
         pathname: "./posts/processing_post",
@@ -190,6 +190,7 @@ export default function Post() {
       setLoading(false);
     }
   };
+
   const numColumns = Math.min(
     Math.floor(Dimensions.get("window").width / (Dimensions.get("window").width / 4)),
     4
@@ -213,24 +214,29 @@ export default function Post() {
               disabled={loading || !image || caption.trim() === ""}
               style={[
                 post_styles.continueButton,
-                (loading || !image || caption.trim() === "") && post_styles.disabledButton, // Apply the disabled button style
+                (loading || !image || caption.trim() === "") && post_styles.disabledButton,
               ]}
             >
               <Text
-                style={[post_styles.continueText, loading && post_styles.loadingText, (loading || !image || caption.trim() === "") && post_styles.disabledText]}
+                style={[
+                  post_styles.continueText,
+                  loading && post_styles.loadingText,
+                  (loading || !image || caption.trim() === "") && post_styles.disabledText
+                ]}
               >
                 {loading ? "Loading..." : "Continue"}
               </Text>
             </TouchableOpacity>
-
           </View>
 
           {/* Top Half: Selected Image */}
           <Card style={post_styles.cardContainer}>
             {image ? (
               <View style={post_styles.imageContainer}>
-                <Image source={{ uri: image }} style={post_styles.image} />
-                {/* X Icon in the top-right corner */}
+                <Image
+                  source={{ uri: adjustedImageUri || image }}
+                  style={post_styles.image}
+                />
                 <TouchableOpacity
                   onPress={removeImage}
                   style={post_styles.removeIconContainer}
@@ -244,7 +250,6 @@ export default function Post() {
                 <Text style={post_styles.placeholderText}>
                   No image selected.
                 </Text>
-                {/* Take Photo Button */}
                 <TouchableOpacity onPress={takePhoto} style={post_styles.takePhotoButton}>
                   <Ionicons name="camera" size={20} color="#fff" style={post_styles.cameraIcon} />
                   <Text style={post_styles.takePhotoText}>Take Photo</Text>
@@ -252,6 +257,7 @@ export default function Post() {
               </View>
             )}
           </Card>
+
           {/* Bottom Half: Image Gallery */}
           <FlatList
             data={photos}
@@ -285,40 +291,20 @@ export default function Post() {
               multiline
               numberOfLines={4}
               placeholder="Write a caption..."
-              activeUnderlineColor={Colors.light.primary} // Set the focus color to your primary color
-              activeOutlineColor={Colors.light.primary} //
+              activeUnderlineColor={Colors.light.primary}
+              activeOutlineColor={Colors.light.primary}
             />
           </View>
         </KeyboardAvoidingView>
       </TouchableWithoutFeedback>
 
-      {/* Modal for Image Adjustment (Only for gallery images) */}
-      <Modal visible={modalVisible} transparent={true} animationType="slide">
-        <View style={post_styles.modalContainer}>
-          <View style={post_styles.frame}>
-            <Image
-              source={{ uri: selectedImageUri || "" }} // Fallback to an empty string if null
-              style={post_styles.adjustableImage}
-              resizeMode="contain"
-            />
-          </View>
-          <Button
-            mode="contained"
-            onPress={handleSaveAdjustedImage}
-            style={[post_styles.modal_button, post_styles.saveButton]}
-          >
-            Save
-          </Button>
-          <Button
-            mode="outlined"
-            onPress={() => setModalVisible(false)}
-            style={[post_styles.modal_button, post_styles.cancelButton]}
-            textColor="red"
-          >
-            Cancel
-          </Button>
-        </View>
-      </Modal>
+      {/* Image Adjustment Modal */}
+      <ImageAdjustmentModal
+        visible={imageAdjustmentVisible}
+        imageUri={selectedImageUri}
+        onSave={handleSaveAdjustedImage}
+        onCancel={() => setImageAdjustmentVisible(false)}
+      />
     </SafeAreaView>
   );
 }
