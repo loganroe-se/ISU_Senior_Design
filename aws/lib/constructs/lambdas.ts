@@ -235,6 +235,11 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/post/delete-post",
         "handler"
       ),
+      getAiRecommendationsLambda: createLambda(
+        "GetAiRecommendationsLambda",
+        "lib/lambdas/api-endpoints/post/get-ai-recommendations",
+        "handler"
+      ),
       getPostByIdLambda: createLambda(
         "GetPostByIdLambda",
         "lib/lambdas/api-endpoints/post/get-post-by-id",
