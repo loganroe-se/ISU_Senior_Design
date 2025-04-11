@@ -127,11 +127,11 @@ export class ApigatewayConstruct extends Construct {
 
     // Define the /posts/ai-recommendations/{id} resource
     const aiRecommendations = posts.addResource("ai-recommendations");
-    const aiRecommendationsID = publishPost.addResource("{id}");
+    const aiRecommendationsID = aiRecommendations.addResource("{id}");
     // POST /posts/ai-recommendations/{id} - Publish Post
     aiRecommendationsID.addMethod(
-      "POST",
-      new LambdaIntegration(lambdaConstruct.postLambdas["GetAiRecommendationsLambda"]),
+      "GET",
+      new LambdaIntegration(lambdaConstruct.postLambdas["getAiRecommendationsLambda"]),
       {
         authorizer: CognitoConstruct.authorizer,
         operationName: "GetAiRecommendations",
