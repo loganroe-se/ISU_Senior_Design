@@ -77,8 +77,8 @@ const UserProfile = () => {
   }
 
   const updateFollows = async (id: string) => {
-    console.log("Updating follows");
-    if(user != null && profileUser != null) {
+    console.log("Updating follows for user "+id);
+    if(user != null) {
       const f = await fetchFollowing(id);
       const fs = await fetchFollowers(id);
 
@@ -99,10 +99,13 @@ const UserProfile = () => {
         }
       });
     }
+    else {
+      console.log("Error fetching follows");
+    }
   }
 
   const redirectToUser = async (username: string) => {
-    console.log("E");
+    console.log("Redirecting");
     const fetchUser = async() => {
       let user = await fetchUserByUsername(username);
       console.log(user);
@@ -122,6 +125,7 @@ const UserProfile = () => {
         let uid = id == null ? user != null ? user.id.toString() : -1 : id;
         if(user != null && user.id != null){
           uid = uid.toString();
+          console.log("Fetching User");
           let userAwait = await fetchUserById(uid);
           if(userAwait != null) {
             setProfileUser(userAwait);
@@ -134,6 +138,7 @@ const UserProfile = () => {
         }
       }
       catch {
+        console.log("Session Expired");
         //signOut();
       }
     };

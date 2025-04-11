@@ -8,7 +8,14 @@ export interface User {
   access_token: string,
   refresh_token: string
 }
-export interface ProfileUser extends User {
+export interface ProfileUser {
+  username: string,
+  email: string,
+  uuid: string,
+  exp: string,
+  id_token: string,
+  access_token: string,
+  refresh_token: string
   profilePic: string;
 
 }
