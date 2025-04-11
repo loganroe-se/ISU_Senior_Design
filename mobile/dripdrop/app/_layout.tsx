@@ -47,7 +47,7 @@ function AppContent() {
       <SafeAreaView style={{ flex: 1, backgroundColor: DefaultTheme.colors.background }}>
         <Slot />
         {!hideNavbar && <Navbar />}
-        <StatusBar/>
+        <StatusBar backgroundColor="black"/>
       </SafeAreaView>
        
   );
