@@ -31,7 +31,7 @@ def getSeenPosts(session, email):
         ).filter(HasSeen.userID == userID).all()
 
         if not seen_posts:
-            return 404, f"No posts have been seen by user with userID: {userID}"
+            return 404, f"No posts have been seen by user with email: {email}"
 
         seen_posts_data = [
             {

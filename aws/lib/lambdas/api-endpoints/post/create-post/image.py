@@ -14,8 +14,11 @@ def save_image_to_db(session, post_id, images):
     try:
         image_paths = [];
         for base64_image in images:
-            decoded_image = base64.b64decode(base64_image)
-
+            try:
+                decoded_image = base64.b64decode(base64_image, validate=True)
+            except Exception:
+                raise Exception("400", "Invalid base64 encoding")
+          
             image_type = detect_image_type(decoded_image)
             if not image_type:
                 raise Exception("400", "Unsupported or invalid image format")
@@ -43,7 +46,7 @@ def save_image_to_db(session, post_id, images):
 
     except Exception as e:
         code, msg = handle_exception(e, "save_image_to_db")
-        return code, msg
+        raise Exception("400", "Error saving image to db")
 
 def detect_image_type(data: bytes):
     if data.startswith(b'\xff\xd8'):
