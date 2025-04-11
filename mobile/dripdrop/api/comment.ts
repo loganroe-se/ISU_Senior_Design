@@ -12,7 +12,6 @@ export const fetchCommentsByPostID = async (postID: number): Promise<Comment[]> 
 export const createComment = async (
   newComment: sendComment
 ): Promise<sendComment> => {
-  console.log("Sending comment data:", newComment);
   return apiRequest<sendComment>("POST", "/comment", newComment);
 };
 

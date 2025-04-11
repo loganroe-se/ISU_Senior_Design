@@ -32,7 +32,7 @@ def getPostById(session, post_id):
 
         post_data = {
             "postID": post.postID,
-            "userID": post.userID,
+            "uuid": post.userRel.uuid if post.userRel else None,
             "caption": post.caption,
             "createdDate": (
                 post.createdDate.isoformat()
