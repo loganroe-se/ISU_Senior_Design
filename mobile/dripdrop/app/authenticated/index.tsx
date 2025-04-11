@@ -1,10 +1,11 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput, SafeAreaView } from "react-native";
+import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput, SafeAreaView, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState } from "react-native";
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like"
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
+import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
 import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
 import { sendComment } from "@/types/sendComment.interface";
@@ -33,6 +34,12 @@ const Page = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<TextInput | null>(null);
+  const [seenPosts, setSeenPosts] = useState(new Set<number>());
+  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number} }>({});
+  const [isFetching, setIsFetching] = useState(false);
+  const [hasSeenPosts, setHasSeenPosts] = useState(false);
+  const [noMorePosts, setNoMorePosts] = useState(false);
+
 
   useEffect(() => {
     const getUserData = async () => {
@@ -72,6 +79,23 @@ const Page = () => {
         });
     }
   }, [userID]);
+
+  // // Ensure posts get marked as seen once the app is closed/minimized --- TODO: Does not properly track posts seen so this does not work yet
+  // useEffect(() => {
+  //   const appStateListener = AppState.addEventListener('change', (nextAppState) => {
+  //     console.log(nextAppState);
+  //     if (nextAppState === 'background' || nextAppState === 'inactive') {
+  //       if (seenPosts.size > 0) {
+  //         console.log(Array.from(seenPosts));
+  //         markPostsAsSeen({ userID: Number(userID), postIDs: Array.from(seenPosts) });
+  //       }
+  //     }
+  //   });
+
+  //   return () => {
+  //     appStateListener.remove();
+  //   };
+  // }, [seenPosts]);
 
   // Handle a like
   const handleLike = useCallback(async (postID: number) => {
@@ -134,7 +158,6 @@ const Page = () => {
 
     const newComment: sendComment = {
       postId: currentPostID,
-      userId: userID,
       content: commentText,
     };
 
@@ -151,6 +174,71 @@ const Page = () => {
     } catch (error) {
       console.error("Error adding a new comment: ", error);
     }
+  };
+
+  // Keep track of seen posts
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const screenHeight = event.nativeEvent.layoutMeasurement.height;
+
+    Object.entries(postPositions).forEach(([postID, { y, height }]) => {
+      const postBottom = y + height;
+      if (postBottom <= scrollY + screenHeight) {
+        setSeenPosts((prev) => new Set(prev).add(Number(postID)));
+      }
+    });
+
+    // Check if at the bottom
+    const contentHeight = event.nativeEvent.contentSize.height;
+    if (scrollY + screenHeight >= contentHeight - 50 && !isFetching && !hasSeenPosts) {
+      if (seenPosts.size > 0 && userID) {
+        markPostsAsSeen({ userID: userID, postIDs: Array.from(seenPosts) });
+        setHasSeenPosts(true);
+      }
+      getNewPosts();
+    }
+  };
+
+  // Get new posts
+  const getNewPosts = async () => {
+    if (isFetching) return;
+    if ((userID ?? 0) === 0) return;
+
+    setIsFetching(true);
+
+    try {
+      if (userID) {
+        getFeed(userID)
+          .then((data) => {
+            if (data) {
+              setFeedData((prev) => {
+                const newPostIDs = data.map((p) => p.postID);
+                const existingPostIDs = prev.map((p) => p.postID);
+                if (newPostIDs.length > 0 && !newPostIDs.every(id => existingPostIDs.includes(id))) {
+                  setNoMorePosts(false);
+                  setHasSeenPosts(false)
+                } else {
+                  setNoMorePosts(true);
+                }
+                const uniquePosts = [
+                  ...prev,
+                  ...data.filter((newPost) => !existingPostIDs.includes(newPost.postID)),
+                ];
+                return uniquePosts
+              });
+              setLoading(false);
+            } else {
+              setError('Failed to fetch feed');
+            }
+          }).catch(() => {
+            setError('Failed to fetch feed');
+          });
+      }
+    } catch (error) {
+      console.error("Error fetching new posts:", error);
+    }
+
+    setIsFetching(false);
   };
 
   // Focus the input when the modal opens
@@ -173,7 +261,7 @@ const Page = () => {
         [postID]: calculatedHeight,
       }));
     }, () => {
-      // If the it failes to get a size, there was an error
+      // If it fails to get a size, there was an error
       setImageErrors(prevState => ({
         ...prevState,
         [postID]: true,
@@ -187,6 +275,39 @@ const Page = () => {
       ...prevState,
       [postID]: true,
     }));
+  };
+
+  // Handle the post layout
+  const handleLayout = (postID: number, event: LayoutChangeEvent) => {
+    event.persist();
+    if (!event.nativeEvent.layout) return;
+
+    setPostPositions((prev) => ({
+      ...prev,
+      [postID]: {
+        y: event.nativeEvent.layout.y,
+        height: event.nativeEvent.layout.height,
+      },
+    }));
+  };
+
+  // Reset feed
+  const resetFeed = async () => {
+    if (!userID) return;
+    setFeedData([]);
+    setHasSeenPosts(false);
+    setNoMorePosts(false);
+    setLoading(true);
+
+    try {
+      await resetSeenPosts(userID);
+      setSeenPosts(new Set());
+      setPostPositions({});
+
+      getNewPosts();
+    } catch (error) {
+      console.error("Error resetting feed:", error);
+    }
   };
 
   return (
@@ -206,17 +327,20 @@ const Page = () => {
               contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
               data={feedData}
               keyExtractor={(item) => item.postID.toString()}
+              onScroll={onScroll}
+              scrollEventThrottle={16}
+              showsVerticalScrollIndicator={false}
               renderItem={({ item }) => {
                 const imageHeight = imageDimensions[item.postID];
-                const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
+                const imageURL = item.images && item.images[0]?.imageURL ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`: "";
     
                 return (
-                  <View style={styles.feedItem}>
+                  <View style={styles.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
                     {/* Display the poster's username */}
                     <Text style={styles.username}>{item.username}</Text>
     
                     {/* Display the post's image */}
-                    {imageErrors[item.postID] ? (
+                    {imageErrors[item.postID] || !(item.images && item.images[0]?.imageURL) ? (
                       <View style={styles.imageErrorBox}>
                         <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
                       </View>
@@ -252,14 +376,30 @@ const Page = () => {
                     </View>
     
                     {/* Display the username & caption */}
-                    <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
+                    <Text style={styles.caption} numberOfLines={3} ellipsizeMode="tail"><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
     
                     {/* Display the post date */}
                     <Text style={styles.date}>{item.createdDate}</Text>
                   </View>
                 );
               }}
+              ListFooterComponent={
+                noMorePosts ? (
+                  <View style={styles.noMorePostsMessage}>
+                    <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+                    <Button title="Reset Feed" onPress={resetFeed} />
+                  </View>
+                ) : null
+              }
             />
+
+            {/* There are no posts, ask if the user wants to reset feed */}
+            {feedData.length === 0 && <View
+              style={{ justifyContent: "center", alignItems: "center", minHeight: windowHeight }}
+            >
+              <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+              <Button title="Reset Feed" onPress={resetFeed} />
+            </View>}
 
             {/* Comment Modal */}
             {commentModalVisible && <Modal 
@@ -509,6 +649,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.light.primary,
     fontWeight: 'bold',
+  },
+  noMorePostsMessage: {
+    padding: 15,
+    marginTop: 10,
+    marginBottom: 10,
+    justifyContent: "center",
+    alignItems: "center",
+    minHeight: 400,
+  },
+  noMorePostsMessageText: {
+    fontWeight: "bold",
+    fontSize: 16,
+    textAlign: "center",
+    padding: 20,
   }
 });
 

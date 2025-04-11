@@ -76,6 +76,7 @@ def getFollowedPosts(session, userID: int, followed_user_ids, limit):
     return session.query(Post).filter(
         Post.userID.in_(followed_user_ids),
         Post.userID != userID,
+        Post.status.ilike("public"),
         ~session.query(seen_alias).filter(
             seen_alias.postID == Post.postID,
             seen_alias.userID == userID
@@ -89,6 +90,7 @@ def getNonFollowedPosts(session, userID: int, followed_user_ids, limit):
     return session.query(Post).filter(
         Post.userID.notin_(followed_user_ids),
         Post.userID != userID,
+        Post.status.ilike("public"),
         ~session.query(seen_alias).filter(
             seen_alias.postID == Post.postID,
             seen_alias.userID == userID
