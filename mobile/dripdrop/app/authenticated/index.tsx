@@ -218,6 +218,7 @@ const Page = () => {
 
     try {
       await resetSeenPosts(userID);
+      setExpandedCaptions({});
       setSeenPosts(new Set());
       setPostPositions({});
 
