@@ -18,7 +18,8 @@ import { FeedPost } from "@/types/post";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "@/constants/Colors";
 import { searchUsersByUsername } from "@/api/user";
-import { User } from "@/types/user";
+import { searchPostsByTerm } from "@/api/post";
+import { User } from "@/types/user.interface";
 import { fetchUserByUsername } from "@/api/following";
 
 interface Post {
@@ -37,41 +38,18 @@ const windowHeight = Dimensions.get("window").height;
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<any[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [searchType, setSearchType] = useState<"accounts" | "posts">(
-    "accounts"
-  );
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [initialIndex, setInitialIndex] = useState<number>(0); // Track the initial index for the modal feed
+  const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
+  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
+  const [initialIndex, setInitialIndex] = useState<number>(0);
 
-  const fetchUsers = async (searchTerm: string): Promise<any[]> => {
+  const fetchUsers = async (searchTerm: string): Promise<User[]> => {
     return await searchUsersByUsername(searchTerm);
   };
 
   const fetchPosts = async (searchTerm: string): Promise<FeedPost[]> => {
-    try {
-      const response = await fetch(
-        `https://api.dripdropco.com/posts/search/${searchTerm}`
-      );
-      const data = await response.json();
-      const updatedPosts = await Promise.all(
-        data.map(async (post: Post) => {
-          const userResponse = await fetch(
-            `https://api.dripdropco.com/users/${post.userID}`
-          );
-          const userData = await userResponse.json();
-          return {
-            ...post,
-            username: userData.username,
-          };
-        })
-      );
-      return updatedPosts;
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      return [];
-    }
+    return await searchPostsByTerm(searchTerm);
   };
 
   useEffect(() => {
@@ -93,19 +71,18 @@ export default function SearchScreen() {
   }, [searchQuery, searchType]);
 
   const handleUserPress = (username: string) => {
-    const fetchUser = async() => {
+    const fetchUser = async () => {
       let user = await fetchUserByUsername(username);
-
-      if(user != null) {
+      if (user != null) {
         console.log(user);
         router.replace(`/authenticated/profile?id=${user.uuid}` as any);
       }
-    }
+    };
 
     fetchUser();
   };
 
-  const handlePostClick = (post: Post) => {
+  const handlePostClick = (post: FeedPost) => {
     setSelectedPost(post);
     // Find the index of the clicked post in the posts array
     const index = posts.findIndex((p) => p.postID === post.postID);
@@ -219,7 +196,7 @@ export default function SearchScreen() {
           {users.length > 0 ? (
             users.map((item) => (
               <TouchableOpacity
-                key={item.uid} // Ensuring unique key here
+                key={item.uuid} // Ensuring unique key here
                 onPress={() => handleUserPress(item.username)}
               >
                 <Text style={styles.userItem}>{item.username}</Text>

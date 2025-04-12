@@ -2,7 +2,7 @@
 export interface User {
   username: string,
   email: string,
-  id: string,
+  uuid: string,
   exp: string,
   id_token: string,
   access_token: string,

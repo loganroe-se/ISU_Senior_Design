@@ -86,7 +86,7 @@ const UserProfile = () => {
       setFollowers(fs);
 
       let userFollower: Following = {
-        userID: user.id,
+        userID: user.uuid,
         username: user.username.toString(),
         email: user.email.toString()
       }
@@ -94,7 +94,7 @@ const UserProfile = () => {
       console.log(userFollower,fs);
 
       fs.forEach(follower => {
-        if(follower.uuid == userFollower.userID) {
+        if(follower.userID == userFollower.userID) {
           setIsFollowing(true);
         }
       });
@@ -119,8 +119,8 @@ const UserProfile = () => {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        let uid = id == null ? user != null ? user.id.toString() : -1 : id;
-        if(user != null && user.id != null){
+        let uid = id == null ? user != null ? user.uuid.toString() : -1 : id;
+        if(user != null && user.uuid != null){
           uid = uid.toString();
           let userAwait = await fetchUserById(uid);
           if(userAwait != null) {
@@ -148,20 +148,20 @@ const UserProfile = () => {
   }, [subPage])
 
   const actionPress = async() => {
-    if(user?.id === profileUser?.uuid) {
+    if(user?.uuid === profileUser?.uuid) {
       router.replace(`/authenticated/profile/edit` as any);
     }
     else {
       if(user != null && profileUser != null) {
         if(!isFollowing) {
-          await followUser(user.id,profileUser.uuid);
+          await followUser(user.uuid,profileUser.uuid);
           updateFollows(profileUser.uuid);
   
           setIsFollowing(true);
         }
         else {
-          console.log(user.id,profileUser.uuid);
-          await unfollowUser(user.id,profileUser.uuid);
+          console.log(user.uuid,profileUser.uuid);
+          await unfollowUser(user.uuid,profileUser.uuid);
           updateFollows(profileUser.uuid);
   
           setIsFollowing(false);

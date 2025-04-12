@@ -5,33 +5,26 @@ export const fetchUsers = async (): Promise<User[] | null> => {
   return await apiRequest<User[]>("GET", "/users/");
 };
 
-// Fetch user by userID
 export const fetchUserById = async (userID: string): Promise<ProfileUser | null> => {
   return apiRequest<ProfileUser | null>("GET", `/users/${userID}`);
 };
 
-// Search users by username
 export const searchUsersByUsername = async (searchTerm: string): Promise<User[] | []> => {
   return apiRequest<User[] | []>("GET", `/users/search/${searchTerm}`);
 };
 
-// Fetch user email by userID
-export const fetchUserEmail = async (
-  userID: number
-): Promise<string | null> => {
+export const fetchUserEmail = async (userID: number): Promise<string | null> => {
   const user = await apiRequest<User>("GET", `/users/${userID}`);
   return user ? user.email : null;
 };
 
-// Update user by userID
 export const updateUser = async (userData: Partial<User>): Promise<User | null> => {
-  //Build request body
   let body = {
-    "username": userData.username,
-    "email": userData.email
-  }
-  
-  await fetch(`https://api.dripdropco.com/users/${userData.id}`, {
+    username: userData.username,
+    email: userData.email,
+  };
+
+  await fetch(`https://api.dripdropco.com/users/${userData.uuid}`, {
     method: "PUT",
     body: JSON.stringify(body),
   });
@@ -39,7 +32,6 @@ export const updateUser = async (userData: Partial<User>): Promise<User | null> 
   return null;
 };
 
-// Delete user by userID
 export const deleteUser = async (uid: String): Promise<User | null> => {
   await fetch(`https://api.dripdropco.com/users/${uid}`, {
     method: "DELETE",
@@ -48,7 +40,6 @@ export const deleteUser = async (uid: String): Promise<User | null> => {
   return null;
 };
 
-// Fetch users by search term
 export const searchUsers = async (searchTerm: string): Promise<User[] | null> => {
   try {
     const response = await fetch(
