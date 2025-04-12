@@ -1,6 +1,5 @@
 import { Alert, View, Text, StyleSheet } from "react-native"
-import React, { useCallback } from "react";
-import { useUserContext } from "@/context/UserContext";
+import React from "react";
 import { likePost, unlikePost } from "@/api/like";
 import { Comment } from "@/types/Comment";
 import { FeedPost } from "@/types/post";
