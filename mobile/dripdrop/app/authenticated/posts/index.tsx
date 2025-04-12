@@ -41,7 +41,7 @@ export default function Post() {
   const router = useRouter();
 
   const { user } = useUserContext();
-  const id = user?.id;
+  const id = user?.uuid;
   if (id === undefined) {
     throw new Error("User ID is undefined. Please ensure the user is logged in.");
   }
@@ -163,7 +163,7 @@ export default function Post() {
       );
 
       const newPost: sendPost = {
-        userID: id,
+        uuid: id,
         caption,
         images: [manipulatedImage.uri],
       };

@@ -29,6 +29,13 @@ const refreshTokens = async (refresh_token: string) => {
     const storedUser = await AsyncStorage.getItem("user");
     if (storedUser) {
       const user = JSON.parse(storedUser);
+
+      if(user.hasOwnProperty("id")) {
+        user["uuid"] = user["id"];
+        delete user["id"];
+
+        await AsyncStorage.setItem("user", JSON.stringify(user));
+      }
       const updatedUser = {
         ...user,
         id_token: newTokens.id_token,

@@ -1,6 +1,6 @@
 import { deleteUser, fetchUserById, updateUser } from "@/api/user";
 import { useUserContext } from "@/context/UserContext";
-import { User, ProfileUser, NewUser } from "@/types/user.interface";
+import { User, NewUser } from "@/types/user.interface";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -17,11 +17,11 @@ const UserEditProfile = () => {
     const [newUsername, setNewUsername] = useState("");
     const [newEmail, setNewEmail] = useState("");
 
-    const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
+    const [profileUser, setProfileUser] = useState<User | null>(null);
 
 
     let newUser: NewUser = {
-        id: "",
+        uuid: "",
         email: "",
         username: "",
         profilePic: "",
@@ -29,7 +29,7 @@ const UserEditProfile = () => {
 
     if (user != null) {
 
-        let uid = user?.id;
+        let uid = user?.uuid;
         useEffect(() => {
             const getUser = async () => {
                 setProfileUser(await fetchUserById(uid));
@@ -58,7 +58,7 @@ const UserEditProfile = () => {
 
     const deleteProfile = async () => {
         if (profileUser) {
-            await deleteUser(profileUser.id).then((response) => {
+            await deleteUser(profileUser.uuid).then((response) => {
                 router.replace(`/authenticated/profile` as any);
             });
         } else {

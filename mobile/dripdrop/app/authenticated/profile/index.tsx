@@ -9,7 +9,7 @@ import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
 import { router, useLocalSearchParams } from "expo-router";
 import { fetchUserById } from "@/api/user";
-import { User, ProfileUser } from "@/types/user.interface";
+import { User } from "@/types/user.interface";
 import { Camera } from "expo-camera"; // For camera functionality
 import * as MediaLibrary from "expo-media-library";
 
@@ -20,7 +20,7 @@ const UserProfile = () => {
   const { user, signOut } = useUserContext();
 
   const [photos, setPhotos] = useState<MediaLibrary.Asset[]>([]);
-  const [profileUser, setProfileUser] = useState<ProfileUser | null>(null);
+  const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
@@ -86,7 +86,7 @@ const UserProfile = () => {
       setFollowers(fs);
 
       let userFollower: Following = {
-        userID: user.id,
+        uuid: user.uuid,
         username: user.username.toString(),
         email: user.email.toString()
       }
@@ -94,7 +94,7 @@ const UserProfile = () => {
       console.log(userFollower,fs);
 
       fs.forEach(follower => {
-        if(follower.uuid == userFollower.userID) {
+        if(follower.uuid == userFollower.uuid) {
           setIsFollowing(true);
         }
       });
@@ -122,8 +122,9 @@ const UserProfile = () => {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        let uid = id == null ? user != null ? user.id.toString() : -1 : id;
-        if(user != null && user.id != null){
+        let uid = id == null ? user != null ? user.uuid.toString() : -1 : id;
+
+        if(user != null && user.uuid != null){
           uid = uid.toString();
           console.log("Fetching User");
           let userAwait = await fetchUserById(uid);
@@ -153,20 +154,20 @@ const UserProfile = () => {
   }, [subPage])
 
   const actionPress = async() => {
-    if(user?.id === profileUser?.uuid) {
+    if(user?.uuid === profileUser?.uuid) {
       router.replace(`/authenticated/profile/edit` as any);
     }
     else {
       if(user != null && profileUser != null) {
         if(!isFollowing) {
-          await followUser(user.id,profileUser.uuid);
+          await followUser(user.uuid,profileUser.uuid);
           updateFollows(profileUser.uuid);
   
           setIsFollowing(true);
         }
         else {
-          console.log(user.id,profileUser.uuid);
-          await unfollowUser(user.id,profileUser.uuid);
+          console.log(user.uuid,profileUser.uuid);
+          await unfollowUser(user.uuid,profileUser.uuid);
           updateFollows(profileUser.uuid);
   
           setIsFollowing(false);
@@ -259,14 +260,15 @@ const UserProfile = () => {
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}
           renderItem={({ item }) => (
-            item.images.length > 0 &&
-            <TouchableOpacity style={profileStyle.postContainer}>
-              <Image
-                source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
-                style={profileStyle.postImage}
-              />
-            </TouchableOpacity>
-          )}
+            item.images.length > 0 ? (
+              <TouchableOpacity style={profileStyle.postContainer}>
+                <Image
+                  source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
+                  style={profileStyle.postImage}
+                />
+              </TouchableOpacity>
+            ) : null
+          )}          
         />
         : subPage === "PRIVATE" && posts.length > 0 ?
         <FlatList
@@ -275,13 +277,13 @@ const UserProfile = () => {
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}
           renderItem={({ item }) => (
-            item.images.length > 0 &&
+            item.images.length > 0 ? (
             <TouchableOpacity style={profileStyle.postContainer}>
               <Image
                 source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
                 style={profileStyle.postImage}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> ) : null
           )}
         />
         :
@@ -291,13 +293,13 @@ const UserProfile = () => {
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}
           renderItem={({ item }) => (
-            item.images.length > 0 &&
+            item.images.length > 0 ? (
             <TouchableOpacity style={profileStyle.postContainer}>
               <Image
                 source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
                 style={profileStyle.postImage}
               />
-            </TouchableOpacity>
+            </TouchableOpacity> ) : null
           )}
         />
       }
@@ -314,13 +316,13 @@ const UserProfile = () => {
             </View>
             {
               followModalType == "Followers" ? followers.map((follower) => 
-                <TouchableOpacity key={follower.userID} onPress={() => {redirectToUser(follower.username)}}>
+                <TouchableOpacity key={follower.uuid} onPress={() => {redirectToUser(follower.username)}}>
                   <Text style={{color: 'black'}}>{follower.username}</Text>
                 </TouchableOpacity>
               )
               :
               following.map((following) => 
-                <TouchableOpacity key={following.userID} onPress={() => {redirectToUser(following.username)}}>
+                <TouchableOpacity key={following.uuid} onPress={() => {redirectToUser(following.username)}}>
                   <Text style={{color: 'black'}}>{following.username}</Text>
                 </TouchableOpacity>
               )
