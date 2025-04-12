@@ -18,12 +18,12 @@ import { FeedPost } from "@/types/post";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "@/constants/Colors";
 import { searchUsersByUsername } from "@/api/user";
-import { User } from "@/types/user";
+import { User } from "@/types/user.interface";
 import { fetchUserByUsername } from "@/api/following";
 
 interface Post {
   postID: number;
-  userID: number;
+  uuid: string;
   images: { imageURL: string }[];
   username: string;
   caption: string;
@@ -58,7 +58,7 @@ export default function SearchScreen() {
       const updatedPosts = await Promise.all(
         data.map(async (post: Post) => {
           const userResponse = await fetch(
-            `https://api.dripdropco.com/users/${post.userID}`
+            `https://api.dripdropco.com/users/${post.uuid}`
           );
           const userData = await userResponse.json();
           return {
