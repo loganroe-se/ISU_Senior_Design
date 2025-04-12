@@ -39,6 +39,7 @@ def handler(event, context):
         # Perform classification (dummy classification here)
         print("Classifying")
         classified_output = classify_segment(segmentation_result)
+        print("Done with  Classification")
 
         return {
             "statusCode": 200,

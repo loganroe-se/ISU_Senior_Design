@@ -1,4 +1,4 @@
-import { FeedPost } from '../types/post';
+import { FeedPost } from '@/types/post';
 import { apiRequest } from './api';
 
 // Get the feed for a given userID

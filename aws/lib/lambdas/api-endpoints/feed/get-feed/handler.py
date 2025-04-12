@@ -45,7 +45,7 @@ def getFeed(session, email, limit: int = 20):
         feed_posts_serialized = [
             {
                 "postID": post.postID,
-                "userID": post.userID,
+                "uuid": post.userRel.uuid if post.userRel else None,
                 "username": post.userRel.username,
                 "caption": post.caption,
                 "createdDate": (
@@ -76,6 +76,7 @@ def getFollowedPosts(session, userID: int, followed_user_ids, limit):
     return session.query(Post).filter(
         Post.userID.in_(followed_user_ids),
         Post.userID != userID,
+        Post.status.ilike("public"),
         ~session.query(seen_alias).filter(
             seen_alias.postID == Post.postID,
             seen_alias.userID == userID
@@ -89,6 +90,7 @@ def getNonFollowedPosts(session, userID: int, followed_user_ids, limit):
     return session.query(Post).filter(
         Post.userID.notin_(followed_user_ids),
         Post.userID != userID,
+        Post.status.ilike("public"),
         ~session.query(seen_alias).filter(
             seen_alias.postID == Post.postID,
             seen_alias.userID == userID

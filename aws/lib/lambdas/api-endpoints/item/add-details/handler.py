@@ -39,7 +39,7 @@ def add_clothing_item_details(session, item_id, name, brand, category, price, it
         if not clothing_item:
             return 404, 'Clothing item ID does not exist'
         
-        if clothing_item.clothingItemDetails:
+        if clothing_item.details:
             return 400, 'Clothing item already has details'
 
         new_clothing_item_details = ClothingItemDetails(

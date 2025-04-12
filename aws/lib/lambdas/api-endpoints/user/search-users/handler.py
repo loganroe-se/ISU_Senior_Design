@@ -22,7 +22,7 @@ def handler(event, context):
 def searchUsers(session, search_string):
     try:
         users = session.execute(
-            select(User.username, User.userID, User.profilePicURL)
+            select(User.username, User.uuid, User.profilePicURL)
             .filter(User.username.ilike(f"%{search_string}%"))
             .limit(20)
         ).fetchall()
@@ -30,7 +30,7 @@ def searchUsers(session, search_string):
         users_list = [
             {
                 "username": row[0],
-                "userID": row[1],
+                "uuid": row[1],
                 "profilePic": row[2]
             } for row in users
         ]
