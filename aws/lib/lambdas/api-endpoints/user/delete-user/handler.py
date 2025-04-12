@@ -15,15 +15,15 @@ def handler(event, context):
 
 
 @session_handler
-def deleteUser(session, user_id):
+def deleteUser(session, email):
     try:
         user = get_user_by_email(session, email)
 
         if not user:
-            return 404, f'User with userID: {user_id} was not found'
+            return 404, f'User with uuid: {user.uuid} was not found'
 
         session.delete(user)
-        return 200, f'User with userID: {user_id} was deleted successfully'
+        return 200, f'User with uuid: {user.uuid} was deleted successfully'
 
     except Exception as e:
         return handle_exception(e, "Error accessing database")

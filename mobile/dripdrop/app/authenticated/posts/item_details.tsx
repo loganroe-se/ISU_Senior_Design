@@ -135,7 +135,7 @@ const Page = () => {
         itemExists: boolean,
         itemData: any,
         clothingItemID?: number
-    ): Promise<Response> => {
+    ): Promise<{ status: number, data: any }> => {
         const url = itemExists
             ? `${API_BASE_URL}/${clothingItemID}`
             : API_BASE_URL;
@@ -155,17 +155,18 @@ const Page = () => {
                 body: JSON.stringify(itemData),
             });
 
-            const responseText = await response.text();
+            const responseJson = await response.json();
 
-            return new Response(responseText, {
+            return {
                 status: response.status,
-                statusText: response.statusText,
-            });
+                data: responseJson,
+            };
         } catch (error) {
             console.error("❌ Error making request:", error);
             throw error;
         }
     };
+
 
 
 
@@ -196,21 +197,24 @@ const Page = () => {
                 ...(!itemExists && { xCoord, yCoord }),
             };
 
-            const response = await saveItem(itemExists, itemData, existingItem?.clothingItemID);
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || `Failed to save item`);
+            const { status, data } = await saveItem(itemExists, itemData, existingItem?.clothingItemID);
+
+            if (status !== 200) {
+                throw new Error(data?.message || "Failed to save item");
             }
 
-            //const responseText = await response.text(); //TODO: Change this to work with the updated reponse
-            const responseText = "Item with id: 142 processed successfully!"
-            console.log("Response text: ", responseText)
-            const responseMatch = responseText.match(/Item with id: (\d+)/);
+            // The backend returns: { itemId: {123}, message: "..." }
+            const newItemId = Array.isArray(data.itemId)
+                ? data.itemId[0]
+                : typeof data.itemId === 'object'
+                    ? Object.values(data.itemId)[0]
+                    : data.itemId;
 
-            const itemId = responseMatch![1];
+            console.log("🆔 New Item ID:", newItemId);
+
             await AsyncStorage.setItem(`item_${imageId}`, JSON.stringify(itemData));
             Alert.alert("Success", itemExists ? "Item updated!" : "Item created!");
-            await handleSubmit(itemId);
+            await handleSubmit(newItemId.toString());
 
         } catch (error) {
             console.error("Save failed:", error);
@@ -219,6 +223,7 @@ const Page = () => {
             setIsLoading(false);
         }
     };
+
 
 
     const handleSubmit = async (newClothingItemID: string) => {

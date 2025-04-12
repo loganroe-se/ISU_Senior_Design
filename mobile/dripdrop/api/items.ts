@@ -1,87 +1,43 @@
 // api/items.ts
-import { Marker } from "@/types/Marker"; // Import the Marker type
+import { Marker } from "@/types/Marker";
 import { Item } from "@/types/Item";
+import { apiRequest } from "./api";
 
 // Fetch markers
 export const fetchMarkers = async (postID: number): Promise<Marker[]> => {
-  try {
-    const response = await fetch(`https://api.dripdropco.com/items/post/${postID}`);
-    if (!response.ok) {
-      throw new Error("Failed to fetch markers");
-    }
-    const data: Marker[] = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error fetching markers:", error);
-    throw error;
-  }
+  return apiRequest<Marker[]>("GET", `/items/post/${postID}`);
 };
 
 // Add a new marker
 export const addMarker = async (
   marker: Omit<Marker, "clothingItemID">
 ): Promise<Marker> => {
-  try {
-    const response = await fetch("https://api.dripdropco.com/items", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(marker),
-    });
-    if (!response.ok) {
-      throw new Error("Failed to add marker");
-    }
-    const data: Marker = await response.json();
-    return data;
-  } catch (error) {
-    console.error("Error adding marker:", error);
-    throw error;
-  }
+  return apiRequest<Marker>("POST", "/items", marker);
 };
 
 // Delete a marker
 export const deleteMarker = async (itemId: number): Promise<void> => {
-  try {
-    const response = await fetch(`https://api.dripdropco.com/items/${itemId}`, {
-      method: "DELETE",
-    });
-    if (!response.ok) {
-      throw new Error("Failed to delete marker");
-    }
-  } catch (error) {
-    console.error("Error deleting marker:", error);
-    throw error;
-  }
+  return apiRequest<void>("DELETE", `/items/${itemId}`);
 };
 
-
-
+// Get a specific marker
 export const getMarker = async (itemId: number): Promise<Marker | null> => {
   try {
-    const response = await fetch(`https://api.dripdropco.com/items/post/${itemId}`);
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    console.log("DATA IN GET Marker:", data);
-
-    // Ensure we return a single object if API gives an array
+    const data = await apiRequest<Marker[] | Marker>(
+      "GET",
+      `/items/post/${itemId}`
+    );
     return Array.isArray(data) ? data[0] : data;
   } catch (error) {
-    console.error("Error fetching item:", error);
+    console.error("Error fetching marker:", error);
     return null;
   }
 };
 
+// Get an item
 export const getItem = async (itemId: number): Promise<Item | null> => {
   try {
-    const response = await fetch(`https://api.dripdropco.com/items/${itemId}`);
-    if (!response.ok) return null;
-
-    const data = await response.json();
-    console.log("DATA IN GET ITEM:", data);
-
-    // Ensure we return a single object if API gives an array
+    const data = await apiRequest<Item[] | Item>("GET", `/items/${itemId}`);
     return Array.isArray(data) ? data[0] : data;
   } catch (error) {
     console.error("Error fetching item:", error);
@@ -89,30 +45,19 @@ export const getItem = async (itemId: number): Promise<Item | null> => {
   }
 };
 
+// Update or create an item
+export const updateItem = async (
+  itemId: number,
+  itemData: any
+): Promise<Item> => {
+  const existing = await getItem(itemId);
+  const method = existing ? "PUT" : "POST";
+  const endpoint = existing ? `/items/${itemId}` : "/items";
 
-
-
-
-export const updateItem = async (itemId: number, itemData: any): Promise<Item> => {
-    const endpoint = `https://api.dripdropco.com/items/${itemId}`;
-    const method = (await getItem(itemId)) ? "PUT" : "POST";
-    
-    const response = await fetch(method === "PUT" ? endpoint : "https://api.dripdropco.com/items", {
-        method,
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(itemData),
-    });
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || `Failed to ${method === "PUT" ? "update" : "create"} item`);
-    }
-
-    return await response.json();
+  return apiRequest<Item>(method, endpoint, itemData);
 };
 
+// Create an item
 export const createItem = async (
   itemData: Omit<Item, "id"> & {
     image_id: string;
@@ -120,16 +65,5 @@ export const createItem = async (
     yCoord: number;
   }
 ): Promise<Item> => {
-  const response = await fetch("https://api.dripdropco.com/items", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(itemData),
-  });
-  if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to create item");
-  }
-  return await response.json();
+  return apiRequest<Item>("POST", "/items", itemData);
 };
