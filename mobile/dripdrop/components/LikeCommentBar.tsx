@@ -17,8 +17,6 @@ interface LikeCommentBarProps {
     setCommentModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
     setLoadingComments: React.Dispatch<React.SetStateAction<boolean>>;
     setComments: React.Dispatch<React.SetStateAction<Comment[]>>;
-    onLike?: () => void;
-    onComment?: () => void;
 }
 
 const LikeCommentBar = ({ 
@@ -29,9 +27,7 @@ const LikeCommentBar = ({
     setCurrentPostID, 
     setCommentModalVisible,
     setLoadingComments,
-    setComments,
-    onLike, 
-    onComment 
+    setComments
 }: LikeCommentBarProps) => {
     // Handle a like
     const handleLike = (async (postID: number) => {

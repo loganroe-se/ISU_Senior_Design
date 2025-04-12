@@ -53,9 +53,12 @@ export const apiRequest = async <T, D = unknown>(
     if (method !== "GET" && data !== null) {
       options.body = JSON.stringify(data);
     }
-
+    
     const response = await fetch(`${API_BASE_URL}${url}`, options);
 
+    // Pass empty return when a 204 occurs
+    if (response.status === 204) return null as T;
+    
     if (!response.ok) {
       const errorData = await response.json();
       console.error(`Error [${method.toUpperCase()} ${url}]:`, errorData);

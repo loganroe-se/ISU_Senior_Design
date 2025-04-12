@@ -5,7 +5,7 @@ import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like"
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
-import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
+import { markPostsAsSeen, resetSeenPosts, getSeenPosts } from "@/api/has_seen";
 import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
 import { sendComment } from "@/types/sendComment.interface";
@@ -13,6 +13,7 @@ import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
 import { GestureHandlerRootView, PanGestureHandler, TouchableWithoutFeedback } from "react-native-gesture-handler";
 import Icon from "react-native-vector-icons/FontAwesome";
+import LikeCommentBar from "@/components/LikeCommentBar";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -201,7 +202,7 @@ const Page = () => {
     const contentHeight = event.nativeEvent.contentSize.height;
     if (scrollY + screenHeight >= contentHeight - 50 && !isFetching && !hasSeenPosts) {
       if (seenPosts.size > 0 && userID) {
-        markPostsAsSeen({ userID: userID, postIDs: Array.from(seenPosts) });
+        markPostsAsSeen({ postIDs: Array.from(seenPosts) });
         setHasSeenPosts(true);
       }
       getNewPosts();
@@ -383,6 +384,16 @@ const Page = () => {
                       />
                       <Text style={styles.iconCount}>{item.numComments}</Text>
                     </View>
+                    {/* <LikeCommentBar 
+                      feedData={feedData}
+                      setFeedData={setFeedData}
+                      userID={userID ? userID : ""}
+                      item={item}
+                      setCurrentPostID={setCurrentPostID}
+                      setCommentModalVisible={setCommentModalVisible}
+                      setLoadingComments={setLoadingComments}
+                      setComments={setComments}
+                    /> */}
     
                     {/* Display the username & caption */}
                     <Text style={styles.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
