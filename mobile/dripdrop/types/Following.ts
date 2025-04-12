@@ -1,10 +1,10 @@
 export interface Following {
-  userID: string;
+  uuid: string;
   username: string;
   email: string;
 }
 
 export interface Follower {
-  userID: string;
+  uuid: string;
   username: string;
 }

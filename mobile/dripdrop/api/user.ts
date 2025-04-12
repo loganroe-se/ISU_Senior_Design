@@ -1,4 +1,4 @@
-import { User, ProfileUser } from "@/types/user.interface";
+import { User } from "@/types/user.interface";
 import { apiRequest } from "./api";
 
 export const fetchUsers = async (): Promise<User[] | null> => {
@@ -6,8 +6,8 @@ export const fetchUsers = async (): Promise<User[] | null> => {
 };
 
 // Fetch user by userID
-export const fetchUserById = async (userID: string): Promise<ProfileUser | null> => {
-  return apiRequest<ProfileUser | null>("GET", `/users/${userID}`);
+export const fetchUserById = async (userID: string): Promise<User | null> => {
+  return apiRequest<User | null>("GET", `/users/${userID}`);
 };
 
 // Search users by username
@@ -31,7 +31,7 @@ export const updateUser = async (userData: Partial<User>): Promise<User | null> 
     "email": userData.email
   }
   
-  await fetch(`https://api.dripdropco.com/users/${userData.id}`, {
+  await fetch(`https://api.dripdropco.com/users/${userData.uuid}`, {
     method: "PUT",
     body: JSON.stringify(body),
   });

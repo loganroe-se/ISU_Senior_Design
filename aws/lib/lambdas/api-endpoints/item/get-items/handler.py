@@ -32,11 +32,11 @@ def getCoordinates(session, post_id):
 
         coordinate_data = [
             {
-                "clothingItemID": item.clothingItemID,
-                "xCoord": item.xCoord,
-                "yCoord": item.yCoord
+                "clothingItemID": clothingItemID,
+                "xCoord": xCoord,
+                "yCoord": yCoord
             }
-            for item in items
+            for clothingItemID, xCoord, yCoord in items
         ]
 
         return 200, coordinate_data

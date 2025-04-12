@@ -2,16 +2,14 @@
 export interface User {
   username: string,
   email: string,
-  id: string,
+  uuid: string,
   exp: string,
   id_token: string,
   access_token: string,
-  refresh_token: string
+  refresh_token: string,
+  profilePic?: string
 }
-export interface ProfileUser extends User {
-  profilePic: string;
 
-}
 export interface UserContextType {
   user: User | null;
   signIn: (email: string, password: string) => Promise<void>;
@@ -20,8 +18,8 @@ export interface UserContextType {
 }
 
 export interface NewUser {
-    id: string,
+    uuid: string,
     email: string,
     username: string,
-    profilePic: string
+    profilePic?: string
 }

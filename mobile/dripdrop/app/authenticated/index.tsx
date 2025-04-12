@@ -44,7 +44,7 @@ const Page = () => {
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const storedUserID = user?.id;
+        const storedUserID = user?.uuid;
 
         // Set them to state if they exist
         if (storedUserID) {

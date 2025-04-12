@@ -1,5 +1,5 @@
 export interface sendPost {
-  userID: string;
+  uuid: string;
   caption: string;
   images?: string[];
   postID?: number;
@@ -7,7 +7,7 @@ export interface sendPost {
 
 export interface Post {
   postID: number;
-  userID: string;
+  uuid: string;
   status: string;
   images: { imageURL: string, imageID: number }[];
   username: string;
