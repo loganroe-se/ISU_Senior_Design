@@ -47,9 +47,9 @@ export const post_styles = StyleSheet.create({
     },
     cardContainer: {
         backgroundColor: '#f2f2f2',
-        width:'90%',
-        alignSelf:'center',
-        margin:'4%'
+        width: '90%',
+        alignSelf: 'center',
+        margin: '4%'
     },
     imageContainer: {
         alignItems: "center",
@@ -58,18 +58,17 @@ export const post_styles = StyleSheet.create({
     },
     image: {
         width: "100%",
-        height: 200,
+        height: 300,
         borderRadius: 10,
         marginVertical: 10,
-        objectFit: 'contain',
+        resizeMode: 'contain'
     },
     removeIconContainer: {
         position: "absolute", // Position the X icon absolutely
-        top: 10, // Distance from the top
-        right: 10, // Distance from the right
-
-        borderRadius: 12, // Rounded corners
-        padding: 4, // Padding around the icon
+        top: 10, 
+        right: 10, 
+        borderRadius: 12, 
+        padding: 4, 
     },
     placeholderContainer: {
         alignItems: "center",
@@ -85,10 +84,6 @@ export const post_styles = StyleSheet.create({
         justifyContent: "center",
         padding: 5,
         borderRadius: 5,
-    },
-    removeButton: {
-        backgroundColor: Colors.redButtonColor,
-        alignSelf: 'center'
     },
     input: {
         borderRadius: 8,
@@ -112,29 +107,33 @@ export const post_styles = StyleSheet.create({
         backgroundColor: "rgba(0, 0, 0, 0.8)",
     },
     frame: {
-        width: 300,
-        height: 300,
-        borderWidth: 2,
-        borderColor: "#fff",
-        overflow: "hidden",
+        width: '90%',
+        height: '60%',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        overflow: 'hidden',
+        marginBottom: 20,
     },
     adjustableImage: {
         width: "100%",
         height: "100%",
     },
     modal_button: {
-        width: 200, // Fixed width for both buttons
-        height: 40, // Fixed height for both buttons
-        justifyContent: "center", // Center text horizontally
-
-        alignSelf: 'center',
-        marginTop: 10, // Space between buttons
+        marginVertical: 5,
+        width: '80%',
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
     },
     cancelButton: {
         borderColor: 'red',
+    },
+    resetButton: {
+        borderColor: 'blue',
+    },
+    buttonGroup: {
+        width: '100%',
+        alignItems: 'center',
     },
 
     topBar: {
@@ -249,10 +248,11 @@ export const image_marker_styles = StyleSheet.create({
     },
     modalContainer: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
     },
+
     modalContent: {
         width: "80%",
         padding: 20,
@@ -365,7 +365,7 @@ export const item_details_styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        margin: 8, 
+        margin: 8,
         backgroundColor: "#0",
     },
     saveButton: {

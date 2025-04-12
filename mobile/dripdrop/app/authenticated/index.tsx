@@ -21,6 +21,7 @@ import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { likePost, unlikePost } from "@/api/like";
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
+import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
 import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
 import { sendComment } from "@/types/sendComment.interface";
@@ -57,6 +58,12 @@ const Page = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<TextInput | null>(null);
+  const [seenPosts, setSeenPosts] = useState(new Set<number>());
+  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number} }>({});
+  const [isFetching, setIsFetching] = useState(false);
+  const [hasSeenPosts, setHasSeenPosts] = useState(false);
+  const [noMorePosts, setNoMorePosts] = useState(false);
+
 
   useEffect(() => {
     const getUserData = async () => {
@@ -97,6 +104,23 @@ const Page = () => {
         });
     }
   }, [userID]);
+
+  // // Ensure posts get marked as seen once the app is closed/minimized --- TODO: Does not properly track posts seen so this does not work yet
+  // useEffect(() => {
+  //   const appStateListener = AppState.addEventListener('change', (nextAppState) => {
+  //     console.log(nextAppState);
+  //     if (nextAppState === 'background' || nextAppState === 'inactive') {
+  //       if (seenPosts.size > 0) {
+  //         console.log(Array.from(seenPosts));
+  //         markPostsAsSeen({ userID: Number(userID), postIDs: Array.from(seenPosts) });
+  //       }
+  //     }
+  //   });
+
+  //   return () => {
+  //     appStateListener.remove();
+  //   };
+  // }, [seenPosts]);
 
   // Handle a like
   const handleLike = useCallback(
@@ -168,7 +192,6 @@ const Page = () => {
 
     const newComment: sendComment = {
       postId: currentPostID,
-      userId: userID,
       content: commentText,
     };
 
@@ -187,6 +210,71 @@ const Page = () => {
     } catch (error) {
       console.error("Error adding a new comment: ", error);
     }
+  };
+
+  // Keep track of seen posts
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const screenHeight = event.nativeEvent.layoutMeasurement.height;
+
+    Object.entries(postPositions).forEach(([postID, { y, height }]) => {
+      const postBottom = y + height;
+      if (postBottom <= scrollY + screenHeight) {
+        setSeenPosts((prev) => new Set(prev).add(Number(postID)));
+      }
+    });
+
+    // Check if at the bottom
+    const contentHeight = event.nativeEvent.contentSize.height;
+    if (scrollY + screenHeight >= contentHeight - 50 && !isFetching && !hasSeenPosts) {
+      if (seenPosts.size > 0 && userID) {
+        markPostsAsSeen({ userID: userID, postIDs: Array.from(seenPosts) });
+        setHasSeenPosts(true);
+      }
+      getNewPosts();
+    }
+  };
+
+  // Get new posts
+  const getNewPosts = async () => {
+    if (isFetching) return;
+    if ((userID ?? 0) === 0) return;
+
+    setIsFetching(true);
+
+    try {
+      if (userID) {
+        getFeed(userID)
+          .then((data) => {
+            if (data) {
+              setFeedData((prev) => {
+                const newPostIDs = data.map((p) => p.postID);
+                const existingPostIDs = prev.map((p) => p.postID);
+                if (newPostIDs.length > 0 && !newPostIDs.every(id => existingPostIDs.includes(id))) {
+                  setNoMorePosts(false);
+                  setHasSeenPosts(false)
+                } else {
+                  setNoMorePosts(true);
+                }
+                const uniquePosts = [
+                  ...prev,
+                  ...data.filter((newPost) => !existingPostIDs.includes(newPost.postID)),
+                ];
+                return uniquePosts
+              });
+              setLoading(false);
+            } else {
+              setError('Failed to fetch feed');
+            }
+          }).catch(() => {
+            setError('Failed to fetch feed');
+          });
+      }
+    } catch (error) {
+      console.error("Error fetching new posts:", error);
+    }
+
+    setIsFetching(false);
   };
 
   // Focus the input when the modal opens
@@ -227,6 +315,39 @@ const Page = () => {
       ...prevState,
       [postID]: true,
     }));
+  };
+
+  // Handle the post layout
+  const handleLayout = (postID: number, event: LayoutChangeEvent) => {
+    event.persist();
+    if (!event.nativeEvent.layout) return;
+
+    setPostPositions((prev) => ({
+      ...prev,
+      [postID]: {
+        y: event.nativeEvent.layout.y,
+        height: event.nativeEvent.layout.height,
+      },
+    }));
+  };
+
+  // Reset feed
+  const resetFeed = async () => {
+    if (!userID) return;
+    setFeedData([]);
+    setHasSeenPosts(false);
+    setNoMorePosts(false);
+    setLoading(true);
+
+    try {
+      await resetSeenPosts(userID);
+      setSeenPosts(new Set());
+      setPostPositions({});
+
+      getNewPosts();
+    } catch (error) {
+      console.error("Error resetting feed:", error);
+    }
   };
 
   return (

@@ -3,7 +3,7 @@ import { Modal, View, FlatList, Image, TouchableOpacity, StyleSheet } from "reac
 import { Avatar, Text, Button } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts } from "@/api/post";
-import { fetchFollowers, fetchFollowing, fetchUserByUsername, followUser } from "@/api/following";
+import { fetchFollowers, fetchFollowing, fetchUserByUsername, followUser, unfollowUser } from "@/api/following";
 import { Follower, Following } from "@/types/Following";
 import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
@@ -76,9 +76,36 @@ const UserProfile = () => {
     }
   }
 
+  const updateFollows = async (id: string) => {
+    console.log("Updating follows");
+    if(user != null && profileUser != null) {
+      const f = await fetchFollowing(id);
+      const fs = await fetchFollowers(id);
+
+      setFollowing(f);
+      setFollowers(fs);
+
+      let userFollower: Following = {
+        userID: user.id,
+        username: user.username.toString(),
+        email: user.email.toString()
+      }
+
+      console.log(userFollower,fs);
+
+      fs.forEach(follower => {
+        if(follower.uuid == userFollower.userID) {
+          setIsFollowing(true);
+        }
+      });
+    }
+  }
+
   const redirectToUser = async (username: string) => {
+    console.log("E");
     const fetchUser = async() => {
       let user = await fetchUserByUsername(username);
+      console.log(user);
 
       if(user != null) {
         console.log(user);
@@ -98,24 +125,12 @@ const UserProfile = () => {
           let userAwait = await fetchUserById(uid);
           if(userAwait != null) {
             setProfileUser(userAwait);
+            console.log(userAwait,uid);
+
+            updateFollows(uid);
+
+            getUserPosts(uid.toString());
           }
-          const f = await fetchFollowing(uid);
-          const fs = await fetchFollowers(uid);
-          setFollowing(f);
-          setFollowers(fs);
-          let userFollower: Following = {
-            userID: user.id,
-            username: user.username.toString(),
-            email: user.email.toString()
-          }
-
-          if(fs.includes(userFollower)) {
-            setIsFollowing(true);
-          }
-
-
-          getUserPosts(uid.toString());
-
         }
       }
       catch {
@@ -128,20 +143,29 @@ const UserProfile = () => {
 
   useEffect(() => {
     if(profileUser) {
-      getUserPosts(profileUser.id.toString());
+      getUserPosts(profileUser.uuid.toString());
     }
   }, [subPage])
 
   const actionPress = async() => {
-    if(user?.id === profileUser?.id) {
+    if(user?.id === profileUser?.uuid) {
       router.replace(`/authenticated/profile/edit` as any);
     }
     else {
-      if(!isFollowing && user != null && profileUser != null) {
-        console.log(user.id, profileUser.id);
-        await followUser(user.id,profileUser.id);
-
-        setIsFollowing(true);
+      if(user != null && profileUser != null) {
+        if(!isFollowing) {
+          await followUser(user.id,profileUser.uuid);
+          updateFollows(profileUser.uuid);
+  
+          setIsFollowing(true);
+        }
+        else {
+          console.log(user.id,profileUser.uuid);
+          await unfollowUser(user.id,profileUser.uuid);
+          updateFollows(profileUser.uuid);
+  
+          setIsFollowing(false);
+        }
       }
     }
   }
@@ -172,7 +196,7 @@ const UserProfile = () => {
               <Text style={profileStyle.username}>{profileUser?.username}</Text>
             </View>
             <View style={{display: "flex", flexDirection: "row"}}>
-              <TouchableOpacity style={profileStyle.actionButton} onPress={actionPress}>
+              <TouchableOpacity style={user.username === profileUser?.username || !isFollowing ? profileStyle.actionButton : profileStyle.followedActionButton} onPress={actionPress}>
                 <Text style={profileStyle.buttonLabel}>{user.username === profileUser?.username ? "Edit Profile" : !isFollowing ? "Follow" : "Following"}</Text>
               </TouchableOpacity>
 
@@ -217,8 +241,8 @@ const UserProfile = () => {
           <TouchableOpacity onPress={() => {setSubPage("PRIVATE")}}>
             <Text style={subPage === "PRIVATE" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Drafts</Text>
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => {setSubPage("REVIEW")}}>
-            <Text style={subPage === "REVIEW" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Review</Text>
+          <TouchableOpacity onPress={() => {setSubPage("NEEDS_REVIEW")}}>
+            <Text style={subPage === "NEEDS_REVIEW" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Review</Text>
           </TouchableOpacity>
         </View>
       }
@@ -230,6 +254,7 @@ const UserProfile = () => {
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}
           renderItem={({ item }) => (
+            item.images.length > 0 &&
             <TouchableOpacity style={profileStyle.postContainer}>
               <Image
                 source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
@@ -245,6 +270,7 @@ const UserProfile = () => {
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}
           renderItem={({ item }) => (
+            item.images.length > 0 &&
             <TouchableOpacity style={profileStyle.postContainer}>
               <Image
                 source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
@@ -260,6 +286,7 @@ const UserProfile = () => {
           numColumns={3}
           contentContainerStyle={profileStyle.gridContainer}
           renderItem={({ item }) => (
+            item.images.length > 0 &&
             <TouchableOpacity style={profileStyle.postContainer}>
               <Image
                 source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}

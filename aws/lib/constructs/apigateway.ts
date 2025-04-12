@@ -80,11 +80,11 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
-    // Define the /posts/user/{userID} resource
+    // Define the /posts/user/{uuid} resource
     const userPost = posts.addResource("user");
-    const userID = userPost.addResource("{userID}");
+    const userID = userPost.addResource("{uuid}");
 
-    // GET /posts/user/{userID}} - Get Post by User ID
+    // GET /posts/user/{uuid}} - Get Post by User ID
     userID.addMethod(
       "GET",
       new LambdaIntegration(
@@ -124,10 +124,23 @@ export class ApigatewayConstruct extends Construct {
         operationName: "PublishPost",
       }
     );
+
+    // Define the /posts/ai-recommendations/{id} resource
+    const aiRecommendations = posts.addResource("ai-recommendations");
+    const aiRecommendationsID = aiRecommendations.addResource("{id}");
+    // POST /posts/ai-recommendations/{id} - Publish Post
+    aiRecommendationsID.addMethod(
+      "GET",
+      new LambdaIntegration(lambdaConstruct.postLambdas["getAiRecommendationsLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetAiRecommendations",
+      }
+    );
     
     // ---------------------------- Confirm Endpoint -----------------------------
     
-    // define teh /confirm resource
+    // define the /confirm resource
     const confirm = api.root.addResource("confirm");
     confirm.addMethod(
       "POST",
@@ -163,10 +176,10 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
-    // Define the /users/{id} resource
-    const user = users.addResource("{id}");
+    // Define the /users/{uuid} resource
+    const user = users.addResource("{uuid}");
 
-    // GET /users/{id} - Get User by ID
+    // GET /users/{uuid} - Get User by ID
     user.addMethod(
       "GET",
       new LambdaIntegration(lambdaConstruct.userLambdas["getUserByIdLambda"]),
@@ -176,7 +189,7 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
-    // PUT /users/{id} - Update User
+    // PUT /users/{uuid} - Update User
     user.addMethod(
       "PUT",
       new LambdaIntegration(lambdaConstruct.userLambdas["updateUserLambda"]),
@@ -186,7 +199,7 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
-    // DELETE /users/{id} - Delete User
+    // DELETE /users/{uuid} - Delete User
     user.addMethod(
       "DELETE",
       new LambdaIntegration(lambdaConstruct.userLambdas["deleteUserLambda"]),
@@ -253,7 +266,7 @@ export class ApigatewayConstruct extends Construct {
     );
 
     // Define the /has-seen/{id} resource
-    const hasSeenUserID = hasSeen.addResource("{id}");
+    const hasSeenUserID = hasSeen.addResource("{uuid}");
 
     // Define the /has-seen/{id}/seenPosts resource
     const hasSeenPosts = hasSeenUserID.addResource("seenPosts");
@@ -303,7 +316,7 @@ export class ApigatewayConstruct extends Construct {
     // -------------------------------- FEED ENDPOINTS -------------------------
 
     // Define the /feed/{id} resource
-    const feed = api.root.addResource("feed").addResource("{userID}");
+    const feed = api.root.addResource("feed").addResource("{uuid}");
 
     // GET /feed - Gets the feed for a user ID
     feed.addMethod(
@@ -313,7 +326,7 @@ export class ApigatewayConstruct extends Construct {
         authorizer: CognitoConstruct.authorizer,
         operationName: "GetFeed",
         requestParameters: {
-          "method.request.path.userID": true,
+          "method.request.path.uuid": true,
           "method.request.querystring.limit": false,
         },
       }

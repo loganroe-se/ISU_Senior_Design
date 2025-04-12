@@ -8,15 +8,15 @@ def handler(event, context):
     try:
         body = json.loads(event['body'])
 
-        user_id = body.get('user_id')  # UUID from Cognito
+        uuid = body.get('user_id')  # UUID from Cognito
         username = body.get('username')
         email = body.get('email')
         dob = body.get('dob')
 
-        if not all([user_id, username, email, dob]):
+        if not all([uuid, username, email, dob]):
             return create_response(400, "Missing fields")
 
-        status_code, message = create_internal_user(user_id, username, email, dob)
+        status_code, message = create_internal_user(uuid, username, email, dob)
         return create_response(status_code, message)
 
     except Exception as e:
@@ -25,12 +25,12 @@ def handler(event, context):
 
 
 @session_handler
-def create_internal_user(session, user_id, username, email, dob):
+def create_internal_user(session, uuid, username, email, dob):
     try:
         parsed_dob = date.fromisoformat(dob)
 
         new_user = User(
-            uuid=user_id,  # assuming userID maps to UUID in your ORM
+            uuid=uuid, 
             username=username,
             email=email,
             dob=parsed_dob

@@ -39,7 +39,8 @@ export class LambdasConstruct extends Construct {
   ) {
     super(scope, id);
 
-    
+    const imageProcessingQueueArn = Fn.importValue("ImageProcessingQueueArn");
+    const imageProcessingQueueUrl = Fn.importValue("ImageProcessingQueueUrl");
     const region = Stack.of(this).region;
     const account = Stack.of(this).account;
 
@@ -234,6 +235,11 @@ export class LambdasConstruct extends Construct {
         "lib/lambdas/api-endpoints/post/delete-post",
         "handler"
       ),
+      getAiRecommendationsLambda: createLambda(
+        "GetAiRecommendationsLambda",
+        "lib/lambdas/api-endpoints/post/get-ai-recommendations",
+        "handler"
+      ),
       getPostByIdLambda: createLambda(
         "GetPostByIdLambda",
         "lib/lambdas/api-endpoints/post/get-post-by-id",
@@ -269,6 +275,16 @@ export class LambdasConstruct extends Construct {
       })
     );
 
+    this.postLambdas["createPostLambda"].addToRolePolicy(
+      new PolicyStatement({
+        effect: Effect.ALLOW,
+        actions: ["sqs:SendMessage"],
+        resources: [imageProcessingQueueArn],
+      })
+    );
+
+    this.postLambdas["createPostLambda"].addEnvironment("SQS_QUEUE_URL", imageProcessingQueueUrl)
+    
     this.itemLambdas = {
       createItemLambda: createLambda(
         "createItemLambda",

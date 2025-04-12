@@ -43,7 +43,7 @@ def createComment(session, email, postId, content):
         )
 
         session.add(new_comment)
-        return 201, f"User {user.userID} commented on post {postId}"
+        return 201, f"User {user.uuid} commented on post {postId}"
 
     except Exception as e:
         code, msg = handle_exception(e, "Error accessing database")

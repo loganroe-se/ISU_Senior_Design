@@ -77,6 +77,13 @@ export const profileStyle = StyleSheet.create({
       paddingHorizontal: 12,
       marginTop: 8
     },
+    followedActionButton: {
+      borderRadius: 12,
+      backgroundColor: "gray",
+      paddingVertical: 8,
+      paddingHorizontal: 12,
+      marginTop: 8
+    },
     buttonLabel: {
       fontSize: 14,
       fontWeight: "500",

@@ -28,7 +28,7 @@ def getUserByUsername(session, username):
             return 404, f'User with username: {username} was not found'
 
         user_data = {
-            'id': user.userID,
+            'uuid': user.uuid,
             'username': user.username,
             'email': user.email,
             'profilePic': user.profilePicURL,
