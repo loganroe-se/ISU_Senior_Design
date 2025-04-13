@@ -21,6 +21,26 @@ class User(Base):
     has_seen = relationship("HasSeen", back_populates="user")
     likes = relationship("Like", back_populates="user", cascade="all, delete")
     comments = relationship("Comment", back_populates="user", cascade="all, delete")  # Add this line
+    profile = relationship("UserProfile", back_populates="user", cascade="all, delete-orphan", uselist=False, single_parent=True)
+
+
+class UserProfile(Base):
+    __tablename__ = 'user_profiles'
+    userID = Column(Integer, ForeignKey('users.userID', ondelete="CASCADE"), primary_key=True)
+
+    firstName = Column(String(50))
+    lastName = Column(String(50))
+    bio = Column(String(1000))
+    location = Column(String(100))
+    website = Column(String(200))
+    gender = Column(String(20))  # optional: male, female, non-binary, etc.
+    phoneNumber = Column(String(20))  # optional: for discoverability or security
+    isPrivate = Column(Boolean, default=False)  # true = account is private
+    profileTheme = Column(String(20), default="default")  # e.g., light/dark/custom
+    language = Column(String(10), default="en")  # user preferred language
+
+    # Relationships
+    user = relationship("User", back_populates="profile")
 
 # Following table
 class Follow(Base):
