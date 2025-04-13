@@ -4,155 +4,187 @@ import { User, NewUser } from "@/types/user.interface";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
-    View,
-    Text,
-    TouchableOpacity,
-    StyleSheet,
-    TextInput,
+  View,
+  Text,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ScrollView,
+  Image,
+  ActivityIndicator,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import * as ImagePicker from "expo-image-picker";
+import { editStyle } from "./_components/editStyle";
 
 const UserEditProfile = () => {
-    const { user, signOut } = useUserContext();
-    const [newUsername, setNewUsername] = useState("");
-    const [newEmail, setNewEmail] = useState("");
+  const { user, signOut } = useUserContext();
+  const [newUsername, setNewUsername] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [newProfilePic, setNewProfilePic] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
-    const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [initialValues, setInitialValues] = useState({
+    username: "",
+    email: "",
+    profilePic: "",
+  });
 
+  useEffect(() => {
+    if (user?.uuid) {
+      const getUser = async () => {
+        const data = await fetchUserById(user.uuid);
+        setProfileUser(data);
+        setNewUsername(data?.username || "");
+        setNewEmail(data?.email || "");
+        setInitialValues({
+          username: data?.username || "",
+          email: data?.email || "",
+          profilePic: data?.profilePic || "",
+        });
+      };
+      getUser();
+    }
+  }, [user]);
 
-    let newUser: NewUser = {
-        uuid: "",
-        email: "",
-        username: "",
-        profilePic: "",
-    };
-
-    if (user != null) {
-
-        let uid = user?.uuid;
-        useEffect(() => {
-            const getUser = async () => {
-                setProfileUser(await fetchUserById(uid));
-            };
-
-            getUser();
-        }, [user]);
+  const handleChangePic = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert("Permission to access media library is required!");
+      return;
     }
 
-    console.log(profileUser);
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+      base64: true,
+    });
 
-    const saveProfile = async () => {
-        if (profileUser) {
-            newUser = profileUser;
-            newUser.username = newUsername;
-            newUser.email = newEmail;
+    if (!result.canceled && result.assets[0].base64) {
+      const base64 = result.assets[0].base64;
+      setNewProfilePic(`data:image/jpeg;base64,${base64}`);
+    }
+  };
 
-            await updateUser(newUser).then((response) => {
-                signOut;
-                router.replace(`/authenticated/profile` as any);
-            });
-        } else {
-            router.replace(`/authenticated/profile` as any);
-        }
-    };
+  const saveProfile = async () => {
+    if (!profileUser) return;
 
-    const deleteProfile = async () => {
-        if (profileUser) {
-            await deleteUser(profileUser.uuid).then((response) => {
-                router.replace(`/authenticated/profile` as any);
-            });
-        } else {
-            router.replace(`/authenticated/profile` as any);
-        }
-    };
+    const updatedUser: NewUser = {
+        uuid: profileUser.uuid,
+        email: newEmail || profileUser.email,
+        username: newUsername || profileUser.username,
+        profilePic: newProfilePic
+          ? newProfilePic.split(",")[1]
+          : "", 
+      };
+      
+    try {
+      setLoading(true);
+      await updateUser(updatedUser);
+      Alert.alert("Success", "Profile updated");
+      router.replace("../profile");
+    } catch (e) {
+      Alert.alert("Error", "Failed to update profile");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <SafeAreaView style={{ height: "100%" }}>
-            <Text
-                style={{
-                    textAlign: "center",
-                    marginTop: 24,
-                    fontWeight: "bold",
-                    fontSize: 16,
-                }}
-            >
-                Profile Settings
-            </Text>
+  const isSaveDisabled =
+    newUsername === initialValues.username &&
+    newEmail === initialValues.email &&
+    newProfilePic === null;
+
+  return (
+    <SafeAreaView style={editStyle.screen}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <Text style={editStyle.title}>Profile Settings</Text>
+
+        <View style={editStyle.formContainer}>
+          <View style={editStyle.profilePicWrapper}>
+            <Image
+              source={{
+                uri:
+                  newProfilePic ||
+                  `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png`,
+              }}
+              style={editStyle.profilePic}
+            />
             <TouchableOpacity
-                style={{ position: "absolute", top: 24, right: 24 }}
-                onPress={saveProfile}
+              style={editStyle.changePicButton}
+              onPress={handleChangePic}
             >
-                <Text style={{ color: "#0073FF", fontSize: 16 }}>Save</Text>
+              <Text style={editStyle.changePicText}>Change Profile Picture</Text>
             </TouchableOpacity>
-            <View style={{ display: "flex", alignItems: "center" }}>
-                <View style={editStyle.inputGroup}>
-                    <Text>Username</Text>
-                    <View style={editStyle.input}>
-                        <TextInput
-                            placeholder={profileUser?.username}
-                            value={newUsername}
-                            onChangeText={setNewUsername}
-                        />
-                    </View>
-                </View>
-                <View style={editStyle.inputGroup}>
-                    <Text>Email</Text>
-                    <View style={editStyle.input}>
-                        <TextInput
-                            placeholder={profileUser?.email}
-                            value={newEmail}
-                            onChangeText={setNewEmail}
-                        />
-                    </View>
-                </View>
-                <View style={editStyle.inputGroup}>
-                    <Text>Change Password</Text>
-                    <View style={editStyle.input}>
-                        <Text>************</Text>
-                    </View>
-                </View>
-            </View>
-            <View
-                style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    alignItems: "center",
-                    position: "absolute",
-                    width: "100%",
-                    bottom: 24,
-                }}
-            >
-                <TouchableOpacity
-                    style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        borderRadius: 36,
-                        backgroundColor: "#FF3535",
-                        width: 250,
-                        height: 50,
-                    }}
-                >
-                    <Text style={{ color: "white" }}>Delete Account</Text>
-                </TouchableOpacity>
-            </View>
-        </SafeAreaView>
-    );
-};
+          </View>
 
-const editStyle = StyleSheet.create({
-    inputGroup: {
-        width: "90%",
-        marginVertical: 8,
-    },
-    input: {
-        borderWidth: 1,
-        borderColor: "#BABABA",
-        borderRadius: 4,
-        backgroundColor: "#E5E5E5",
-        padding: 8,
-        marginTop: 4,
-    },
-});
+          <View style={editStyle.inputGroup}>
+            <Text style={editStyle.label}>Username</Text>
+            <TextInput
+              placeholder="Username"
+              value={newUsername}
+              onChangeText={setNewUsername}
+              style={editStyle.input}
+            />
+          </View>
+
+          <View style={editStyle.inputGroup}>
+            <Text style={editStyle.label}>Email</Text>
+            <TextInput
+              placeholder="Email"
+              value={newEmail}
+              onChangeText={setNewEmail}
+              style={editStyle.input}
+            />
+          </View>
+
+          <View style={editStyle.inputGroup}>
+            <Text style={editStyle.label}>Password</Text>
+            <TextInput
+              placeholder="New password (optional)"
+              secureTextEntry
+              style={editStyle.input}
+            />
+          </View>
+        </View>
+
+        {/* Save Button */}
+        <View style={{ alignItems: "center", marginTop: 16 }}>
+          <TouchableOpacity
+            style={[
+              editStyle.saveButton,
+              isSaveDisabled && { opacity: 0.5 },
+            ]}
+            onPress={saveProfile}
+            disabled={isSaveDisabled || loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text
+                style={{
+                  color: "#fff",
+                  fontSize: 16,
+                  fontWeight: "600",
+                }}
+              >
+                Save Changes
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ marginTop: 12 }}
+          >
+            <Text style={{ color: "#007AFF", fontSize: 16 }}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+};
 
 export default UserEditProfile;

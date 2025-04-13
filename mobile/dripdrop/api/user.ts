@@ -23,21 +23,20 @@ export const fetchUserEmail = async (
   return user ? user.email : null;
 };
 
-// Update user by userID
-export const updateUser = async (userData: Partial<User>): Promise<User | null> => {
-  //Build request body
-  let body = {
-    "username": userData.username,
-    "email": userData.email
-  }
-  
-  await fetch(`https://api.dripdropco.com/users/${userData.uuid}`, {
-    method: "PUT",
-    body: JSON.stringify(body),
-  });
 
-  return null;
+export const updateUser = async (userData: Partial<User>): Promise<User> => {
+  if (!userData.uuid) {
+    throw new Error("User ID is required to update user");
+  }
+
+  const body: Record<string, any> = {};
+  if (userData.username) body.username = userData.username;
+  if (userData.email) body.email = userData.email;
+  if (userData.profilePic) body.profilePic = userData.profilePic;
+
+  return await apiRequest<User, typeof body>("PUT", `/users/${userData.uuid}`, body);
 };
+
 
 // Delete user by userID
 export const deleteUser = async (uid: String): Promise<User | null> => {
