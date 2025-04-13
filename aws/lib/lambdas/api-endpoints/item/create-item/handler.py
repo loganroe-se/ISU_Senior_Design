@@ -55,7 +55,7 @@ def create_clothing_item(session, image_id, xCoord, yCoord, name, brand, categor
         )
         session.add(new_clothing_item_details)
 
-        return create_response(200, {"itemId": new_item.clothingItemID, "message": "All tables populated successfully"})
+        return 200, {"itemId": new_item.clothingItemID, "message": "All tables populated successfully"}
 
     except Exception as e:
         return handle_exception(e, "Error occurred when creating clothing item")
