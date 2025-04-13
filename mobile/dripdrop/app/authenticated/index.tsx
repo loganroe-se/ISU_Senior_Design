@@ -1,15 +1,16 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState } from "react-native";
+import { Text, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState, Switch } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
 import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
-import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
 import { feedStyle } from "@/styles/feed";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
+import { Marker } from "@/types/Marker";
+import { fetchMarkers } from "@/api/items";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -37,6 +38,8 @@ const Page = () => {
   const [hasSeenPosts, setHasSeenPosts] = useState(false);
   const [noMorePosts, setNoMorePosts] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState<{ [key: number]: boolean }>({});
+  const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
+  const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
 
 
   useEffect(() => {
@@ -77,6 +80,28 @@ const Page = () => {
         });
     }
   }, [userID]);
+
+  // Update markers when feed data is changed
+  useEffect(() => {
+    const loadMarkers = async () => {
+      const newMarkersMap: Record<number, Marker[]> = {};
+
+      await Promise.all(feedData.map(async (post) => {
+        try {
+          const markers = await fetchMarkers(post.postID);
+          if (markers.length > 0) {
+            newMarkersMap[post.postID] = markers;
+          }
+        } catch (error) {
+          console.error("Failed to fetch markers for post ", post.postID);
+        }
+      }));
+      console.log(newMarkersMap);
+      setMarkersMap(newMarkersMap);
+    };
+    
+    if (feedData.length > 0) loadMarkers();
+  }, [feedData]);
 
   // // Ensure posts get marked as seen once the app is closed/minimized --- TODO: Does not properly track posts seen so this does not work yet
   // useEffect(() => {
@@ -209,6 +234,14 @@ const Page = () => {
     }));
   };
 
+  // Toggle markers on/off for a given post
+  const toggleMarkers = (postID: number) => {
+    setAreMarkersVisible(prev => ({
+      ...prev,
+      [postID]: !prev[postID],
+    }));
+  };
+
   // Reset feed
   const resetFeed = async () => {
     if (!userID) return;
@@ -265,12 +298,45 @@ const Page = () => {
                     </View>
                   ) : (
                     item.images && item.images[0]?.imageURL && (
-                      <Image
-                        source={{ uri: imageURL }}
-                        style={[feedStyle.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
-                        onLoad={() => onImageLayout(item.postID, imageURL)}
-                        onError={() => onImageError(item.postID)}
-                      />
+                      <View style={{ position: 'relative' }}>
+                        <Image
+                          source={{ uri: imageURL }}
+                          style={[feedStyle.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                          onLoad={() => onImageLayout(item.postID, imageURL)}
+                          onError={() => onImageError(item.postID)}
+                        />
+
+                        {/* Toggle Markers Button */}
+                        {markersMap[item.postID] && (
+                          <View style={feedStyle.markerToggleContainer}>
+                            <Switch 
+                              value={!!areMarkersVisible[item.postID]}
+                              onValueChange={() => toggleMarkers(item.postID)}
+                              trackColor={{ false: "black", true: "blue" }}
+                            />
+                          </View>
+                        )}
+
+                        {/* Display the markers on each post */}
+                        {areMarkersVisible[item.postID] && markersMap[item.postID]?.map((marker, index) => {
+                          const scaleX = windowWidth;
+                          const scaleY = imageHeight || 1;
+
+                          const x = marker.xCoord * scaleX;
+                          const y = marker.yCoord * scaleY;
+                          console.log(marker, marker.xCoord, marker.yCoord);
+
+                          return (
+                            <TouchableOpacity
+                              key={index}
+                              onPress={() => {}}
+                              style={[feedStyle.marker, {left: x, top: y}]}
+                            >
+                              <Text style={{ color: 'white', fontSize: 10 }}>i</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
                     )
                   )}
   

@@ -88,5 +88,22 @@ export const feedStyle = StyleSheet.create({
   },
   showMoreText: {
     color: "#a9a9a9",
+  },
+  markerToggleContainer: {
+    position: "absolute",
+    bottom: 10,
+    right: 10,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  marker: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: "100%",
+    backgroundColor: "rgba(255, 255, 255, 0.8)",
+    zIndex: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 });
