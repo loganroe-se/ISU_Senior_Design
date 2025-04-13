@@ -7,6 +7,7 @@ import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
 import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
+import { feedStyle } from "@/styles/feed";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
 
@@ -31,7 +32,7 @@ const Page = () => {
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<TextInput | null>(null);
   const [seenPosts, setSeenPosts] = useState(new Set<number>());
-  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number} }>({});
+  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number } }>({});
   const [isFetching, setIsFetching] = useState(false);
   const [hasSeenPosts, setHasSeenPosts] = useState(false);
   const [noMorePosts, setNoMorePosts] = useState(false);
@@ -231,14 +232,14 @@ const Page = () => {
   return (
     <View style={profileStyle.feedContainer}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>dripdrop</Text>
+      <View style={[feedStyle.header, {height: headerHeight}]}>
+        <Text style={feedStyle.headerText}>dripdrop</Text>
       </View>
 
       {loading  ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : error ? (
-        <Text style={styles.text}>{error}</Text>
+        <Text style={feedStyle.text}>{error}</Text>
       ) : (
         <View style={{ flex: 1 }}>
           <FlatList 
@@ -253,20 +254,20 @@ const Page = () => {
               const imageURL = item.images && item.images[0]?.imageURL ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`: "";
   
               return (
-                <View style={styles.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
+                <View style={feedStyle.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
                   {/* Display the poster's username */}
-                  <Text style={styles.username}>{item.username}</Text>
+                  <Text style={feedStyle.username}>{item.username}</Text>
   
                   {/* Display the post's image */}
                   {imageErrors[item.postID] || !(item.images && item.images[0]?.imageURL) ? (
-                    <View style={styles.imageErrorBox}>
-                      <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
+                    <View style={feedStyle.imageErrorBox}>
+                      <Text style={feedStyle.imageErrorText}>There was an error loading the image.</Text>
                     </View>
                   ) : (
                     item.images && item.images[0]?.imageURL && (
                       <Image
                         source={{ uri: imageURL }}
-                        style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                        style={[feedStyle.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
                         onLoad={() => onImageLayout(item.postID, imageURL)}
                         onError={() => onImageError(item.postID)}
                       />
@@ -286,26 +287,26 @@ const Page = () => {
                   />
   
                   {/* Display the username & caption */}
-                  <Text style={styles.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
-                    <Text style={styles.usernameInline}>{item.username}</Text> {item.caption}
+                  <Text style={feedStyle.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
+                    <Text style={feedStyle.usernameInline}>{item.username}</Text> {item.caption}
                   </Text>
                   {item.caption.length > 100 && (
                     <TouchableOpacity onPress={() => toggleCaption(item.postID)}>
-                      <Text style={styles.showMoreText}>
+                      <Text style={feedStyle.showMoreText}>
                         {expandedCaptions[item.postID] ? "Show less" : "Show more"}
                       </Text>
                     </TouchableOpacity>
                   )}
   
                   {/* Display the post date */}
-                  <Text style={styles.date}>{item.createdDate}</Text>
+                  <Text style={feedStyle.date}>{item.createdDate}</Text>
                 </View>
               );
             }}
             ListFooterComponent={
               noMorePosts ? (
-                <View style={styles.noMorePostsMessage}>
-                  <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+                <View style={feedStyle.noMorePostsMessage}>
+                  <Text style={feedStyle.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
                   <Button title="Reset Feed" onPress={resetFeed} />
                 </View>
               ) : null
@@ -316,7 +317,7 @@ const Page = () => {
           {feedData.length === 0 && <View
             style={{ justifyContent: "center", alignItems: "center", minHeight: windowHeight }}
           >
-            <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+            <Text style={feedStyle.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
             <Button title="Reset Feed" onPress={resetFeed} />
           </View>}
 
@@ -343,94 +344,5 @@ const Page = () => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: headerHeight,
-    backgroundColor: Colors.light.background,
-    justifyContent: 'flex-start',
-    paddingTop: 5,
-    paddingLeft: 15,
-    zIndex: 1,
-  },
-  headerText: {
-    color: Colors.light.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontStyle: 'italic',
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  usernameInline: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  feedItem: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: Colors.light.background,
-    borderRadius: 8,
-    width: '100%'
-  },
-  image: {
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  imageErrorBox: {
-    width: windowWidth,
-    height: windowWidth,
-    backgroundColor: "#ccc",
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  imageErrorText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  caption: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  date: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  commentUsername: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  noMorePostsMessage: {
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 400,
-  },
-  noMorePostsMessageText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "center",
-    padding: 20,
-  },
-  showMoreText: {
-    color: "#a9a9a9",
-  }
-});
 
 export default Page;
