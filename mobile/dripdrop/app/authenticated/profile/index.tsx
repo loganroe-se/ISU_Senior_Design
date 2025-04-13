@@ -8,10 +8,9 @@ import { Follower, Following } from "@/types/Following";
 import { Post } from "@/types/post";
 import { profileStyle } from "@/styles/profile";
 import { router, useLocalSearchParams } from "expo-router";
-import { fetchUserById } from "@/api/user";
+import { fetchUserById, updateUser } from "@/api/user";
 import { User } from "@/types/user.interface";
-import { Camera } from "expo-camera"; // For camera functionality
-import * as MediaLibrary from "expo-media-library";
+import * as ImagePicker from 'expo-image-picker';
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -19,51 +18,38 @@ const UserProfile = () => {
 
   const { user, signOut } = useUserContext();
 
-  const [photos, setPhotos] = useState<MediaLibrary.Asset[]>([]);
   const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profilePic, setProfilePic] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followers, setFollowers] = useState<Follower[]>([]);
   const [following, setFollowing] = useState<Following[]>([]);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [subPage, setSubPage] = useState("PUBLIC");
-  const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
   const [followModalVisible, setFollowModalVisible] = useState(false);
   const [followModalType, setFollowModalType] = useState('Followers');
-  const [selectedImageUri, setSelectedImageUri] = useState<string | null>(null);
+  const [base64Image, setBase64Image] = useState("");
 
-  // Fetch photos from the media library
-  const selectImage = () => {
-    const fetchPhotos = async () => {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
-        alert("Permission to access media library is required!");
-        return;
+  const selectProfilePic = async () => {
+    // Ask for media library permissions
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      alert("You'll need to allow access to your photos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      base64: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      if(result.assets[0].base64) {
+        setBase64Image(result.assets[0].base64);
+        setProfilePic(true);
       }
-
-      const media = await MediaLibrary.getAssetsAsync({
-        first: 40,
-        mediaType: MediaLibrary.MediaType.photo,
-      });
-
-      const assetsWithFileUris = await Promise.all(
-        media.assets.map(async (asset) => {
-          const assetInfo = await MediaLibrary.getAssetInfoAsync(asset.id);
-          return { ...asset, uri: assetInfo.localUri || asset.uri };
-        })
-      );
-
-      setPhotos(assetsWithFileUris);
-    };
-
-    fetchPhotos();
-  };
-
-  // Handle image selection from the gallery
-  const handleImageSelect = async (selectedImage: MediaLibrary.Asset) => {
-    const assetInfo = await MediaLibrary.getAssetInfoAsync(selectedImage.id);
-    setSelectedImageUri(assetInfo.localUri || selectedImage.uri);
-    setModalVisible(true); // Open the modal for gallery images
+    }
   };
 
   const getUserPosts = async (id: string) => {
@@ -190,10 +176,10 @@ const UserProfile = () => {
       <View>
         <View style={profileStyle.profileContainer}>
           <View style={profileStyle.avatarContainer}>
-            <TouchableOpacity onPress={selectImage}>
+            <TouchableOpacity onPress={selectProfilePic}>
               <Avatar.Image
                 size={90}
-                source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+                source={{ uri: profilePic ? `data:image/jpeg;base64,${base64Image}` : `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
               />
             </TouchableOpacity>
           </View>
