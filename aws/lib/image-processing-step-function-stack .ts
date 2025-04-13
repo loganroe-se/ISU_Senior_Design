@@ -181,5 +181,15 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
       value: imageProcessingQueue.queueUrl,
       exportName: 'ImageProcessingQueueUrl',
     });
+
+    new cdk.CfnOutput(this, 'ClassificationResultsQueueArn', {
+      value: classificationResultsQueue.queueArn,
+      exportName: 'ClassificationResultsQueueArn',
+    });
+    
+    new cdk.CfnOutput(this, 'ClassificationResultsQueueUrl', {
+      value: classificationResultsQueue.queueUrl,
+      exportName: 'ClassificationResultsQueueUrl',
+    });
   }
 }
