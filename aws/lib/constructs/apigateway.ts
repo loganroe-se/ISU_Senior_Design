@@ -131,15 +131,17 @@ export class ApigatewayConstruct extends Construct {
     // POST /posts/ai-recommendations/{id} - Publish Post
     aiRecommendationsID.addMethod(
       "GET",
-      new LambdaIntegration(lambdaConstruct.postLambdas["getAiRecommendationsLambda"]),
+      new LambdaIntegration(
+        lambdaConstruct.postLambdas["getAiRecommendationsLambda"]
+      ),
       {
         authorizer: CognitoConstruct.authorizer,
         operationName: "GetAiRecommendations",
       }
     );
-    
+
     // ---------------------------- Confirm Endpoint -----------------------------
-    
+
     // define the /confirm resource
     const confirm = api.root.addResource("confirm");
     confirm.addMethod(
@@ -250,7 +252,7 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
-      // Define the /users/refresh resource
+    // Define the /users/refresh resource
     const refresh = users.addResource("refresh");
 
     // POST /users/refresh - Get new id/access token from refresh token
@@ -261,7 +263,6 @@ export class ApigatewayConstruct extends Construct {
         operationName: "RefreshUserToken",
       }
     );
-
 
     // -------------------------------- HAS SEEN ENDPOINTS -------------------------
 
@@ -489,11 +490,10 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
-    // Define the /items/{item-id} resource
-    const itemID = items.addResource("{item-id}");
-
+    // Get items/details - get item details
+    const itemDetails = items.addResource("details");
     // GET /items/{item-id} - get item details
-    itemID.addMethod(
+    itemDetails.addMethod(
       "GET",
       new LambdaIntegration(
         lambdaConstruct.itemLambdas["getItemDetailsLambda"]
@@ -503,6 +503,9 @@ export class ApigatewayConstruct extends Construct {
         operationName: "GetItemDetails",
       }
     );
+
+    // Define the /items/{item-id} resource
+    const itemID = items.addResource("{item-id}");
 
     // DELETE /items/{item-id} - delete item
     itemID.addMethod(

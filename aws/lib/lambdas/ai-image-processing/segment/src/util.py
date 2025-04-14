@@ -130,11 +130,11 @@ def segment_image(image_path):
             )
 
             # Normalize box coordinates relative to the original image size
-            orig_h, orig_w = orig_image.shape[:2]
-            norm_xmin = xmin / orig_w
-            norm_ymin = ymin / orig_h
-            norm_xmax = xmax / orig_w
-            norm_ymax = ymax / orig_h
+            resized_h, resized_w = resized_image.shape[:2]
+            norm_xmin = xmin / resized_w
+            norm_ymin = ymin / resized_h
+            norm_xmax = xmax / resized_w
+            norm_ymax = ymax / resized_h
 
         item = {
             "item": map_to_category_label(cls_id),  # Custom function
