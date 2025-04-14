@@ -1,12 +1,13 @@
-import { Modal, View, Text, TouchableOpacity, Dimensions, PanResponder, Animated, StyleSheet } from "react-native";
-import React, { useRef, useEffect } from "react";
+import { Modal, Text, TouchableOpacity, PanResponder, Animated, StyleSheet } from "react-native";
+import React, { useRef, useEffect, SetStateAction } from "react";
 import { Marker } from "@/types/Marker";
 import { Item } from "@/types/Item";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 interface DraggableItemModalProps {
-    visibleItemModal: { postID: number; index: number } | null;
+    visibleItemModal: { postID: number; clothingItemID: number } | null;
     onClose: () => void;
-    onChangeIndex: (newIndex: number) => void;
+    onChangeIndex: (newClothingItemID: number) => void;
     markersMap: Record<number, Marker[]>;
     itemDetailsMap: Record<number, Item>;
 }
@@ -19,7 +20,7 @@ const DraggableItemModal = ({
     itemDetailsMap,
 }: DraggableItemModalProps) => {
     const translate = useRef(new Animated.ValueXY()).current;
-    const lastModalRef = useRef<{ postID: number; index: number } | null>(null);
+    const lastModalRef = useRef<{ postID: number; clothingItemID: number } | null>(null);
     const lastOffset = useRef({ x: 0, y: 0 }).current;
 
     // Reset the position of the modal
@@ -57,12 +58,32 @@ const DraggableItemModal = ({
         })
     ).current;
 
+    const onNavigate = (direction: "left" | "right") => {
+        const currentIndex = markersWithDetails.findIndex(
+            (marker) => marker.clothingItemID === visibleItemModal?.clothingItemID
+        );
+
+        if (currentIndex === -1) return;
+
+        const newIndex = direction === "left" ? currentIndex - 1 : currentIndex + 1;
+
+        if (newIndex >= 0 && newIndex < markersWithDetails.length) {
+            onChangeIndex(markersWithDetails[newIndex].clothingItemID);
+        }
+    };
+
     if (!visibleItemModal) return null;
 
-    const { postID, index } = visibleItemModal;
+    const { postID, clothingItemID } = visibleItemModal;
     const markers = markersMap[postID] || [];
-    const marker = markers[index];
-    const item = itemDetailsMap[marker.clothingItemID];
+    const markersWithDetails = markers.filter(
+        (marker) => itemDetailsMap[marker.clothingItemID]
+    );
+    const currentIndex = markersWithDetails.findIndex(
+        (marker) => marker.clothingItemID === clothingItemID
+    );
+    const marker = markersWithDetails[currentIndex];
+    const item = marker ? itemDetailsMap[marker.clothingItemID] : null;
 
     return (
         <Modal transparent visible animationType="fade">
@@ -81,26 +102,35 @@ const DraggableItemModal = ({
                         onPress={onClose}
                         style={styles.closeBtn}
                     >
-                        <Text style={{ fontSize: 24 }}>x</Text>
+                        <Text style={{ fontSize: 24 }}>ⓧ</Text>
                     </TouchableOpacity>
 
+                    <TouchableOpacity
+                        style={styles.leftHalfTouchable}
+                        onPress={() => onNavigate("left")}
+                        activeOpacity={1}
+                    />
+                    <TouchableOpacity
+                        style={styles.rightHalfTouchable}
+                        onPress={() => onNavigate("right")}
+                        activeOpacity={1}
+                    />
+
                     {/* Navigation Arrows */}
-                    {index > 0 && (
-                        <TouchableOpacity
-                            style={styles.leftArrow}
-                            onPress={() => onChangeIndex(index - 1)}
-                        >
-                            <Text style={{ fontSize: 24 }}>◀</Text>
-                        </TouchableOpacity>
+                    {currentIndex > 0 && (
+                        <Icon
+                            name="chevron-left"
+                            size={16}
+                            style={styles.leftArrowIcon}
+                        />
                     )}
 
-                    {index < markers.length - 1 && (
-                        <TouchableOpacity
-                            style={styles.rightArrow}
-                            onPress={() => onChangeIndex(index + 1)}
-                        >
-                            <Text style={{ fontSize: 24 }}>▶</Text>
-                        </TouchableOpacity>
+                    {currentIndex < markersWithDetails.length - 1 && (
+                        <Icon
+                            name="chevron-right"
+                            size={16}
+                            style={styles.rightArrowIcon}
+                        />
                     )}
 
                     {/* Item Details */}
@@ -119,9 +149,10 @@ const styles = StyleSheet.create({
     animatedView: {
         position: "absolute",
         top: "30%",
-        left: "20%",
-        width: "60%",
-        padding: 20,
+        left: "10%",
+        width: "80%",
+        paddingVertical: 12,
+        paddingHorizontal: 32,
         backgroundColor: "white",
         borderRadius: 12,
         shadowColor: "#000",
@@ -129,28 +160,50 @@ const styles = StyleSheet.create({
         shadowOpacity: 0.3,
         shadowRadius: 8,
         elevation: 10,
+        minHeight: 150,
     },
     closeBtn: {
         position: "absolute",
-        top: 10,
-        right: 10,
+        top: -4,
+        right: 2,
         zIndex: 1,
-    },
-    leftArrow: {
-        position: "absolute",
-        top: "50%",
-        left: -30,
-    },
-    rightArrow: {
-        position: "absolute",
-        top: "50%",
-        right: -30,
+        padding: 6,
     },
     itemName: {
         fontSize: 20,
         fontWeight: "bold",
         marginBottom: 10,
-    }
+    },
+    leftHalfTouchable: {
+        position: "absolute",
+        top: 0,
+        left: 0,
+        width: 60,
+        height: "100%",
+        zIndex: 0,
+    },
+    rightHalfTouchable: {
+        position: "absolute",
+        top: 0,
+        right: 0,
+        width: 60,
+        height: "100%",
+        zIndex: 0,
+    },
+    leftArrowIcon: {
+        position: "absolute",
+        top: "50%",
+        left: 10,
+        transform: [{ translateY: 4 }],
+        zIndex: 1,
+    },
+    rightArrowIcon: {
+        position: "absolute",
+        top: "50%",
+        right: 10,
+        transform: [{ translateY: 4 }],
+        zIndex: 1,
+    },
 });
 
 export default DraggableItemModal;

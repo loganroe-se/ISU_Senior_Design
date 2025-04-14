@@ -13,6 +13,7 @@ import { Item } from "@/types/Item";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
 import DraggableItemModal from "@/components/DraggableItemModal";
+import { Colors } from "@/constants/Colors";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -43,7 +44,8 @@ const Page = () => {
   const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
   const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
   const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
-  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; index: number } | null>(null);
+  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; clothingItemID: number } | null>(null);
+  const [activeClothingItemID, setActiveClothingItemID] = useState<number>(0);
 
 
   useEffect(() => {
@@ -274,10 +276,9 @@ const Page = () => {
 
   // Show the clothing item details
   const showItemDetails = async (postID: number, clothingItemID: number) => {
-    const markers = markersMap[postID] || [];
-    const index = markers.findIndex(item => item.clothingItemID === clothingItemID);
-    if (index !== -1) {
-      setVisibleItemModal({ postID, index });
+    if (itemDetailsMap[clothingItemID]) {
+      setVisibleItemModal({ postID, clothingItemID });
+      setActiveClothingItemID(clothingItemID);
     }
   };
 
@@ -368,7 +369,7 @@ const Page = () => {
                             <TouchableOpacity
                               key={`${item.postID}-${marker.clothingItemID}`}
                               onPress={() => {showItemDetails(item.postID, marker.clothingItemID)}}
-                              style={[feedStyle.marker, {left: x, top: y}]}
+                              style={[feedStyle.marker, {left: x, top: y, backgroundColor: marker.clothingItemID === activeClothingItemID ? Colors.light.primary : "rgba(255, 255, 255, 0.8)"}]}
                             >
                               <Text style={{ fontSize: 16 }}>•</Text>
                             </TouchableOpacity>
@@ -447,12 +448,13 @@ const Page = () => {
           {/* Draggable Item Modal */}
           <DraggableItemModal 
             visibleItemModal={visibleItemModal}
-            onClose={() => setVisibleItemModal(null)}
-            onChangeIndex={(newIndex) => 
-              setVisibleItemModal((prev) =>
-                prev ? { postID: prev.postID, index: newIndex } : null
+            onClose={() => {setVisibleItemModal(null); setActiveClothingItemID(0)}}
+            onChangeIndex={(newClothingItemID) => {
+              setActiveClothingItemID(newClothingItemID)
+              setVisibleItemModal((prev) => 
+                prev ? { postID: prev.postID, clothingItemID: newClothingItemID } : null
               )
-            }
+            }}
             markersMap={markersMap}
             itemDetailsMap={itemDetailsMap}
           />
