@@ -187,12 +187,13 @@ const Page = () => {
 
             if (!markerId) throw new Error("No marker ID provided");
 
+            console.log("Marker ID: ", markerId);
             const existingItem = await getMarker(parseInt(markerId));
             const itemExists = !!existingItem?.clothingItemID;
 
             const itemData = {
                 ...item,
-                price: Number(item.price),
+                price: Number(item.price) || null,
                 image_id: imageId,
                 ...(!itemExists && { xCoord, yCoord }),
             };

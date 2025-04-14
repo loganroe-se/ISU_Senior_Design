@@ -124,12 +124,23 @@ const ImageMarkerScreen = () => {
 
     // Handle deleting a marker
     const handleDeleteMarker = async (markerId: number) => {
-        try {
-            console.log("Attempting to delete marker with ID:", markerId); 
-            // First, make the API call to delete the marker
-            await deleteMarker(markerId);
+        // If the marker ID is not a valid integer (e.g., a temporary one like -1 or NaN), remove locally only
+        if (!Number.isInteger(markerId) || markerId <= 0) {
+            setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
+            setVerifiedMarkers((prev) => {
+                const newSet = new Set(prev);
+                newSet.delete(markerId);
+                return newSet;
+            });
+            setSelectedMarker(null);
+            setIsDeleteConfirmationVisible(false);
+            return;
+        }
 
-            // Then update the local state if the API call succeeds
+        // Otherwise, attempt backend deletion
+        try {
+            console.log("Attempting to delete marker with ID:", markerId);
+            await deleteMarker(markerId);
             setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
             setVerifiedMarkers((prev) => {
                 const newSet = new Set(prev);
@@ -143,6 +154,7 @@ const ImageMarkerScreen = () => {
             Alert.alert("Error", "Failed to delete the marker. Please try again.");
         }
     };
+
 
     // Handle marker press (for verification)
     const handleMarkerPress = (marker: Marker) => {
