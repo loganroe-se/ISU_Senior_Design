@@ -1,16 +1,29 @@
 import React, { useEffect, useState } from "react";
-import { Modal, View, FlatList, Image, TouchableOpacity, StyleSheet } from "react-native";
+import {
+  Modal,
+  View,
+  TouchableOpacity,
+  StyleSheet,
+  Linking,
+} from "react-native";
 import { Avatar, Text, Button } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts } from "@/api/post";
-import { fetchFollowers, fetchFollowing, fetchUserByUsername, followUser, unfollowUser } from "@/api/following";
+import {
+  fetchFollowers,
+  fetchFollowing,
+  fetchUserByUsername,
+  followUser,
+  unfollowUser,
+} from "@/api/following";
+import { fetchUserById } from "@/api/user";
 import { Follower, Following } from "@/types/Following";
 import { Post } from "@/types/post";
-import { profileStyle } from "@/styles/profile";
-import { router, useLocalSearchParams } from "expo-router";
-import { fetchUserById, updateUser } from "@/api/user";
 import { User } from "@/types/user.interface";
-import * as ImagePicker from 'expo-image-picker';
+import { router, useLocalSearchParams } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import { profileStyle } from "./_components/profileStyle";
+import { PostGrid } from "./_components/PostGrid";
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -26,141 +39,107 @@ const UserProfile = () => {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [subPage, setSubPage] = useState("PUBLIC");
   const [followModalVisible, setFollowModalVisible] = useState(false);
-  const [followModalType, setFollowModalType] = useState('Followers');
-  const [base64Image, setBase64Image] = useState("");
-
-  const selectProfilePic = async () => {
-    // Ask for media library permissions
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
-    if (!permissionResult.granted) {
-      alert("You'll need to allow access to your photos.");
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      base64: true,
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      if(result.assets[0].base64) {
-        setBase64Image(result.assets[0].base64);
-        setProfilePic(true);
-      }
-    }
-  };
-
-  const getUserPosts = async (id: string) => {
-    try {
-      const p = await fetchUserPosts(id,subPage);
-      setPosts(p);
-    }
-    catch {
-
-    }
-  }
-
-  const updateFollows = async (id: string) => {
-    console.log("Updating follows for user "+id);
-    if(user != null) {
-      const f = await fetchFollowing(id);
-      const fs = await fetchFollowers(id);
-
-      setFollowing(f);
-      setFollowers(fs);
-
-      let userFollower: Following = {
-        uuid: user.uuid,
-        username: user.username.toString(),
-        email: user.email.toString()
-      }
-
-      console.log(userFollower,fs);
-
-      fs.forEach(follower => {
-        if(follower.uuid == userFollower.uuid) {
-          setIsFollowing(true);
-        }
-      });
-    }
-    else {
-      console.log("Error fetching follows");
-    }
-  }
-
-  const redirectToUser = async (username: string) => {
-    console.log("Redirecting");
-    const fetchUser = async() => {
-      let user = await fetchUserByUsername(username);
-      console.log(user);
-
-      if(user != null) {
-        console.log(user);
-        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
-      }
-    }
-
-    fetchUser();
-  }
+  const [followModalType, setFollowModalType] = useState("Followers");
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   useEffect(() => {
     const getUserData = async () => {
-      try {
-        let uid = id == null ? user != null ? user.uuid.toString() : -1 : id;
+      const uid = id ?? user?.uuid;
+      if (!uid) return;
 
-        if(user != null && user.uuid != null){
-          uid = uid.toString();
-          console.log("Fetching User");
-          let userAwait = await fetchUserById(uid);
-          if(userAwait != null) {
-            setProfileUser(userAwait);
-            console.log(userAwait,uid);
-
-            updateFollows(uid);
-
-            getUserPosts(uid.toString());
-          }
-        }
-      }
-      catch {
-        console.log("Session Expired");
-        //signOut();
+      const profile = await fetchUserById(uid);
+      if (profile) {
+        setProfileUser(profile);
+        updateFollows(uid);
+        getUserPosts(uid);
       }
     };
-
     getUserData();
   }, [user]);
 
   useEffect(() => {
-    if(profileUser) {
-      getUserPosts(profileUser.uuid.toString());
+    if (profileUser) {
+      getUserPosts(profileUser.uuid);
     }
-  }, [subPage])
+  }, [subPage]);
 
-  const actionPress = async() => {
-    if(user?.uuid === profileUser?.uuid) {
-      router.replace(`/authenticated/profile/edit` as any);
-    }
-    else {
-      if(user != null && profileUser != null) {
-        if(!isFollowing) {
-          await followUser(user.uuid,profileUser.uuid);
-          updateFollows(profileUser.uuid);
-  
-          setIsFollowing(true);
-        }
-        else {
-          console.log(user.uuid,profileUser.uuid);
-          await unfollowUser(user.uuid,profileUser.uuid);
-          updateFollows(profileUser.uuid);
-  
-          setIsFollowing(false);
-        }
+  const getUserPosts = async (id: string) => {
+    const p = await fetchUserPosts(id, subPage);
+    setPosts(p);
+  };
+
+  const updateFollows = async (id: string) => {
+    if (!user) return;
+
+    const f = await fetchFollowing(id);
+    const fs = await fetchFollowers(id);
+
+    setFollowing(f);
+    setFollowers(fs);
+
+    const isUserFollowing = fs.some((follower) => follower.uuid === user.uuid);
+    setIsFollowing(isUserFollowing);
+  };
+
+  const actionPress = async () => {
+    if (!user || !profileUser) return;
+
+    if (user.uuid === profileUser.uuid) {
+      router.push("../authenticated/profile/edit");
+    } else {
+      if (!isFollowing) {
+        await followUser(user.uuid, profileUser.uuid);
+      } else {
+        await unfollowUser(user.uuid, profileUser.uuid);
       }
+      updateFollows(profileUser.uuid);
     }
-  }
+  };
+
+  const redirectToUser = async (username: string) => {
+    const targetUser = await fetchUserByUsername(username);
+    if (targetUser) {
+      router.replace(`/authenticated/profile?id=${targetUser.uuid}` as any);
+    }
+  };
+
+  const renderActionButton = () => {
+    const isCurrentUser = user?.uuid === profileUser?.uuid;
+
+    if (isCurrentUser) {
+      return (
+        <View style={{ flexDirection: "row", gap: 10 }}>
+          <TouchableOpacity
+            onPress={actionPress}
+            style={profileStyle.followedActionButton}
+          >
+            <Text style={profileStyle.buttonLabel}>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => console.log("Share profile")}
+            style={profileStyle.followedActionButton}
+          >
+            <Text style={profileStyle.buttonLabel}>Share Profile</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    } else {
+      return (
+        <TouchableOpacity
+          onPress={actionPress}
+          style={
+            isFollowing
+              ? profileStyle.followedActionButton
+              : profileStyle.actionButton
+          }
+        >
+          <Text style={profileStyle.buttonLabel}>
+            {isFollowing ? "Following" : "Follow"}
+          </Text>
+        </TouchableOpacity>
+      );
+    }
+  };
 
   if (!user) {
     return (
@@ -172,123 +151,128 @@ const UserProfile = () => {
 
   return (
     <View style={profileStyle.container}>
-      {/* Profile Header */}
-      <View>
-        <View style={profileStyle.profileContainer}>
-          <View style={profileStyle.avatarContainer}>
-            <TouchableOpacity onPress={selectProfilePic}>
-              <Avatar.Image
-                size={90}
-                source={{ uri: profilePic ? `data:image/jpeg;base64,${base64Image}` : `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
-              />
-            </TouchableOpacity>
-          </View>
-          <View style={{marginLeft: 8}}>
-            <View style={profileStyle.userHeader}>
-              <Text style={profileStyle.username}>{profileUser?.username}</Text>
-            </View>
-            <View style={{display: "flex", flexDirection: "row"}}>
-              <TouchableOpacity style={user.username === profileUser?.username || !isFollowing ? profileStyle.actionButton : profileStyle.followedActionButton} onPress={actionPress}>
-                <Text style={profileStyle.buttonLabel}>{user.username === profileUser?.username ? "Edit Profile" : !isFollowing ? "Follow" : "Following"}</Text>
-              </TouchableOpacity>
+      <View style={profileStyle.topHeader}>
+        <Text style={profileStyle.username}>{profileUser?.username}</Text>
+        <TouchableOpacity
+          onPress={() => router.push("../authenticated/settings")}
+        >
+          <Ionicons name="menu-outline" size={28} color="#000" />
+        </TouchableOpacity>
+      </View>
 
-                <TouchableOpacity
-                  onPress={signOut} // Call the signOut function from context
-                  style={[profileStyle.actionButton, profileStyle.signOutButton, {marginLeft: 8}]}
-                >
-                  <Text style={profileStyle.buttonLabel}>Sign out</Text>
-                </TouchableOpacity>
-              
-            </View>
-
-          </View>
-        </View>
-
+      <View style={profileStyle.profileContainer}>
+        <Avatar.Image
+          size={90}
+          source={{
+            uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png`,
+          }}
+          style={profileStyle.avatarContainer}
+        />
         <View style={profileStyle.statsContainer}>
-          <View style={profileStyle.stat}>
-            <Text style={profileStyle.statNumber}>{posts.length}</Text>
-            <Text style={profileStyle.statLabel}>Posts</Text>
-          </View>
-          <TouchableOpacity onPress={() => {setFollowModalVisible(true); setFollowModalType("Followers")}}>
-            <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>{followers.length}</Text>
-              <Text style={profileStyle.statLabel}>Followers</Text>
-            </View>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {setFollowModalVisible(true); setFollowModalType("Following")}}>
-            <View style={profileStyle.stat}>
-              <Text style={profileStyle.statNumber}>{following.length}</Text>
-              <Text style={profileStyle.statLabel}>Following</Text>
-            </View>
-          </TouchableOpacity>
+          {[
+            ["Posts", posts.length],
+            ["Followers", followers.length],
+            ["Following", following.length],
+          ].map(([label, count]) => (
+            <TouchableOpacity
+              key={label.toString()}
+              onPress={() => {
+                if (label !== "Posts") {
+                  setFollowModalVisible(true);
+                  setFollowModalType(label.toString());
+                }
+              }}
+            >
+              <View style={profileStyle.stat}>
+                <Text style={profileStyle.statNumber}>{count}</Text>
+                <Text style={profileStyle.statLabel}>{label}</Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
       </View>
 
-      {
-        user.username === profileUser?.username &&
+      {/* Bio Section */}
+      <View style={profileStyle.bioSection}>
+        <Text style={profileStyle.nameText}>{profileUser?.username}</Text>
+        <Text style={profileStyle.bioText}>
+          {profileUser?.bio ||
+            "NYC-based photographer 📸\nLover of light, coffee, and good vibes.\nLet's create something beautiful."}
+        </Text>
+
+        {profileUser?.link && (
+          <TouchableOpacity onPress={() => Linking.openURL(profileUser.link!)}>
+            <Text style={profileStyle.linkText}>{profileUser.link}</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+
+      <View style={profileStyle.editButtonWrapper}>{renderActionButton()}</View>
+
+      {user.uuid === profileUser?.uuid && (
         <View style={profileStyle.subpageContainer}>
-          <TouchableOpacity onPress={() => {setSubPage("PUBLIC")}}>
-            <Text style={subPage === "PUBLIC" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Posts</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {setSubPage("PRIVATE")}}>
-            <Text style={subPage === "PRIVATE" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Drafts</Text>
-          </TouchableOpacity>
-          <TouchableOpacity onPress={() => {setSubPage("NEEDS_REVIEW")}}>
-            <Text style={subPage === "NEEDS_REVIEW" ? profileStyle.subpagePickerTextSelected : profileStyle.subpagePickerText}>Review</Text>
-          </TouchableOpacity>
+          {["PUBLIC", "PRIVATE", "NEEDS_REVIEW"].map((tab) => (
+            <TouchableOpacity key={tab} onPress={() => setSubPage(tab)}>
+              <Text
+                style={
+                  subPage === tab
+                    ? profileStyle.subpagePickerTextSelected
+                    : profileStyle.subpagePickerText
+                }
+              >
+                {tab === "PUBLIC"
+                  ? "Posts"
+                  : tab === "PRIVATE"
+                    ? "Drafts"
+                    : "Review"}
+              </Text>
+            </TouchableOpacity>
+          ))}
         </View>
-      }
-      
-      {
-        subPage === "PUBLIC" && posts.length > 0 ? <FlatList
-          data={posts}
-          keyExtractor={(item: Post) => item.postID.toString()}
-          numColumns={3}
-          contentContainerStyle={profileStyle.gridContainer}
-          renderItem={({ item }) => (
-            item.images.length > 0 ? (
-              <TouchableOpacity style={profileStyle.postContainer}>
-                <Image
-                  source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
-                  style={profileStyle.postImage}
-                />
-              </TouchableOpacity>
-            ) : null
-          )}          
-        />
-        : subPage === "PRIVATE" && posts.length > 0 ?
-        <FlatList
-          data={posts}
-          keyExtractor={(item: Post) => item.postID.toString()}
-          numColumns={3}
-          contentContainerStyle={profileStyle.gridContainer}
-          renderItem={({ item }) => (
-            item.images.length > 0 ? (
-            <TouchableOpacity style={profileStyle.postContainer}>
-              <Image
-                source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
-                style={profileStyle.postImage}
-              />
-            </TouchableOpacity> ) : null
-          )}
-        />
-        :
-        <FlatList
-          data={posts}
-          keyExtractor={(item: Post) => item.postID.toString()}
-          numColumns={3}
-          contentContainerStyle={profileStyle.gridContainer}
-          renderItem={({ item }) => (
-            item.images.length > 0 ? (
-            <TouchableOpacity style={profileStyle.postContainer}>
-              <Image
-                source={{ uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png` }}
-                style={profileStyle.postImage}
-              />
-            </TouchableOpacity> ) : null
-          )}
-        />
-      }
+      )}
+
+      <PostGrid posts={posts} />
+
+      {/* Settings Modal */}
+      <Modal
+        transparent
+        visible={settingsVisible}
+        animationType="slide"
+        onRequestClose={() => setSettingsVisible(false)}
+      >
+        <View style={profileStyle.modalOverlay}>
+          <View style={profileStyle.modalSheet}>
+            <Text style={profileStyle.modalTitle}>Account Settings</Text>
+
+            <TouchableOpacity
+              style={profileStyle.modalOption}
+              onPress={() => {
+                setSettingsVisible(false);
+                router.push("../authenticated/profile/edit");
+              }}
+            >
+              <Text style={profileStyle.modalOptionText}>Edit Profile</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={profileStyle.modalOption}
+              onPress={() => {
+                setSettingsVisible(false);
+                signOut();
+              }}
+            >
+              <Text style={[profileStyle.modalOptionText, { color: "red" }]}>
+                Sign Out
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={() => setSettingsVisible(false)}>
+              <Text style={profileStyle.modalCancelText}>Close</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
       <Modal
         transparent={true}
         visible={followModalVisible}
@@ -296,23 +280,28 @@ const UserProfile = () => {
       >
         <View style={styles.modalBackground}>
           <View style={styles.modalContent}>
-            <View style={{display: 'flex', flexDirection: 'row', justifyContent: "space-between", alignItems: 'center'}}>
-              <Text style={{color: 'black', fontWeight: 'bold'}}>{followModalType}</Text>
-              <Button onPress={() => setFollowModalVisible(false)}><Text style={{color: 'black'}}>x</Text></Button>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "space-between",
+                alignItems: "center",
+              }}
+            >
+              <Text style={{ fontWeight: "bold" }}>{followModalType}</Text>
+              <Button onPress={() => setFollowModalVisible(false)}>
+                <Text>x</Text>
+              </Button>
             </View>
-            {
-              followModalType == "Followers" ? followers.map((follower) => 
-                <TouchableOpacity key={follower.uuid} onPress={() => {redirectToUser(follower.username)}}>
-                  <Text style={{color: 'black'}}>{follower.username}</Text>
+            {(followModalType === "Followers" ? followers : following).map(
+              (u) => (
+                <TouchableOpacity
+                  key={u.uuid}
+                  onPress={() => redirectToUser(u.username)}
+                >
+                  <Text>{u.username}</Text>
                 </TouchableOpacity>
               )
-              :
-              following.map((following) => 
-                <TouchableOpacity key={following.uuid} onPress={() => {redirectToUser(following.username)}}>
-                  <Text style={{color: 'black'}}>{following.username}</Text>
-                </TouchableOpacity>
-              )
-            }
+            )}
           </View>
         </View>
       </Modal>
@@ -321,23 +310,18 @@ const UserProfile = () => {
 };
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    padding: 20,
-  },
   modalBackground: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)', // semi-transparent overlay
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   modalContent: {
-    backgroundColor: 'white',
+    backgroundColor: "white",
     padding: 30,
     borderRadius: 12,
     elevation: 5,
-    width: '80%',
+    width: "80%",
   },
 });
 

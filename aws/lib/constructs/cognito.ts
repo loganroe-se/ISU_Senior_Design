@@ -25,8 +25,8 @@ export class CognitoConstruct extends Construct {
       userPool: this.userPool,
       generateSecret: false,
       authFlows: {
-        userPassword: true
-      }
+        userPassword: true,
+      },
     });
 
     // Assuming userPool is passed in or imported

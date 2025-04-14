@@ -28,30 +28,40 @@ const ImageMarkerScreen = () => {
         try {
             setLoading(true);
 
-            // Add validation
+            // Validate postId
             if (!postId || isNaN(Number(postId))) {
                 throw new Error("Invalid post ID");
             }
 
             const numericPostId = Number(postId);
             const postData = await getPostById(numericPostId);
+            console.log("Post data: ", postData)
 
             if (!postData?.images?.[0]?.imageID) {
                 throw new Error("Post data is incomplete");
             }
 
             const imageID = postData.images[0].imageID;
-            const data = await fetchMarkers(imageID);
+            console.log("Image ID:", imageID);
 
-            if (data) setMarkers(data);
+            const data = await fetchMarkers(postData.postID);
+
+            // Safely handle different data scenarios
+            if (Array.isArray(data)) {
+                setMarkers(data);
+            } else {
+                console.warn("Unexpected marker data format or no markers found. Defaulting to empty array.");
+                setMarkers([]);
+            }
         } catch (error) {
             console.error("Error fetching markers:", error);
-            Alert.alert("Error", "Failed to load markers. Please try again.");
+            setMarkers([]); // Ensure markers are cleared on error too
         } finally {
             setLoading(false);
         }
     }, [postId]);
 
+ 
     useEffect(() => {
         loadMarkers();
     }, [loadMarkers]);

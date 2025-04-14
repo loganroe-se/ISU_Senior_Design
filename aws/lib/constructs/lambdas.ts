@@ -18,6 +18,8 @@ import { VpcConstruct } from "./vpc";
 import { DatabaseConstruct } from "./database";
 import { CognitoConstruct } from "./cognito";
 import { Stack } from 'aws-cdk-lib';
+import { Queue } from "aws-cdk-lib/aws-sqs";
+import { SqsEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
 
 
 export class LambdasConstruct extends Construct {
@@ -164,6 +166,12 @@ export class LambdasConstruct extends Construct {
         "handler",
         false
       ),
+      userRefreshToken: createLambda(
+        "UserRefreshTokenLambda",
+        "lib/lambdas/api-endpoints/user/refresh",
+        "handler",
+        false
+      ),
       CreateUserInternal: createLambda(
         "CreateUserInternalLambda",
         "lib/lambdas/api-endpoints/user/user-create-internal",
@@ -192,6 +200,12 @@ export class LambdasConstruct extends Construct {
         actions: ["s3:*"],
       })
     );
+
+    this.userLambdas.userRefreshToken.addToRolePolicy(new PolicyStatement({
+      effect: Effect.ALLOW,
+      actions: ["cognito-idp:InitiateAuth"],
+      resources: ["*"], // or restrict to your user pool ARN if desired
+    }));
 
     this.hasSeenLambdas = {
       markAsSeenLambda: createLambda(
@@ -371,5 +385,27 @@ export class LambdasConstruct extends Construct {
         "handler"
       ),
     };
+
+    const classificationQueue = Queue.fromQueueAttributes(this, 'ImportedClassificationResultsQueue', {
+      queueArn: Fn.importValue('ClassificationResultsQueueArn'),
+      queueUrl: Fn.importValue('ClassificationResultsQueueUrl'),
+    });
+    
+    const aiLambdas = {
+      addAiResultsToDb: createLambda(
+        "AddAIResultsToDB",
+        "lib/lambdas/ai-image-processing/addResults",
+        "handler"
+      )
+    }
+
+    aiLambdas.addAiResultsToDb.addEventSource(
+      new SqsEventSource(classificationQueue, {
+        batchSize: 1, // Customize as needed
+      })
+    );
+
+    classificationQueue.grantConsumeMessages(aiLambdas.addAiResultsToDb)
+    
   }
 }
