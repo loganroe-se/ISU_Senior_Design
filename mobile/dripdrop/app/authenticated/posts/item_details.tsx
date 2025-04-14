@@ -60,6 +60,7 @@ const Page = () => {
     }, []);
 
     const [item, setItem] = useState<ItemFormData>({
+        clothingItemID: 0,
         name: "",
         brand: "",
         category: "",
@@ -101,19 +102,18 @@ const Page = () => {
                         console.log("No imageId in postData.images[0]");
                         return;
                     }
-                    if (Number.isInteger(Number(markerId))) {
-                        const existingItem = await getItem(parseInt(markerId));
-                        // do something with existingItem
-                        if (typeof existingItem !== "string") {
-                            setItem({
-                                name: existingItem!.name,
-                                brand: existingItem!.brand,
-                                category: existingItem!.category,
-                                price: existingItem!.price || 0,
-                                itemURL: existingItem!.itemURL,
-                                size: existingItem!.size,
-                            });
-                        }
+
+                    const existingItem = await getItem(parseInt(markerId));
+                    if (typeof existingItem !== "string") {
+                        setItem({
+                            clothingItemID: existingItem!.clothingItemID,
+                            name: existingItem!.name,
+                            brand: existingItem!.brand,
+                            category: existingItem!.category,
+                            price: existingItem!.price || 0,
+                            itemURL: existingItem!.itemURL,
+                            size: existingItem!.size,
+                        });
                     }
                 }
             } catch (error) {

@@ -29,8 +29,8 @@ def handler(event, context):
             for item in clothing_items:
                 coords = item.get('coordinates', {})
                 items[item['item']] = {
-                    'x_coordinate': coords.get('xmax', 0) - coords.get('xmin', 0),
-                    'y_coordinate': coords.get('ymax', 0) - coords.get('ymin', 0),
+                    'x_coordinate': (coords.get('xmin', 0) + coords.get('xmax', 0)) / 2,
+                    'y_coordinate': (coords.get('ymin', 0) + coords.get('ymax', 0)) / 2,
                     'attributes': item.get('attributes', {}),
                 }
 

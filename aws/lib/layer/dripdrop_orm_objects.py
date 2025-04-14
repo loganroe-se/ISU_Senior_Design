@@ -134,8 +134,8 @@ class ClothingItemDetails(Base):
 class Coordinate(Base):
     __tablename__ = 'coordinates'
     coordinateID = Column(Integer, primary_key=True)
-    xCoord = Column(Integer, nullable=False)
-    yCoord = Column(Integer, nullable=False)
+    xCoord = Column(Float, nullable=False)
+    yCoord = Column(Float, nullable=False)
     # Relationship with Item (One-to-One)
     item = relationship("Item", back_populates="coordinates", uselist=False)
 
