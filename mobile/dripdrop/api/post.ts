@@ -35,14 +35,13 @@ export const publishPost = async (postID: number): Promise<void> => {
 };
 
 // Search posts by search term and enrich with username
-export const searchPostsByTerm = async (searchTerm: string): Promise<FeedPost[]> => {
+export const searchPostsByTerm = async (searchTerm: string): Promise<Post[]> => {
   try {
-    const response = await fetch(`https://api.dripdropco.com/posts/search/${searchTerm}`);
-    const data = await response.json();
+    const posts = await apiRequest<Post[]>("GET", `/posts/search/${searchTerm}`);
 
     const enrichedPosts = await Promise.all(
-      data.map(async (post: Post) => {
-        const user = await fetchUserById(String(post.userID));
+      posts.map(async (post) => {
+        const user = await fetchUserById(String(post.uuid));
         return {
           ...post,
           username: user?.username || "Unknown",

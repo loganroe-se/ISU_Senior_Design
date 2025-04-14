@@ -14,23 +14,13 @@ import {
   FlatList,
   Dimensions,
 } from "react-native";
-import { FeedPost } from "@/types/post";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "@/constants/Colors";
 import { searchUsersByUsername } from "@/api/user";
+import { searchPostsByTerm } from "@/api/post";
 import { User } from "@/types/user.interface";
 import { fetchUserByUsername } from "@/api/following";
-
-interface Post {
-  postID: number;
-  uuid: string;
-  images: { imageURL: string }[];
-  username: string;
-  caption: string;
-  createdDate: string;
-  clothesUrl: string;
-  numLikes: number;
-}
+import { Post } from "@/types/post";
 
 const windowWidth = Dimensions.get("window").width;
 const windowHeight = Dimensions.get("window").height;
@@ -38,34 +28,18 @@ const windowHeight = Dimensions.get("window").height;
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
-  const [posts, setPosts] = useState<FeedPost[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
   const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
-  const [selectedPost, setSelectedPost] = useState<FeedPost | null>(null);
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [initialIndex, setInitialIndex] = useState<number>(0);
 
   const fetchUsers = async (searchTerm: string): Promise<User[]> => {
     return await searchUsersByUsername(searchTerm);
   };
 
-  const fetchPosts = async (searchTerm: string): Promise<FeedPost[]> => {
+  const fetchPosts = async (searchTerm: string): Promise<Post[]> => {
     try {
-      const response = await fetch(
-        `https://api.dripdropco.com/posts/search/${searchTerm}`
-      );
-      const data = await response.json();
-      const updatedPosts = await Promise.all(
-        data.map(async (post: Post) => {
-          const userResponse = await fetch(
-            `https://api.dripdropco.com/users/${post.uuid}`
-          );
-          const userData = await userResponse.json();
-          return {
-            ...post,
-            username: userData.username,
-          };
-        })
-      );
-      return updatedPosts;
+      return await searchPostsByTerm(searchTerm);
     } catch (error) {
       console.error("Error fetching posts:", error);
       return [];
@@ -80,10 +54,10 @@ export default function SearchScreen() {
       const fetchData = async () => {
         if (searchType === "accounts") {
           const fetchedUsers = await fetchUsers(searchQuery);
-          setUsers(fetchedUsers);
+          setUsers(fetchedUsers ?? []);
         } else {
           const fetchedPosts = await fetchPosts(searchQuery);
-          setPosts(fetchedPosts);
+          setPosts(Array.isArray(fetchedPosts) ? fetchedPosts : []);
         }
       };
       fetchData();
@@ -102,7 +76,7 @@ export default function SearchScreen() {
     fetchUser();
   };
 
-  const handlePostClick = (post: FeedPost) => {
+  const handlePostClick = (post: Post) => {
     setSelectedPost(post);
     // Find the index of the clicked post in the posts array
     const index = posts.findIndex((p) => p.postID === post.postID);
@@ -126,7 +100,7 @@ export default function SearchScreen() {
     Alert.alert("Comments", "View all comments for this post.");
   };
 
-  const renderPostInModal = ({ item }: { item: FeedPost }) => {
+  const renderPostInModal = ({ item }: { item: Post }) => {
     return (
       <View style={styles.modalContent}>
         <TouchableOpacity style={styles.backButton} onPress={closeModal}>
@@ -228,17 +202,17 @@ export default function SearchScreen() {
         </ScrollView>
       ) : (
         <ScrollView contentContainerStyle={styles.gridContainer}>
-          {posts.length > 0 ? (
+          {Array.isArray(posts) && posts.length > 0 ? (
             posts.map((post) => {
               const imageURL =
                 Array.isArray(post.images) &&
-                post.images.length > 0 &&
-                post.images[0].imageURL
+                  post.images.length > 0 &&
+                  post.images[0].imageURL
                   ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
                   : "default_image.png";
               return (
                 <TouchableOpacity
-                  key={post.postID.toString()} // Ensuring unique key here
+                  key={post.postID.toString()}
                   style={styles.postCard}
                   onPress={() => handlePostClick(post)}
                 >
@@ -415,7 +389,7 @@ const styles = StyleSheet.create({
     left: 10,
     paddingTop: 50,
   },
-  underArrow:{
+  underArrow: {
     marginTop: 80
   },
   commentIcon: {

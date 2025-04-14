@@ -16,6 +16,7 @@ export interface Post {
   clothesUrl: string;
   numLikes: number;
   numComments: number;
+  userHasLiked?: boolean
 }
 
 export interface FeedPost extends Post {
