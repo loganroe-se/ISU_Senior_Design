@@ -25,6 +25,7 @@ export default function SearchScreen() {
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
   const [loading, setLoading] = useState(false); // Loading state for search results
+  const [loadingProfile, setLoadingProfile] = useState(false); // Loading state for profile navigation
 
   useEffect(() => {
     if (searchQuery === "") {
@@ -47,10 +48,12 @@ export default function SearchScreen() {
   }, [searchQuery, searchType]);
 
   const handleUserPress = async (username: string) => {
+    setLoadingProfile(true); // Start profile loading
     const user = await fetchUserByUsername(username);
     if (user != null) {
       router.replace(`/authenticated/profile?id=${user.uuid}`);
     }
+    setLoadingProfile(false); // End profile loading
   };
 
   const handlePostClick = (post: Post) => {
@@ -135,6 +138,13 @@ export default function SearchScreen() {
             <Text style={styles.noResultsText}>No posts found</Text>
           )}
         </ScrollView>
+      )}
+
+      {loadingProfile && (
+        <View style={styles.loadingProfileContainer}>
+          <ActivityIndicator size="small" color="#5271ff" />
+          <Text style={styles.loadingProfileText}>Navigating to profile...</Text>
+        </View>
       )}
     </View>
   );
@@ -225,6 +235,22 @@ const styles = StyleSheet.create({
   loadingText: {
     fontSize: 16,
     color: "#5271ff",
-    marginBottom: 200
+    marginBottom: 200,
+  },
+  loadingProfileContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 10,
+    zIndex: 999,
+  },
+  loadingProfileText: {
+    fontSize: 14,
+    color: "#5271ff",
+    marginTop: 10,
   },
 });
