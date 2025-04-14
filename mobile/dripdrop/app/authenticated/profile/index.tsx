@@ -16,7 +16,7 @@ import {
   followUser,
   unfollowUser,
 } from "@/api/following";
-import { fetchUserById } from "@/api/user";
+import { fetchUserById, updateUser } from "@/api/user";
 import { Follower, Following } from "@/types/Following";
 import { Post } from "@/types/post";
 import { User } from "@/types/user.interface";
@@ -24,6 +24,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { profileStyle } from "./_components/profileStyle";
 import { PostGrid } from "./_components/PostGrid";
+import * as ImagePicker from 'expo-image-picker';
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -41,6 +42,7 @@ const UserProfile = () => {
   const [followModalVisible, setFollowModalVisible] = useState(false);
   const [followModalType, setFollowModalType] = useState("Followers");
   const [settingsVisible, setSettingsVisible] = useState(false);
+  const [base64Image, setBase64Image] = useState("");
 
   useEffect(() => {
     const getUserData = async () => {
@@ -79,6 +81,36 @@ const UserProfile = () => {
 
     const isUserFollowing = fs.some((follower) => follower.uuid === user.uuid);
     setIsFollowing(isUserFollowing);
+  };
+
+  const selectProfilePic = async () => {
+    // Ask for media library permissions
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (!permissionResult.granted) {
+      alert("You'll need to allow access to your photos.");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      base64: true,
+      quality: 0.8,
+    });
+
+    if (!result.canceled && result.assets && result.assets.length > 0) {
+      if(result.assets[0].base64) {
+        let newUser = profileUser;
+
+        if(newUser) {
+          newUser.profilePic = result.assets[0].base64;
+          await updateUser(newUser);
+        }
+
+        setBase64Image(result.assets[0].base64);
+        setProfilePic(true);
+      }
+    }
   };
 
   const actionPress = async () => {
@@ -161,13 +193,22 @@ const UserProfile = () => {
       </View>
 
       <View style={profileStyle.profileContainer}>
-        <Avatar.Image
-          size={90}
-          source={{
-            uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png`,
-          }}
-          style={profileStyle.avatarContainer}
-        />
+        <View style={profileStyle.avatarContainer}>
+          {
+            user != profileUser ?
+            <TouchableOpacity onPress={selectProfilePic}>
+              <Avatar.Image
+                size={90}
+                source={{ uri: profilePic ? `data:image/jpeg;base64,${base64Image}` : `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+              />
+            </TouchableOpacity>
+            :
+            <Avatar.Image
+              size={90}
+              source={{ uri: profilePic ? `data:image/jpeg;base64,${base64Image}` : `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+            />
+          }
+        </View>
         <View style={profileStyle.statsContainer}>
           {[
             ["Posts", posts.length],
