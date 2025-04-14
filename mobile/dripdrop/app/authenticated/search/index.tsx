@@ -6,73 +6,26 @@ import {
   TextInput,
   StyleSheet,
   TouchableOpacity,
-  Alert,
   Image,
   ScrollView,
-  Modal,
-  TouchableWithoutFeedback,
-  FlatList,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
-import { FeedPost } from "@/types/post";
-import Icon from "react-native-vector-icons/FontAwesome";
-import { Colors } from "@/constants/Colors";
 import { searchUsersByUsername } from "@/api/user";
+import { searchPostsByTerm } from "@/api/post";
 import { User } from "@/types/user.interface";
+import { Post } from "@/types/post";
 import { fetchUserByUsername } from "@/api/following";
 
-interface Post {
-  postID: number;
-  uuid: string;
-  images: { imageURL: string }[];
-  username: string;
-  caption: string;
-  createdDate: string;
-  clothesUrl: string;
-  numLikes: number;
-}
-
 const windowWidth = Dimensions.get("window").width;
-const windowHeight = Dimensions.get("window").height;
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
-  const [users, setUsers] = useState<any[]>([]);
-  const [posts, setPosts] = useState<FeedPost[]>([]);
-  const [searchType, setSearchType] = useState<"accounts" | "posts">(
-    "accounts"
-  );
-  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
-  const [initialIndex, setInitialIndex] = useState<number>(0); // Track the initial index for the modal feed
-
-  const fetchUsers = async (searchTerm: string): Promise<any[]> => {
-    return await searchUsersByUsername(searchTerm);
-  };
-
-  const fetchPosts = async (searchTerm: string): Promise<FeedPost[]> => {
-    try {
-      const response = await fetch(
-        `https://api.dripdropco.com/posts/search/${searchTerm}`
-      );
-      const data = await response.json();
-      const updatedPosts = await Promise.all(
-        data.map(async (post: Post) => {
-          const userResponse = await fetch(
-            `https://api.dripdropco.com/users/${post.uuid}`
-          );
-          const userData = await userResponse.json();
-          return {
-            ...post,
-            username: userData.username,
-          };
-        })
-      );
-      return updatedPosts;
-    } catch (error) {
-      console.error("Error fetching posts:", error);
-      return [];
-    }
-  };
+  const [users, setUsers] = useState<User[]>([]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
+  const [loading, setLoading] = useState(false); // Loading state for search results
+  const [loadingProfile, setLoadingProfile] = useState(false); // Loading state for profile navigation
 
   useEffect(() => {
     if (searchQuery === "") {
@@ -80,105 +33,42 @@ export default function SearchScreen() {
       setPosts([]);
     } else {
       const fetchData = async () => {
+        setLoading(true); // Start loading
         if (searchType === "accounts") {
-          const fetchedUsers = await fetchUsers(searchQuery);
-          setUsers(fetchedUsers);
+          const fetchedUsers = await searchUsersByUsername(searchQuery);
+          setUsers(fetchedUsers ?? []);
         } else {
-          const fetchedPosts = await fetchPosts(searchQuery);
-          setPosts(fetchedPosts);
+          const fetchedPosts = await searchPostsByTerm(searchQuery);
+          setPosts(Array.isArray(fetchedPosts) ? fetchedPosts : []);
         }
+        setLoading(false); // End loading
       };
       fetchData();
     }
   }, [searchQuery, searchType]);
 
-  const handleUserPress = (username: string) => {
-    const fetchUser = async() => {
-      let user = await fetchUserByUsername(username);
-
-      if(user != null) {
-        console.log(user);
-        router.replace(`/authenticated/profile?id=${user.uuid}` as any);
-      }
+  const handleUserPress = async (username: string) => {
+    setLoadingProfile(true); // Start profile loading
+    const user = await fetchUserByUsername(username);
+    if (user != null) {
+      router.replace(`/authenticated/profile?id=${user.uuid}`);
     }
-
-    fetchUser();
+    setLoadingProfile(false); // End profile loading
   };
 
   const handlePostClick = (post: Post) => {
-    setSelectedPost(post);
-    // Find the index of the clicked post in the posts array
     const index = posts.findIndex((p) => p.postID === post.postID);
-    setInitialIndex(index); // Set the initial index to scroll to
-  };
 
-  const closeModal = () => {
-    setSelectedPost(null);
-  };
+    if (index === -1) return;
 
-  const handleLike = () => {
-    if (selectedPost) {
-      setSelectedPost({
-        ...selectedPost,
-        numLikes: selectedPost.numLikes + 1,
-      });
-    }
+    router.push({
+      pathname: "/authenticated/search/search_feed",
+      params: {
+        posts: encodeURIComponent(JSON.stringify(posts)),
+        initialIndex: index.toString(),
+      },
+    });
   };
-
-  const handleComments = () => {
-    Alert.alert("Comments", "View all comments for this post.");
-  };
-
-  const renderPostInModal = ({ item }: { item: FeedPost }) => {
-    return (
-      <View style={styles.modalContent}>
-        <TouchableOpacity style={styles.backButton} onPress={closeModal}>
-          <Icon name="arrow-left" size={30} color="black" />
-        </TouchableOpacity>
-        <View style={styles.underArrow}>
-          <Text style={styles.modalUsername}>{item.username}</Text>
-          <Image
-            source={{
-              uri: `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`,
-            }}
-            style={styles.modalImage}
-          />
-          <View style={styles.modalTextContainer}>
-            <View style={styles.modalActions}>
-              <TouchableOpacity onPress={handleLike} style={styles.likeButton}>
-                <Icon
-                  name={item.userHasLiked ? "heart" : "heart-o"}
-                  size={30}
-                  color={item.userHasLiked ? "red" : Colors.light.contrast}
-                  onPress={() => handleLike()}
-                  style={styles.icon}
-                />
-                <Text style={styles.modalLikeText}>{item.numLikes}</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleComments} style={styles.commentIcon}>
-                <Icon name="comment-o" size={30} color="black" />
-              </TouchableOpacity>
-            </View>
-            <Text style={styles.modalUsername}>{item.username}</Text>
-            <Text style={styles.modalCaption}>{item.caption}</Text>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const onScrollToIndexFailed = (info: {
-    index: number;
-    averageItemLength: number;
-  }) => {
-    const { index } = info;
-    console.warn(`Error scrolling to index ${index}. Retrying...`);
-    setTimeout(() => {
-      flatListRef.current?.scrollToIndex({ index, animated: true });
-    }, 500);
-  };
-
-  const flatListRef = React.useRef<FlatList>(null);
 
   return (
     <View style={styles.container}>
@@ -195,33 +85,29 @@ export default function SearchScreen() {
 
       <View style={styles.toggleContainer}>
         <TouchableOpacity
-          style={[
-            styles.toggleButton,
-            searchType === "accounts" && styles.activeToggle,
-          ]}
+          style={[styles.toggleButton, searchType === "accounts" && styles.activeToggle]}
           onPress={() => setSearchType("accounts")}
         >
           <Text style={styles.toggleText}>Accounts</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[
-            styles.toggleButton,
-            searchType === "posts" && styles.activeToggle,
-          ]}
+          style={[styles.toggleButton, searchType === "posts" && styles.activeToggle]}
           onPress={() => setSearchType("posts")}
         >
           <Text style={styles.toggleText}>Posts</Text>
         </TouchableOpacity>
       </View>
 
-      {searchType === "accounts" ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5271ff" />
+          <Text style={styles.loadingText}>Searching...</Text>
+        </View>
+      ) : searchType === "accounts" ? (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {users.length > 0 ? (
             users.map((item) => (
-              <TouchableOpacity
-                key={item.uid} // Ensuring unique key here
-                onPress={() => handleUserPress(item.username)}
-              >
+              <TouchableOpacity key={item.uuid} onPress={() => handleUserPress(item.username)}>
                 <Text style={styles.userItem}>{item.username}</Text>
               </TouchableOpacity>
             ))
@@ -234,14 +120,13 @@ export default function SearchScreen() {
           {posts.length > 0 ? (
             posts.map((post) => {
               const imageURL =
-                Array.isArray(post.images) &&
-                post.images.length > 0 &&
-                post.images[0].imageURL
+                post.images?.[0]?.imageURL
                   ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
                   : "default_image.png";
+
               return (
                 <TouchableOpacity
-                  key={post.postID.toString()} // Ensuring unique key here
+                  key={post.postID.toString()}
                   style={styles.postCard}
                   onPress={() => handlePostClick(post)}
                 >
@@ -255,31 +140,12 @@ export default function SearchScreen() {
         </ScrollView>
       )}
 
-      <Modal
-        visible={selectedPost !== null}
-        animationType="fade"
-        transparent={true}
-      >
-        <View style={styles.modalContainer}>
-          <TouchableWithoutFeedback onPress={closeModal}>
-            <View style={styles.modalBackdrop}></View>
-          </TouchableWithoutFeedback>
-
-          {selectedPost && (
-            <FlatList
-              ref={flatListRef}
-              data={posts}
-              renderItem={renderPostInModal}
-              keyExtractor={(item) => item.postID.toString()}
-              horizontal={false}
-              pagingEnabled={true}
-              showsVerticalScrollIndicator={false}
-              initialScrollIndex={initialIndex}
-              onScrollToIndexFailed={onScrollToIndexFailed}
-            />
-          )}
+      {loadingProfile && (
+        <View style={styles.loadingProfileContainer}>
+          <ActivityIndicator size="small" color="#5271ff" />
+          <Text style={styles.loadingProfileText}>Navigating to profile...</Text>
         </View>
-      </Modal>
+      )}
     </View>
   );
 }
@@ -340,12 +206,13 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
   },
   postCard: {
-    width: "50%",
+    width: "48%",
     backgroundColor: "#f9f9f9",
     shadowColor: "#000",
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 10,
   },
   postImage: {
     width: "100%",
@@ -360,72 +227,30 @@ const styles = StyleSheet.create({
     alignSelf: "center",
     width: "100%",
   },
-  modalContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    backgroundColor: "rgba(0, 0, 0, 0.6)",
   },
-  modalBackdrop: {
+  loadingText: {
+    fontSize: 16,
+    color: "#5271ff",
+    marginBottom: 200,
+  },
+  loadingProfileContainer: {
     position: "absolute",
     top: 0,
-    bottom: 0,
     left: 0,
     right: 0,
-    backgroundColor: "rgba(0, 0, 0, 0.4)",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 20,
-    borderRadius: 8,
-    height: windowHeight,
-    width: windowWidth,
-    maxWidth: 500,
-  },
-  modalImage: {
-    width: "100%",
-    height: 500,
-  },
-  modalTextContainer: {
-    marginTop: 10,
-  },
-  modalUsername: {
-    fontSize: 20,
-    fontWeight: "bold",
-  },
-  modalCaption: {
-    fontSize: 16,
-    marginTop: 10,
-    color: "grey",
-  },
-  modalActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  likeButton: {
-    flexDirection: "row",
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    justifyContent: "center",
     alignItems: "center",
+    paddingVertical: 10,
+    zIndex: 999,
   },
-  icon: {
-    marginRight: 10,
+  loadingProfileText: {
+    fontSize: 14,
+    color: "#5271ff",
+    marginTop: 10,
   },
-  modalLikeText: {
-    marginLeft: 5,
-  },
-  backButton: {
-    position: "absolute",
-    top: 10,
-    left: 10,
-    paddingTop: 50,
-  },
-  underArrow:{
-    marginTop: 80
-  },
-  commentIcon: {
-    flexDirection: 'row', // Align items horizontally
-    alignItems: 'center', // Vertically center items
-    justifyContent: 'flex-start', // Align items to the start (left)
-    width: '100%', // Ensure the container spans the full width
-    paddingLeft: 20
-  }
 });

@@ -21,6 +21,7 @@ export interface Post {
     profilePic: string;
   };
   
+  userHasLiked?: boolean
 }
 
 export interface FeedPost extends Post {

@@ -3,9 +3,9 @@ import React from "react";
 import { likePost, unlikePost } from "@/api/like";
 import { Comment } from "@/types/Comment";
 import { FeedPost } from "@/types/post";
-import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "@/constants/Colors"
 import { fetchCommentsByPostID } from "@/api/comment";
+import Icon from "react-native-vector-icons/FontAwesome";
 
 interface LikeCommentBarProps {
     feedData: FeedPost[];

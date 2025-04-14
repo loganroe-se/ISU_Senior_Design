@@ -34,6 +34,21 @@ export const getMarker = async (itemId: number): Promise<Marker | null> => {
   }
 };
 
+// Get multiple items
+export const getItemDetails = async (itemId: number | number[]): Promise<Item | Item[] | null> => {
+  try {
+    const ids = Array.isArray(itemId) ? itemId : [itemId];
+    const query = `?ids=${ids.join(",")}`;
+
+    const data = await apiRequest<Item[]>("GET", `/items/details${query}`);
+
+    return Array.isArray(itemId) ? data : data[0] || null;
+  } catch (error) {
+    console.error("Error fetching item:", error);
+    return null;
+  }
+};
+
 // Get an item
 export const getItem = async (itemId: number): Promise<Item | null> => {
   try {
@@ -44,6 +59,7 @@ export const getItem = async (itemId: number): Promise<Item | null> => {
     return null;
   }
 };
+
 
 // Update or create an item
 export const updateItem = async (
