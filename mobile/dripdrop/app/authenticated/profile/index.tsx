@@ -232,46 +232,6 @@ const UserProfile = () => {
 
       <PostGrid posts={posts} />
 
-      {/* Settings Modal */}
-      <Modal
-        transparent
-        visible={settingsVisible}
-        animationType="slide"
-        onRequestClose={() => setSettingsVisible(false)}
-      >
-        <View style={profileStyle.modalOverlay}>
-          <View style={profileStyle.modalSheet}>
-            <Text style={profileStyle.modalTitle}>Account Settings</Text>
-
-            <TouchableOpacity
-              style={profileStyle.modalOption}
-              onPress={() => {
-                setSettingsVisible(false);
-                router.push("../authenticated/profile/edit");
-              }}
-            >
-              <Text style={profileStyle.modalOptionText}>Edit Profile</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={profileStyle.modalOption}
-              onPress={() => {
-                setSettingsVisible(false);
-                signOut();
-              }}
-            >
-              <Text style={[profileStyle.modalOptionText, { color: "red" }]}>
-                Sign Out
-              </Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity onPress={() => setSettingsVisible(false)}>
-              <Text style={profileStyle.modalCancelText}>Close</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
       <Modal
         transparent={true}
         visible={followModalVisible}

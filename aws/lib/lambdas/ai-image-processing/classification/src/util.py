@@ -1,6 +1,5 @@
 import numpy as np
-import json, cv2, logging
-import time
+import json, cv2, logging, time
 import torch
 from ultralytics import YOLO
 
@@ -8,90 +7,68 @@ from ultralytics import YOLO
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Constants
+MODEL_SIZE = (640, 640)
+ATTRIBUTES_PATH = "attributes.json"
+BATCH_SIZE = 10  # Adjustable batch size
+
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = YOLO("slight-improved-classify.pt").to(device)
 
-model = YOLO("slight-improved-classify.pt")
-model.to(device)
+# Load attribute map once
+with open(ATTRIBUTES_PATH, "r") as f:
+    _ATTRIBUTE_MAP = {item["id"]: item["name"] for item in json.load(f)["attributes"]}
 
-# Map YOLO classes to clothing items
-def map_to_clothing_label(id):
-    attributes_file = f"attributes.json"
-
-    with open(attributes_file, "r") as f:
-        attributes_f = json.load(f)
-
-    # Create train/val directories for each attribute
-    attributes = {}
-
-    for item in attributes_f["attributes"]:
-        attribute_id = item["id"]
-        attribue_name = item["name"]
-        attributes[attribute_id] = attribue_name
-
-    return attributes.get(id, id)
+def map_to_clothing_label(class_id):
+    return _ATTRIBUTE_MAP.get(class_id, str(class_id))
 
 def output_fn(prediction_output):
-    print("Executing output_fn from inference...")
-    infer = {}
+    parsed = []
     for result in prediction_output:
-        if 'boxes' in result._keys and result.boxes is not None:
-            infer['boxes'] = result.boxes.cpu().numpy().data.tolist()
-        if 'masks' in result._keys and result.masks is not None:
-            infer['masks'] = result.masks.cpu().numpy().data.tolist()
-        if 'keypoints' in result._keys and result.keypoints is not None:
-            infer['keypoints'] = result.keypoints.cpu().numpy().data.tolist()
+        entry = {}
         if 'probs' in result._keys and result.probs is not None:
-            # Extract top-5 class indices and their confidence scores
-            top5_indices = result.probs.top5
-            top5_scores = result.probs.top5conf.tolist()
-            # Store in the output dictionary
-            infer['probs'] = {
-                "top5_indices": top5_indices,
-                "top5_scores": top5_scores
-            }
+            entry['top5_indices'] = result.probs.top5
+            entry['top5_scores'] = result.probs.top5conf.tolist()
+        parsed.append(entry)
+    return parsed
 
-    return infer
+def chunked(iterable, size):
+    """Yield successive chunks of a given size."""
+    for i in range(0, len(iterable), size):
+        yield iterable[i:i + size]
 
 def classify_segment(segmented_items):
-    """Runs classification on the segmented images."""
+    """Batch classify attributes of clothing items using YOLO in chunks."""
+    items = segmented_items.get("clothing_items", [])
+    if not items:
+        return []
+
     results = []
-    
-    for item in segmented_items["clothing_items"]:
-        cropped_img_array = np.array(item["cropped_image"], dtype=np.uint8)
 
-        infer_start_time = time.time()
+    for batch_items in chunked(items, BATCH_SIZE):
+        batch_images = []
 
-        # Decode the image array into an OpenCV image
-        orig_image = cv2.cvtColor(cropped_img_array, cv2.COLOR_BGR2RGB)
+        for item in batch_items:
+            cropped_img_array = np.array(item["cropped_image"], dtype=np.uint8)
+            image_rgb = cv2.cvtColor(cropped_img_array, cv2.COLOR_BGR2RGB)
+            resized_image = cv2.resize(image_rgb, MODEL_SIZE)
+            batch_images.append(resized_image)
 
-        # Calculate the parameters for image resizing
-        model_height, model_width = 640, 640
-
-        # Resize the image as numpy array
-        resized_image = cv2.resize(orig_image, (model_height, model_width))
+        logger.info(f"Running batch of {len(batch_images)} items...")
+        start = time.time()
 
         with torch.no_grad():
-            result = model(resized_image)
-    
-        classification_result = output_fn(result)
+            batch_result = model(batch_images)
 
-        infer_end_time = time.time()
+        duration = time.time() - start
+        logger.info(f"Batch inference time: {duration:.4f} seconds")
 
-        logger.info(f"Inference Time = {infer_end_time - infer_start_time:0.4f} seconds")
-    
-        # Ensure 'probs' exist and extract top-5 predictions safely
-        if "probs" in classification_result and "top5_indices" in classification_result["probs"]:
-            predicted_class_names = [
-                map_to_clothing_label(idx) for idx in classification_result["probs"]["top5_indices"]
-            ]
-        else:
-            logger.warning("Missing 'probs' or 'top5' key in classification result.")
-            predicted_class_names = []
+        predictions = output_fn(batch_result)
 
-        # Store the predicted attributes
-        item["attributes"] = predicted_class_names
-        item.pop("cropped_image")
-
-        results.append(item)
+        for item, pred in zip(batch_items, predictions):
+            top5 = pred.get("top5_indices", [])
+            item["attributes"] = [map_to_clothing_label(idx) for idx in top5]
+            item.pop("cropped_image", None)
+            results.append(item)
 
     return results
