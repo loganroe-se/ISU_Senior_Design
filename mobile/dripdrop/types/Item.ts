@@ -1,6 +1,6 @@
 // types/Item.ts
 export type Item = {
-  id: number; 
+  clothingItemID: number; 
   name: string;
   brand: string;
   category: string;

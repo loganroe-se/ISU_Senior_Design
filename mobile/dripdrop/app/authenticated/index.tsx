@@ -7,10 +7,11 @@ import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
 import { profileStyle } from "@/styles/profile";
 import { feedStyle } from "@/styles/feed";
+import { Marker } from "@/types/Marker";
+import { fetchMarkers, getItemDetails } from "@/api/items";
+import { Item } from "@/types/Item";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
-import { Marker } from "@/types/Marker";
-import { fetchMarkers } from "@/api/items";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -40,6 +41,7 @@ const Page = () => {
   const [expandedCaptions, setExpandedCaptions] = useState<{ [key: number]: boolean }>({});
   const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
   const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
+  const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
 
 
   useEffect(() => {
@@ -85,6 +87,7 @@ const Page = () => {
   useEffect(() => {
     const loadMarkers = async () => {
       const newMarkersMap: Record<number, Marker[]> = {};
+      const allItemIDs = new Set<number>();
 
       await Promise.all(feedData.map(async (post) => {
         try {
@@ -92,12 +95,35 @@ const Page = () => {
           if (markers.length > 0) {
             newMarkersMap[post.postID] = markers;
           }
+
+          markers.forEach(marker => allItemIDs.add(marker.clothingItemID));
         } catch (error) {
           console.error("Failed to fetch markers for post ", post.postID);
         }
       }));
-      console.log(newMarkersMap);
+      
       setMarkersMap(newMarkersMap);
+
+      // Fetch item details for all unique IDs that aren't already in the map
+      const idsToFetch = Array.from(allItemIDs).filter(id => !itemDetailsMap[id]);
+  
+      if (idsToFetch.length > 0) {
+        try {
+          const fetched = await getItemDetails(idsToFetch);
+    
+          if (fetched) {
+            const newMap = { ...itemDetailsMap };
+            if (Array.isArray(fetched)) {
+              fetched.forEach(item => {
+                newMap[item.clothingItemID] = item;
+              });
+            }
+            setItemDetailsMap(newMap);
+          }
+        } catch (error) {
+          console.error("Failed to fetch item details: ", error);
+        }
+      }
     };
     
     if (feedData.length > 0) loadMarkers();
@@ -242,6 +268,11 @@ const Page = () => {
     }));
   };
 
+  // Get all of the item details for a given post
+  const getItemDetailsByPost = async (postID: number) => {
+
+  };
+
   // Reset feed
   const resetFeed = async () => {
     if (!userID) return;
@@ -318,21 +349,20 @@ const Page = () => {
                         )}
 
                         {/* Display the markers on each post */}
-                        {areMarkersVisible[item.postID] && markersMap[item.postID]?.map((marker, index) => {
+                        {areMarkersVisible[item.postID] && markersMap[item.postID]?.filter(marker => itemDetailsMap[marker.clothingItemID]).map((marker) => {
                           const scaleX = windowWidth;
                           const scaleY = imageHeight || 1;
-
+                          
                           const x = marker.xCoord * scaleX;
                           const y = marker.yCoord * scaleY;
-                          console.log(marker, marker.xCoord, marker.yCoord);
 
                           return (
                             <TouchableOpacity
-                              key={index}
-                              onPress={() => {}}
+                              key={`${item.postID}-${marker.clothingItemID}`}
+                              onPress={() => {getItemDetailsByPost(item.postID)}}
                               style={[feedStyle.marker, {left: x, top: y}]}
                             >
-                              <Text style={{ color: 'white', fontSize: 10 }}>i</Text>
+                              <Text style={{ fontSize: 16 }}>•</Text>
                             </TouchableOpacity>
                           );
                         })}
