@@ -195,6 +195,7 @@ export const image_marker_styles = StyleSheet.create({
         padding: 16,
         backgroundColor: "#fff",
     },
+
     loadingContainer: {
         flex: 1,
         justifyContent: "center",

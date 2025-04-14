@@ -23,6 +23,8 @@ const ImageMarkerScreen = () => {
     const [newMarkerPosition, setNewMarkerPosition] = useState<{ x: number; y: number } | null>(null);
     const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false);
     const [imageUri, setImageUri] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
+
 
     // Set image from params
     useEffect(() => {
@@ -100,37 +102,39 @@ const ImageMarkerScreen = () => {
     };
 
     // Handle deleting a marker
-    const handleDeleteMarker = async (markerId: number) => {
-        // If the marker ID is not a valid integer (e.g., a temporary one like -1 or NaN), remove locally only
-        if (!Number.isInteger(markerId) || markerId <= 0) {
-            setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
-            setVerifiedMarkers((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(markerId);
-                return newSet;
-            });
-            setSelectedMarker(null);
-            setIsDeleteConfirmationVisible(false);
-            return;
-        }
+const handleDeleteMarker = async (markerId: number) => {
+    if (!Number.isInteger(markerId) || markerId <= 0) {
+        setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
+        setVerifiedMarkers((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(markerId);
+            return newSet;
+        });
+        setSelectedMarker(null);
+        setIsDeleteConfirmationVisible(false);
+        return;
+    }
 
-        // Otherwise, attempt backend deletion
-        try {
-            console.log("Attempting to delete marker with ID:", markerId);
-            await deleteMarker(markerId);
-            setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
-            setVerifiedMarkers((prev) => {
-                const newSet = new Set(prev);
-                newSet.delete(markerId);
-                return newSet;
-            });
-            setSelectedMarker(null);
-            setIsDeleteConfirmationVisible(false);
-        } catch (error) {
-            console.error("Error deleting marker:", error);
-            Alert.alert("Error", "Failed to delete the marker. Please try again.");
-        }
-    };
+    try {
+        setIsDeleting(true);
+        console.log("Attempting to delete marker with ID:", markerId);
+        await deleteMarker(markerId);
+        setMarkers((prev) => prev.filter((marker) => marker.clothingItemID !== markerId));
+        setVerifiedMarkers((prev) => {
+            const newSet = new Set(prev);
+            newSet.delete(markerId);
+            return newSet;
+        });
+        setSelectedMarker(null);
+        setIsDeleteConfirmationVisible(false);
+    } catch (error) {
+        console.error("Error deleting marker:", error);
+        Alert.alert("Error", "Failed to delete the marker. Please try again.");
+    } finally {
+        setIsDeleting(false);
+    }
+};
+
 
 
     // Handle marker press (for verification)
@@ -281,25 +285,34 @@ const ImageMarkerScreen = () => {
             {/* Delete Confirmation Dialog */}
             {isDeleteConfirmationVisible && (
                 <View style={image_marker_styles.confirmationDialog}>
-                    <Text style={image_marker_styles.confirmationText}>Are you sure you want to delete this marker?</Text>
-                    <View style={image_marker_styles.confirmationButtons}>
-                        <Button
-                            mode="contained"
-                            onPress={() => handleDeleteMarker(selectedMarker!.clothingItemID)}
-                            style={image_marker_styles.confirmButton}
-                        >
-                            Delete
-                        </Button>
-                        <Button
-                            mode="outlined"
-                            onPress={() => setIsDeleteConfirmationVisible(false)}
-                            style={image_marker_styles.cancelButton}
-                        >
-                            Cancel
-                        </Button>
-                    </View>
+                    {isDeleting ? (
+                        <ActivityIndicator size="large" color={Colors.light.primary} />
+                    ) : (
+                        <>
+                            <Text style={image_marker_styles.confirmationText}>
+                                Are you sure you want to delete this marker?
+                            </Text>
+                            <View style={image_marker_styles.confirmationButtons}>
+                                <Button
+                                    mode="contained"
+                                    onPress={() => handleDeleteMarker(selectedMarker!.clothingItemID)}
+                                    style={image_marker_styles.confirmButton}
+                                >
+                                    Delete
+                                </Button>
+                                <Button
+                                    mode="outlined"
+                                    onPress={() => setIsDeleteConfirmationVisible(false)}
+                                    style={image_marker_styles.cancelButton}
+                                >
+                                    Cancel
+                                </Button>
+                            </View>
+                        </>
+                    )}
                 </View>
             )}
+
 
             {/* Post Button */}
             <Button
