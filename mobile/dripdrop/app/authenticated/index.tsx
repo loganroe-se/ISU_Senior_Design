@@ -12,6 +12,7 @@ import { fetchMarkers, getItemDetails } from "@/api/items";
 import { Item } from "@/types/Item";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
+import DraggableItemModal from "@/components/DraggableItemModal";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -42,6 +43,7 @@ const Page = () => {
   const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
   const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
   const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
+  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; index: number } | null>(null);
 
 
   useEffect(() => {
@@ -93,6 +95,8 @@ const Page = () => {
         try {
           const markers = await fetchMarkers(post.postID);
           if (markers.length > 0) {
+            markers[markers.length - 1].xCoord = 0.5; // TODO: HARDCODED ------------ REMOVE ******************
+            markers[markers.length - 1].yCoord = 0.5; // TODO: HARDCODED ------------ REMOVE ******************
             newMarkersMap[post.postID] = markers;
           }
 
@@ -268,9 +272,13 @@ const Page = () => {
     }));
   };
 
-  // Get all of the item details for a given post
-  const getItemDetailsByPost = async (postID: number) => {
-
+  // Show the clothing item details
+  const showItemDetails = async (postID: number, clothingItemID: number) => {
+    const markers = markersMap[postID] || [];
+    const index = markers.findIndex(item => item.clothingItemID === clothingItemID);
+    if (index !== -1) {
+      setVisibleItemModal({ postID, index });
+    }
   };
 
   // Reset feed
@@ -359,7 +367,7 @@ const Page = () => {
                           return (
                             <TouchableOpacity
                               key={`${item.postID}-${marker.clothingItemID}`}
-                              onPress={() => {getItemDetailsByPost(item.postID)}}
+                              onPress={() => {showItemDetails(item.postID, marker.clothingItemID)}}
                               style={[feedStyle.marker, {left: x, top: y}]}
                             >
                               <Text style={{ fontSize: 16 }}>•</Text>
@@ -434,6 +442,19 @@ const Page = () => {
             loadingAddComment={loadingAddComment}
             setLoadingAddComment={setLoadingAddComment}
             setFeedData={setFeedData}
+          />
+
+          {/* Draggable Item Modal */}
+          <DraggableItemModal 
+            visibleItemModal={visibleItemModal}
+            onClose={() => setVisibleItemModal(null)}
+            onChangeIndex={(newIndex) => 
+              setVisibleItemModal((prev) =>
+                prev ? { postID: prev.postID, index: newIndex } : null
+              )
+            }
+            markersMap={markersMap}
+            itemDetailsMap={itemDetailsMap}
           />
         </View>
       )}
