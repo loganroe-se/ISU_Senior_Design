@@ -1,4 +1,3 @@
-// SearchScreen.tsx
 import { router } from "expo-router";
 import React, { useState, useEffect } from "react";
 import {
@@ -10,6 +9,7 @@ import {
   Image,
   ScrollView,
   Dimensions,
+  ActivityIndicator,
 } from "react-native";
 import { searchUsersByUsername } from "@/api/user";
 import { searchPostsByTerm } from "@/api/post";
@@ -24,6 +24,7 @@ export default function SearchScreen() {
   const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
+  const [loading, setLoading] = useState(false); // Loading state for search results
 
   useEffect(() => {
     if (searchQuery === "") {
@@ -31,6 +32,7 @@ export default function SearchScreen() {
       setPosts([]);
     } else {
       const fetchData = async () => {
+        setLoading(true); // Start loading
         if (searchType === "accounts") {
           const fetchedUsers = await searchUsersByUsername(searchQuery);
           setUsers(fetchedUsers ?? []);
@@ -38,6 +40,7 @@ export default function SearchScreen() {
           const fetchedPosts = await searchPostsByTerm(searchQuery);
           setPosts(Array.isArray(fetchedPosts) ? fetchedPosts : []);
         }
+        setLoading(false); // End loading
       };
       fetchData();
     }
@@ -92,7 +95,12 @@ export default function SearchScreen() {
         </TouchableOpacity>
       </View>
 
-      {searchType === "accounts" ? (
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#5271ff" />
+          <Text style={styles.loadingText}>Searching...</Text>
+        </View>
+      ) : searchType === "accounts" ? (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
           {users.length > 0 ? (
             users.map((item) => (
@@ -208,5 +216,15 @@ const styles = StyleSheet.create({
     marginTop: 20,
     alignSelf: "center",
     width: "100%",
+  },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    color: "#5271ff",
+    marginBottom: 200
   },
 });
