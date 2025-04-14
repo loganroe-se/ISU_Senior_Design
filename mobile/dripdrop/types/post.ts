@@ -20,7 +20,6 @@ export interface Post {
     username: string;
     profilePic: string;
   };
-  
   userHasLiked?: boolean
 }
 
