@@ -235,10 +235,6 @@ const UserProfile = () => {
       {/* Bio Section */}
       <View style={profileStyle.bioSection}>
         <Text style={profileStyle.nameText}>{profileUser?.username}</Text>
-        <Text style={profileStyle.bioText}>
-          {profileUser?.bio ||
-            "NYC-based photographer 📸\nLover of light, coffee, and good vibes.\nLet's create something beautiful."}
-        </Text>
 
         {profileUser?.link && (
           <TouchableOpacity onPress={() => Linking.openURL(profileUser.link!)}>
