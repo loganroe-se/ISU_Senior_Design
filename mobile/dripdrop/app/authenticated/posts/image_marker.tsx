@@ -1,120 +1,97 @@
-import React, { useEffect, useState, useRef } from "react";
-import { View, Image, TouchableOpacity, ActivityIndicator, Modal, Alert, Text, PanResponder } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Image, TouchableOpacity, ActivityIndicator, Modal, Alert, Text } from "react-native";
 import { Button } from "react-native-paper";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { Colors } from "@/constants/Colors";
-import { Marker } from '@/types/Marker'; 
+import { Marker } from '@/types/Marker';
 import { SafeAreaView } from "react-native-safe-area-context";
 import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
-import Toolbar from "@/components/Toolbar"; 
+import Toolbar from "@/components/Toolbar";
 import { fetchMarkers, deleteMarker } from "@/api/items";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getPostById } from "@/api/post";
 
 const ImageMarkerScreen = () => {
     const router = useRouter();
     const { caption, image, postId, verifiedMarkerId, refresh } = useLocalSearchParams();
-    const [markers, setMarkers] = useState<Marker[]>([]); // Store marker data
-    const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set()); // Track verified markers
-    const [loading, setLoading] = useState(true); // Track loading state
-    const [isHelpModalVisible, setIsHelpModalVisible] = useState(false); // State for help modal
-    const [mode, setMode] = useState<"cursor" | "add" | "delete">("cursor"); // Toolbar mode
-    const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null); // Selected marker for moving or deleting
-    const [newMarkerPosition, setNewMarkerPosition] = useState<{ x: number; y: number } | null>(null); // New marker position
-    const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false); // State for delete confirmation dialog
+    const [markers, setMarkers] = useState<Marker[]>([]);
+    const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set());
+    const [loading, setLoading] = useState(true);
+    const [isHelpModalVisible, setIsHelpModalVisible] = useState(false);
+    const [mode, setMode] = useState<"cursor" | "add" | "delete">("cursor");
+    const [selectedMarker, setSelectedMarker] = useState<Marker | null>(null);
+    const [newMarkerPosition, setNewMarkerPosition] = useState<{ x: number; y: number } | null>(null);
+    const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false);
+    const [imageUri, setImageUri] = useState<string | null>(null);
+
+    // Set image from params
+    useEffect(() => {
+        if (image) {
+            setImageUri(image.toString());
+        }
+    }, [image]);
 
     const loadMarkers = React.useCallback(async () => {
         try {
             setLoading(true);
 
-            // Validate postId
             if (!postId || isNaN(Number(postId))) {
                 throw new Error("Invalid post ID");
             }
 
             const numericPostId = Number(postId);
             const postData = await getPostById(numericPostId);
-            console.log("Post data: ", postData)
 
             if (!postData?.images?.[0]?.imageID) {
                 throw new Error("Post data is incomplete");
             }
 
-            const imageID = postData.images[0].imageID;
-            console.log("Image ID:", imageID);
-
             const data = await fetchMarkers(postData.postID);
 
-            // Safely handle different data scenarios
             if (Array.isArray(data)) {
                 setMarkers(data);
             } else {
-                console.warn("Unexpected marker data format or no markers found. Defaulting to empty array.");
+                console.warn("Unexpected marker data format");
                 setMarkers([]);
             }
         } catch (error) {
             console.error("Error fetching markers:", error);
-            setMarkers([]); // Ensure markers are cleared on error too
+            setMarkers([]);
         } finally {
             setLoading(false);
         }
     }, [postId]);
 
- 
     useEffect(() => {
         loadMarkers();
-    }, [loadMarkers]);
-
-    useEffect(() => {
-        const saveImageToAsyncStorage = async () => {
-            if (image) {
-                try {
-                    await AsyncStorage.setItem('iamge', image.toString());
-                } catch (error) {
-                    console.error("Failed to save image to AsyncStorage:", error);
-                }
-            }
-        };
-        saveImageToAsyncStorage();
-    }, [image]);  // This will run whenever the image is updated
-
-    useEffect(() => {
-        if (refresh) {
-            loadMarkers();
-        }
-    }, [refresh]);
+    }, [loadMarkers, refresh]);
 
     useEffect(() => {
         if (verifiedMarkerId) {
             const id = Number(verifiedMarkerId);
-            console.log("Verified Marker ID: ", verifiedMarkerId)
             setVerifiedMarkers((prev) => new Set(prev).add(id));
         }
     }, [verifiedMarkerId]);
 
-    // Handle adding a new marker
+    const confirmAddMarker = () => {
+        if (newMarkerPosition) {
+            const newMarker: Marker = {
+                clothingItemID: -Date.now(),
+                xCoord: newMarkerPosition.x,
+                yCoord: newMarkerPosition.y,
+            };
+            setMarkers((prev) => [...prev, newMarker]);
+            setNewMarkerPosition(null);
+        }
+    };
+
+
     const handleAddMarker = (event: any) => {
         if (mode !== "add") return;
 
         const { locationX, locationY } = event.nativeEvent;
         setNewMarkerPosition({ x: locationX, y: locationY });
     };
-
-    // Confirm adding a new marker
-    const confirmAddMarker = () => {
-        if (newMarkerPosition) {
-            const newMarker: Marker = {
-                clothingItemID: -Date.now(), // Temporary unique ID
-                xCoord: newMarkerPosition.x,
-                yCoord: newMarkerPosition.y,
-            };
-            setMarkers((prev) => [...prev, newMarker]);
-            AsyncStorage.setItem(`marker_${newMarker.clothingItemID}_coords`, JSON.stringify(newMarker));
-            setNewMarkerPosition(null);
-        }
-    };
-
 
     // Cancel adding a new marker
     const cancelAddMarker = () => {

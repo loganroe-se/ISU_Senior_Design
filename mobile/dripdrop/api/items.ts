@@ -49,37 +49,46 @@ export const getItemDetails = async (itemId: number | number[]): Promise<Item | 
   }
 };
 
-// Get an item
+//getitems.ts
 export const getItem = async (itemId: number): Promise<Item | null> => {
   try {
-    const data = await apiRequest<Item[] | Item>("GET", `/items/${itemId}`);
-    return Array.isArray(data) ? data[0] : data;
+    const data = await apiRequest<Item[]>("GET", `/items/details?ids=${itemId}`);
+    return data[0] || null; // Return first item or null if empty array
   } catch (error) {
-    console.error("Error fetching item:", error);
+    console.error(`Error fetching item ${itemId}:`, error);
     return null;
   }
 };
 
 
-// Update or create an item
+// Update an existing item
 export const updateItem = async (
   itemId: number,
-  itemData: any
-): Promise<{ itemId: number; message: string }> => {  // Updated return type
+  itemData: Partial<Item> & { image_id?: string }
+): Promise<{ itemId: number; message: string }> => {
   const existing = await getItem(itemId);
-  const method = existing ? "PUT" : "POST";
-  const endpoint = existing ? `/items/${itemId}` : "/items";
+  if (!existing) {
+    throw new Error(`Item with ID ${itemId} does not exist for update.`);
+  }
 
-  return apiRequest<{ itemId: number; message: string }>(method, endpoint, itemData);  // Updated generic type
+  return apiRequest<{ itemId: number; message: string }>(
+    "PUT",
+    `/items/${itemId}`,
+    itemData
+  );
 };
 
-// Create an item
+// Create a new item
 export const createItem = async (
   itemData: Omit<Item, "id"> & {
     image_id: string;
     xCoord: number;
     yCoord: number;
   }
-): Promise<Item> => {
-  return apiRequest<Item>("POST", "/items", itemData);
+): Promise<{ itemId: number; message: string }> => {
+  return apiRequest<{ itemId: number; message: string }>(
+    "POST",
+    "/items",
+    itemData
+  );
 };
