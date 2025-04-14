@@ -97,8 +97,6 @@ const Page = () => {
         try {
           const markers = await fetchMarkers(post.postID);
           if (markers.length > 0) {
-            markers[markers.length - 1].xCoord = 0.5; // TODO: HARDCODED ------------ REMOVE ******************
-            markers[markers.length - 1].yCoord = 0.5; // TODO: HARDCODED ------------ REMOVE ******************
             newMarkersMap[post.postID] = markers;
           }
 
