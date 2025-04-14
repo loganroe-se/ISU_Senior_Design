@@ -10,15 +10,11 @@ export const fetchUserById = async (userID: string): Promise<User | null> => {
   return apiRequest<User | null>("GET", `/users/${userID}`);
 };
 
-// Search users by username
 export const searchUsersByUsername = async (searchTerm: string): Promise<User[] | []> => {
   return apiRequest<User[] | []>("GET", `/users/search/${searchTerm}`);
 };
 
-// Fetch user email by userID
-export const fetchUserEmail = async (
-  userID: number
-): Promise<string | null> => {
+export const fetchUserEmail = async (userID: number): Promise<string | null> => {
   const user = await apiRequest<User>("GET", `/users/${userID}`);
   return user ? user.email : null;
 };
@@ -47,7 +43,6 @@ export const deleteUser = async (uid: String): Promise<User | null> => {
   return null;
 };
 
-// Fetch users by search term
 export const searchUsers = async (searchTerm: string): Promise<User[] | null> => {
   try {
     const response = await fetch(

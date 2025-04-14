@@ -5,13 +5,19 @@ from sqlalchemy import select
 
 def handler(event, context):
     try:
-        # Get item ID from path parameters
-        item_id = event['pathParameters'].get('item-id')
+        # Get item_id(s) from query string parameters
+        query_params = event.get('queryStringParameters') or {}
+        raw_item_id = query_params.get('ids')
 
-        if not item_id:
-            return create_response(400, 'Missing item ID')
+        if not raw_item_id:
+            return create_response(400, 'Missing id query parameter')
 
-        status_code, message = get_item_details(item_id)
+        # Split by comma to handle multiple values
+        item_ids = [int(i.strip()) for i in raw_item_id.split(',') if i.strip().isdigit()]
+        if not item_ids:
+            return create_response(400, 'Invalid item_id(s) provided')
+
+        status_code, message = get_item_details(item_ids)
         return create_response(status_code, message)
 
     except Exception as e:
@@ -20,25 +26,27 @@ def handler(event, context):
 
 
 @session_handler
-def get_item_details(session, item_id):
+def get_item_details(session, item_ids):
     try:
-        clothing_item_details = session.execute(
-            select(ClothingItemDetails).where(ClothingItemDetails.clothingItemID == item_id)
-        ).scalars().first()
+        # Handle single or multiple IDs
+        stmt = select(ClothingItemDetails).where(ClothingItemDetails.clothingItemID.in_(item_ids))
+        results = session.execute(stmt).scalars().all()
 
-        if not clothing_item_details:
-            return 200, f"Clothing item with ID {item_id} does not have details"
+        if not results:
+            return 200, f"No details found for item ID(s): {item_ids}"
 
-        clothing_item_details_data = {
-            "name": clothing_item_details.name,
-            "brand": clothing_item_details.brand,
-            "category": clothing_item_details.category,
-            "price": clothing_item_details.price,
-            "itemURL": clothing_item_details.itemURL,
-            "size": clothing_item_details.size
-        }
+        # Return a list of clothing item detail dicts
+        items_data = [{
+            "clothingItemID": item.clothingItemID,
+            "name": item.name,
+            "brand": item.brand,
+            "category": item.category,
+            "price": item.price,
+            "itemURL": item.itemURL,
+            "size": item.size
+        } for item in results]
 
-        return 200, clothing_item_details_data
+        return 200, items_data
 
     except Exception as e:
         return handle_exception(e, "Error accessing database")

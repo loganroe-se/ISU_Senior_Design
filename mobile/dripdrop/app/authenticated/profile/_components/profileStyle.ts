@@ -119,15 +119,15 @@ export const profileStyle = StyleSheet.create({
     paddingHorizontal: 1,
   },
   postContainer: {
-    flex: 1 / 3,
-    aspectRatio: 1,
     margin: 1,
+    backgroundColor: "#f9f9f9",
+    overflow: "hidden",
   },
   postImage: {
     width: "100%",
     height: "100%",
     resizeMode: "cover",
-  },
+  }, 
   username: {
     fontSize: 20,
     fontWeight: "600",
@@ -172,4 +172,13 @@ export const profileStyle = StyleSheet.create({
     textAlign: "center",
     marginTop: 20,
   },
+  postDivider: {
+    marginTop: 10,
+    flexDirection: "row",
+    justifyContent: "space-around",
+    paddingBottom: 2,
+    borderTopWidth: 1,
+    borderBottomWidth: 0,
+    borderColor: "#eee",
+  },  
 });

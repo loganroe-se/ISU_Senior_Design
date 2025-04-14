@@ -31,7 +31,7 @@ def searchPosts(session, search_string):
         posts_list = [
             {
                 "postID": post.postID,
-                "uuid": post.user.uuid if post.user else None,
+                "uuid": post.userRel.uuid if post.userRel else None,
                 "status": post.status,
                 "caption": post.caption,
                 "createdDate": (

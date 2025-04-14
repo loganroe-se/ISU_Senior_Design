@@ -60,6 +60,7 @@ const Page = () => {
     }, []);
 
     const [item, setItem] = useState<ItemFormData>({
+        clothingItemID: 0,
         name: "",
         brand: "",
         category: "",
@@ -105,6 +106,7 @@ const Page = () => {
                     const existingItem = await getItem(parseInt(markerId));
                     if (typeof existingItem !== "string") {
                         setItem({
+                            clothingItemID: existingItem!.clothingItemID,
                             name: existingItem!.name,
                             brand: existingItem!.brand,
                             category: existingItem!.category,

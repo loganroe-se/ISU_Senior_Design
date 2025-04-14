@@ -1,6 +1,6 @@
 import { deleteUser, fetchUserById, updateUser } from "@/api/user";
 import { useUserContext } from "@/context/UserContext";
-import { User, NewUser } from "@/types/user.interface";
+import { User, BasicUserData } from "@/types/user.interface";
 import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import {
@@ -71,7 +71,7 @@ const UserEditProfile = () => {
   const saveProfile = async () => {
     if (!profileUser) return;
 
-    const updatedUser: NewUser = {
+    const updatedUser: BasicUserData = {
         uuid: profileUser.uuid,
         email: newEmail || profileUser.email,
         username: newUsername || profileUser.username,
