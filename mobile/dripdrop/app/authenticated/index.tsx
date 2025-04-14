@@ -1,14 +1,19 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState } from "react-native";
+import { Text, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState, Switch } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
 import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
 import { FeedPost } from "@/types/post";
 import { Comment } from "@/types/Comment";
-import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
+import { feedStyle } from "@/styles/feed";
+import { Marker } from "@/types/Marker";
+import { fetchMarkers, getItemDetails } from "@/api/items";
+import { Item } from "@/types/Item";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
+import DraggableItemModal from "@/components/DraggableItemModal";
+import { Colors } from "@/constants/Colors";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -31,11 +36,16 @@ const Page = () => {
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<TextInput | null>(null);
   const [seenPosts, setSeenPosts] = useState(new Set<number>());
-  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number} }>({});
+  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number } }>({});
   const [isFetching, setIsFetching] = useState(false);
   const [hasSeenPosts, setHasSeenPosts] = useState(false);
   const [noMorePosts, setNoMorePosts] = useState(false);
   const [expandedCaptions, setExpandedCaptions] = useState<{ [key: number]: boolean }>({});
+  const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
+  const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
+  const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
+  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; clothingItemID: number } | null>(null);
+  const [activeClothingItemID, setActiveClothingItemID] = useState<number>(0);
 
 
   useEffect(() => {
@@ -76,6 +86,54 @@ const Page = () => {
         });
     }
   }, [userID]);
+
+  // Update markers when feed data is changed
+  useEffect(() => {
+    const loadMarkers = async () => {
+      const newMarkersMap: Record<number, Marker[]> = {};
+      const allItemIDs = new Set<number>();
+
+      await Promise.all(feedData.map(async (post) => {
+        try {
+          const markers = await fetchMarkers(post.postID);
+          if (markers.length > 0) {
+            markers[markers.length - 1].xCoord = 0.5; // TODO: HARDCODED ------------ REMOVE ******************
+            markers[markers.length - 1].yCoord = 0.5; // TODO: HARDCODED ------------ REMOVE ******************
+            newMarkersMap[post.postID] = markers;
+          }
+
+          markers.forEach(marker => allItemIDs.add(marker.clothingItemID));
+        } catch (error) {
+          console.error("Failed to fetch markers for post ", post.postID);
+        }
+      }));
+      
+      setMarkersMap(newMarkersMap);
+
+      // Fetch item details for all unique IDs that aren't already in the map
+      const idsToFetch = Array.from(allItemIDs).filter(id => !itemDetailsMap[id]);
+  
+      if (idsToFetch.length > 0) {
+        try {
+          const fetched = await getItemDetails(idsToFetch);
+    
+          if (fetched) {
+            const newMap = { ...itemDetailsMap };
+            if (Array.isArray(fetched)) {
+              fetched.forEach(item => {
+                newMap[item.clothingItemID] = item;
+              });
+            }
+            setItemDetailsMap(newMap);
+          }
+        } catch (error) {
+          console.error("Failed to fetch item details: ", error);
+        }
+      }
+    };
+    
+    if (feedData.length > 0) loadMarkers();
+  }, [feedData]);
 
   // // Ensure posts get marked as seen once the app is closed/minimized --- TODO: Does not properly track posts seen so this does not work yet
   // useEffect(() => {
@@ -208,6 +266,22 @@ const Page = () => {
     }));
   };
 
+  // Toggle markers on/off for a given post
+  const toggleMarkers = (postID: number) => {
+    setAreMarkersVisible(prev => ({
+      ...prev,
+      [postID]: !prev[postID],
+    }));
+  };
+
+  // Show the clothing item details
+  const showItemDetails = async (postID: number, clothingItemID: number) => {
+    if (itemDetailsMap[clothingItemID]) {
+      setVisibleItemModal({ postID, clothingItemID });
+      setActiveClothingItemID(clothingItemID);
+    }
+  };
+
   // Reset feed
   const resetFeed = async () => {
     if (!userID) return;
@@ -231,14 +305,14 @@ const Page = () => {
   return (
     <View style={profileStyle.feedContainer}>
       {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerText}>dripdrop</Text>
+      <View style={[feedStyle.header, {height: headerHeight}]}>
+        <Text style={feedStyle.headerText}>dripdrop</Text>
       </View>
 
       {loading  ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : error ? (
-        <Text style={styles.text}>{error}</Text>
+        <Text style={feedStyle.text}>{error}</Text>
       ) : (
         <View style={{ flex: 1 }}>
           <FlatList 
@@ -253,23 +327,55 @@ const Page = () => {
               const imageURL = item.images && item.images[0]?.imageURL ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`: "";
   
               return (
-                <View style={styles.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
+                <View style={feedStyle.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
                   {/* Display the poster's username */}
-                  <Text style={styles.username}>{item.username}</Text>
+                  <Text style={feedStyle.username}>{item.username}</Text>
   
                   {/* Display the post's image */}
                   {imageErrors[item.postID] || !(item.images && item.images[0]?.imageURL) ? (
-                    <View style={styles.imageErrorBox}>
-                      <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
+                    <View style={feedStyle.imageErrorBox}>
+                      <Text style={feedStyle.imageErrorText}>There was an error loading the image.</Text>
                     </View>
                   ) : (
                     item.images && item.images[0]?.imageURL && (
-                      <Image
-                        source={{ uri: imageURL }}
-                        style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
-                        onLoad={() => onImageLayout(item.postID, imageURL)}
-                        onError={() => onImageError(item.postID)}
-                      />
+                      <View style={{ position: 'relative' }}>
+                        <Image
+                          source={{ uri: imageURL }}
+                          style={[feedStyle.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                          onLoad={() => onImageLayout(item.postID, imageURL)}
+                          onError={() => onImageError(item.postID)}
+                        />
+
+                        {/* Toggle Markers Button */}
+                        {markersMap[item.postID] && (
+                          <View style={feedStyle.markerToggleContainer}>
+                            <Switch 
+                              value={!!areMarkersVisible[item.postID]}
+                              onValueChange={() => toggleMarkers(item.postID)}
+                              trackColor={{ false: "black", true: "blue" }}
+                            />
+                          </View>
+                        )}
+
+                        {/* Display the markers on each post */}
+                        {areMarkersVisible[item.postID] && markersMap[item.postID]?.filter(marker => itemDetailsMap[marker.clothingItemID]).map((marker) => {
+                          const scaleX = windowWidth;
+                          const scaleY = imageHeight || 1;
+                          
+                          const x = marker.xCoord * scaleX;
+                          const y = marker.yCoord * scaleY;
+
+                          return (
+                            <TouchableOpacity
+                              key={`${item.postID}-${marker.clothingItemID}`}
+                              onPress={() => {showItemDetails(item.postID, marker.clothingItemID)}}
+                              style={[feedStyle.marker, {left: x, top: y, backgroundColor: marker.clothingItemID === activeClothingItemID ? Colors.light.primary : "rgba(255, 255, 255, 0.8)"}]}
+                            >
+                              <Text style={{ fontSize: 16 }}>•</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
+                      </View>
                     )
                   )}
   
@@ -286,26 +392,26 @@ const Page = () => {
                   />
   
                   {/* Display the username & caption */}
-                  <Text style={styles.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
-                    <Text style={styles.usernameInline}>{item.username}</Text> {item.caption}
+                  <Text style={feedStyle.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
+                    <Text style={feedStyle.usernameInline}>{item.username}</Text> {item.caption}
                   </Text>
                   {item.caption.length > 100 && (
                     <TouchableOpacity onPress={() => toggleCaption(item.postID)}>
-                      <Text style={styles.showMoreText}>
+                      <Text style={feedStyle.showMoreText}>
                         {expandedCaptions[item.postID] ? "Show less" : "Show more"}
                       </Text>
                     </TouchableOpacity>
                   )}
   
                   {/* Display the post date */}
-                  <Text style={styles.date}>{item.createdDate}</Text>
+                  <Text style={feedStyle.date}>{item.createdDate}</Text>
                 </View>
               );
             }}
             ListFooterComponent={
               noMorePosts ? (
-                <View style={styles.noMorePostsMessage}>
-                  <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+                <View style={feedStyle.noMorePostsMessage}>
+                  <Text style={feedStyle.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
                   <Button title="Reset Feed" onPress={resetFeed} />
                 </View>
               ) : null
@@ -316,7 +422,7 @@ const Page = () => {
           {feedData.length === 0 && <View
             style={{ justifyContent: "center", alignItems: "center", minHeight: windowHeight }}
           >
-            <Text style={styles.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+            <Text style={feedStyle.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
             <Button title="Reset Feed" onPress={resetFeed} />
           </View>}
 
@@ -338,99 +444,24 @@ const Page = () => {
             setLoadingAddComment={setLoadingAddComment}
             setFeedData={setFeedData}
           />
+
+          {/* Draggable Item Modal */}
+          <DraggableItemModal 
+            visibleItemModal={visibleItemModal}
+            onClose={() => {setVisibleItemModal(null); setActiveClothingItemID(0)}}
+            onChangeIndex={(newClothingItemID) => {
+              setActiveClothingItemID(newClothingItemID)
+              setVisibleItemModal((prev) => 
+                prev ? { postID: prev.postID, clothingItemID: newClothingItemID } : null
+              )
+            }}
+            markersMap={markersMap}
+            itemDetailsMap={itemDetailsMap}
+          />
         </View>
       )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: headerHeight,
-    backgroundColor: Colors.light.background,
-    justifyContent: 'flex-start',
-    paddingTop: 5,
-    paddingLeft: 15,
-    zIndex: 1,
-  },
-  headerText: {
-    color: Colors.light.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontStyle: 'italic',
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  usernameInline: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  feedItem: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: Colors.light.background,
-    borderRadius: 8,
-    width: '100%'
-  },
-  image: {
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  imageErrorBox: {
-    width: windowWidth,
-    height: windowWidth,
-    backgroundColor: "#ccc",
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  imageErrorText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  caption: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  date: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  commentUsername: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  noMorePostsMessage: {
-    padding: 15,
-    marginTop: 10,
-    marginBottom: 10,
-    justifyContent: "center",
-    alignItems: "center",
-    minHeight: 400,
-  },
-  noMorePostsMessageText: {
-    fontWeight: "bold",
-    fontSize: 16,
-    textAlign: "center",
-    padding: 20,
-  },
-  showMoreText: {
-    color: "#a9a9a9",
-  }
-});
 
 export default Page;
