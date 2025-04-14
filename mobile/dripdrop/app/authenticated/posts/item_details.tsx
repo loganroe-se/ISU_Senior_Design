@@ -119,34 +119,29 @@ const Page = () => {
             const numericMarkerId = parseInt(markerId);
             const itemExists = numericMarkerId > 0;
 
-            // Prepare base item data with proper types
             const baseItemData = {
                 ...item,
-                price: Number(item.price) || 0, // Ensure price is never null
-                image_id: imageId.toString(), // Ensure image_id is string
+                price: Number(item.price) || 0,
+                image_id: imageId.toString(),
             };
 
             if (itemExists) {
                 console.log("Updating existing item");
-                // For updates, we use Partial<Item> & { image_id?: string }
-                const updateData: Partial<Item> & { image_id?: string } = {
+                const updateData = {
                     ...baseItemData,
                     clothingItemID: numericMarkerId,
                 };
-                const data = await updateItem(numericMarkerId, updateData);
-                console.log("Item updated:", data);
+                console.log("Updating item with ID:", numericMarkerId, "Data:", updateData);
+                await updateItem(numericMarkerId, updateData);
+                console.log("Item updated successfully");
                 Alert.alert("Success", "Item updated!");
-                handleSubmit(data.itemId.toString());
+                // Use the existing marker ID we already have
+                handleSubmit(numericMarkerId.toString());
             } else {
                 console.log("Creating new item");
-                // For creates, we need Omit<Item, "id"> & { image_id: string; xCoord: number; yCoord: number }
                 if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
 
-                const createData: Omit<Item, "id"> & {
-                    image_id: string;
-                    xCoord: number;
-                    yCoord: number
-                } = {
+                const createData = {
                     ...baseItemData,
                     xCoord: Number(xCoord),
                     yCoord: Number(yCoord),

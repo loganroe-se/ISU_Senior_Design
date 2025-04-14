@@ -65,19 +65,18 @@ export const getItem = async (itemId: number): Promise<Item | null> => {
 export const updateItem = async (
   itemId: number,
   itemData: Partial<Item> & { image_id?: string }
-): Promise<{ itemId: number; message: string }> => {
+): Promise<{ message: string }> => {  // Changed return type
   const existing = await getItem(itemId);
   if (!existing) {
     throw new Error(`Item with ID ${itemId} does not exist for update.`);
   }
 
-  return apiRequest<{ itemId: number; message: string }>(
+  return apiRequest<{ message: string }>(
     "PUT",
     `/items/${itemId}`,
     itemData
   );
 };
-
 // Create a new item
 export const createItem = async (
   itemData: Omit<Item, "id"> & {
