@@ -101,7 +101,6 @@ export const feedStyle = StyleSheet.create({
     width: 20,
     height: 20,
     borderRadius: "100%",
-    backgroundColor: "rgba(255, 255, 255, 0.8)",
     zIndex: 5,
     justifyContent: 'center',
     alignItems: 'center',

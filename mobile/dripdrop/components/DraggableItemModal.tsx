@@ -1,5 +1,5 @@
-import { Modal, Text, TouchableOpacity, PanResponder, Animated, StyleSheet } from "react-native";
-import React, { useRef, useEffect, SetStateAction } from "react";
+import { Modal, Text, TouchableOpacity, PanResponder, Animated, StyleSheet, Linking } from "react-native";
+import React, { useRef, useEffect } from "react";
 import { Marker } from "@/types/Marker";
 import { Item } from "@/types/Item";
 import Icon from "react-native-vector-icons/FontAwesome";
@@ -29,7 +29,7 @@ const DraggableItemModal = ({
             (!lastModalRef.current ||
                 visibleItemModal.postID !== lastModalRef.current.postID);
 
-        if (isNewItem) {
+        if (isNewItem || !visibleItemModal) {
             translate.setValue({ x: 0, y: 0 });
             translate.setOffset({ x: 0, y: 0 });
             lastOffset.x = 0;
@@ -57,6 +57,10 @@ const DraggableItemModal = ({
             },
         })
     ).current;
+
+    // Checks if a URL is valid by seeing if it has http or https at the start
+    const isValidURL = (url: string) =>
+        typeof url === "string" && /^(http|https):\/\/[^ "]+$/.test(url);
 
     const onNavigate = (direction: "left" | "right") => {
         const currentIndex = markersWithDetails.findIndex(
@@ -139,6 +143,37 @@ const DraggableItemModal = ({
                             {item.name}
                         </Text>
                     )}
+                    {item?.brand && (
+                        <Text style={styles.itemBrand}>
+                            <Text style={styles.boldText}>Brand: </Text>{item.brand}
+                        </Text>
+                    )}
+                    {item?.category && (
+                        <Text style={styles.itemCategory}>
+                            <Text style={styles.boldText}>Category: </Text>{item.category}
+                        </Text>
+                    )}
+                    {item?.price && (
+                        <Text style={styles.itemPrice}>
+                            <Text style={styles.boldText}>Price: </Text>${item.price}
+                        </Text>
+                    )}
+                    {item?.itemURL && isValidURL(item.itemURL) && (
+                        <Text style={styles.itemURL}>
+                            <Text style={styles.boldText}>URL: </Text>
+                            <Text 
+                                style={{ textDecorationLine: "underline", color: "#0000EE" }}
+                                onPress={() => Linking.openURL(item.itemURL)}
+                            >
+                                {item.itemURL}
+                            </Text>
+                        </Text>
+                    )}
+                    {item?.size && (
+                        <Text style={styles.itemSize}>
+                            <Text style={styles.boldText}>Size: </Text>{item.size}
+                        </Text>
+                    )}
                 </Animated.View>
             </TouchableOpacity>
         </Modal>
@@ -168,11 +203,6 @@ const styles = StyleSheet.create({
         right: 2,
         zIndex: 1,
         padding: 6,
-    },
-    itemName: {
-        fontSize: 20,
-        fontWeight: "bold",
-        marginBottom: 10,
     },
     leftHalfTouchable: {
         position: "absolute",
@@ -204,6 +234,34 @@ const styles = StyleSheet.create({
         transform: [{ translateY: 4 }],
         zIndex: 1,
     },
+    itemName: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 6,
+    },
+    boldText: {
+        fontWeight: "bold",
+    },
+    itemBrand: {
+        fontSize: 16,
+        marginBottom: 4,
+    },
+    itemCategory: {
+        fontSize: 16,
+        marginBottom: 4,
+    },
+    itemPrice: {
+        fontSize: 16,
+        marginBottom: 4,
+    },
+    itemURL: {
+        fontSize: 16,
+        marginBottom: 4,
+    },
+    itemSize: {
+        fontSize: 16,
+        marginBottom: 4,
+    }
 });
 
 export default DraggableItemModal;
