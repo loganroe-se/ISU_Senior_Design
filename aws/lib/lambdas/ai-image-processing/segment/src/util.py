@@ -1,6 +1,6 @@
 import numpy as np
 import time, json, cv2
-import json, logging, requests
+import logging, requests
 import torch
 from ultralytics import YOLO
 
@@ -13,22 +13,14 @@ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 model = YOLO("segmentation-model.pt")
 model.to(device)
 
+MODEL_SIZE = (640, 640)
+
+# At the module level
+with open("categories.json", "r") as f:
+    _CATEGORY_MAP = {item["id"]: item["name"] for item in json.load(f)["categories"]}
+
 def map_to_category_label(id):
-    categories_file = f"categories.json"
-
-    with open(categories_file, "r") as f:
-        categories_f = json.load(f)
-
-    # Create train/val directories for each attribute
-    categories = {}
-
-    for item in categories_f["categories"]:
-        categories_id = item["id"]
-        categories_name = item["name"]
-        categories[categories_id] = categories_name
-
-    return categories.get(id, id)
-
+    return _CATEGORY_MAP.get(id, str(id))
 
 def detect_dominant_color(image):
     # Reshape the image to a list of pixels
@@ -82,9 +74,9 @@ def segment_image(image_path):
     """Runs segmentation on the input image and returns detected objects."""
     infer_start_time = time.time()
     
-    print("Fetching image")
+    logger.info("Fetching image")
     image = get_image(image_path)
-    print("Image fetched")
+    logger.info("Image fetched")
 
     # Convert the response content into a NumPy array
     image_array = np.frombuffer(image, dtype=np.uint8)
@@ -97,24 +89,24 @@ def segment_image(image_path):
     model_height, model_width = 640, 640
 
     # Resize the image as numpy array
-    resized_image = cv2.resize(orig_image, (model_height, model_width))
+    resized_image = cv2.resize(orig_image, MODEL_SIZE)
+
 
     with torch.no_grad():
-        print("Running Inference")
+        logger.info("Running Inference")
         result = model(resized_image)
     
     detection_results = output_fn(result)
 
     infer_end_time = time.time()
 
-    print(f"Inference Time = {infer_end_time - infer_start_time:0.4f} seconds")
+    logger.info(f"Inference Time = {infer_end_time - infer_start_time:0.4f} seconds")
 
     # Retrieve detection outputs
     boxes = detection_results.get("boxes", [])
     masks = detection_results.get("masks", None)
 
     # Get image dimensions
-    model_height, model_width = 640, 640
 
     items = []
 
@@ -137,11 +129,23 @@ def segment_image(image_path):
                 cropped_img, cropped_img, mask=mask_binary.astype(np.uint8)
             )
 
+            # Normalize box coordinates relative to the original image size
+            orig_h, orig_w = orig_image.shape[:2]
+            norm_xmin = xmin / orig_w
+            norm_ymin = ymin / orig_h
+            norm_xmax = xmax / orig_w
+            norm_ymax = ymax / orig_h
+
         item = {
             "item": map_to_category_label(cls_id),  # Custom function
             "confidence": conf,
             "color": dominant_color,
-            "coordinates": {"xmin": xmin, "ymin": ymin, "xmax": xmax, "ymax": ymax},
+            "coordinates": {
+                "xmin": norm_xmin,
+                "ymin": norm_ymin,
+                "xmax": norm_xmax,
+                "ymax": norm_ymax,
+            },
             "cropped_image": cropped_img.tolist(),  # Convert NumPy array to list
         }
         items.append(item)

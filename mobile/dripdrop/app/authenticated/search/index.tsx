@@ -18,13 +18,12 @@ import { FeedPost } from "@/types/post";
 import Icon from "react-native-vector-icons/FontAwesome";
 import { Colors } from "@/constants/Colors";
 import { searchUsersByUsername } from "@/api/user";
-import { searchPostsByTerm } from "@/api/post";
 import { User } from "@/types/user.interface";
 import { fetchUserByUsername } from "@/api/following";
 
 interface Post {
   postID: number;
-  userID: number;
+  uuid: string;
   images: { imageURL: string }[];
   username: string;
   caption: string;
@@ -49,7 +48,28 @@ export default function SearchScreen() {
   };
 
   const fetchPosts = async (searchTerm: string): Promise<FeedPost[]> => {
-    return await searchPostsByTerm(searchTerm);
+    try {
+      const response = await fetch(
+        `https://api.dripdropco.com/posts/search/${searchTerm}`
+      );
+      const data = await response.json();
+      const updatedPosts = await Promise.all(
+        data.map(async (post: Post) => {
+          const userResponse = await fetch(
+            `https://api.dripdropco.com/users/${post.uuid}`
+          );
+          const userData = await userResponse.json();
+          return {
+            ...post,
+            username: userData.username,
+          };
+        })
+      );
+      return updatedPosts;
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+      return [];
+    }
   };
 
   useEffect(() => {

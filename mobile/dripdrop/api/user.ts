@@ -1,12 +1,13 @@
-import { User, ProfileUser } from "@/types/user.interface";
+import { User } from "@/types/user.interface";
 import { apiRequest } from "./api";
 
 export const fetchUsers = async (): Promise<User[] | null> => {
   return await apiRequest<User[]>("GET", "/users/");
 };
 
-export const fetchUserById = async (userID: string): Promise<ProfileUser | null> => {
-  return apiRequest<ProfileUser | null>("GET", `/users/${userID}`);
+// Fetch user by userID
+export const fetchUserById = async (userID: string): Promise<User | null> => {
+  return apiRequest<User | null>("GET", `/users/${userID}`);
 };
 
 export const searchUsersByUsername = async (searchTerm: string): Promise<User[] | []> => {
@@ -18,20 +19,22 @@ export const fetchUserEmail = async (userID: number): Promise<string | null> => 
   return user ? user.email : null;
 };
 
-export const updateUser = async (userData: Partial<User>): Promise<User | null> => {
-  let body = {
-    username: userData.username,
-    email: userData.email,
-  };
 
-  await fetch(`https://api.dripdropco.com/users/${userData.uuid}`, {
-    method: "PUT",
-    body: JSON.stringify(body),
-  });
+export const updateUser = async (userData: Partial<User>): Promise<User> => {
+  if (!userData.uuid) {
+    throw new Error("User ID is required to update user");
+  }
 
-  return null;
+  const body: Record<string, any> = {};
+  if (userData.username) body.username = userData.username;
+  if (userData.email) body.email = userData.email;
+  if (userData.profilePic) body.profilePic = userData.profilePic;
+
+  return await apiRequest<User, typeof body>("PUT", `/users/${userData.uuid}`, body);
 };
 
+
+// Delete user by userID
 export const deleteUser = async (uid: String): Promise<User | null> => {
   await fetch(`https://api.dripdropco.com/users/${uid}`, {
     method: "DELETE",

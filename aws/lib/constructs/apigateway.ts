@@ -250,6 +250,19 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
+      // Define the /users/refresh resource
+    const refresh = users.addResource("refresh");
+
+    // POST /users/refresh - Get new id/access token from refresh token
+    refresh.addMethod(
+      "POST",
+      new LambdaIntegration(lambdaConstruct.userLambdas["userRefreshToken"]),
+      {
+        operationName: "RefreshUserToken",
+      }
+    );
+
+
     // -------------------------------- HAS SEEN ENDPOINTS -------------------------
 
     // Define the /hasSeen resource

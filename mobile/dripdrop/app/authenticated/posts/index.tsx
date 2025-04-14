@@ -13,6 +13,8 @@ import {
   Keyboard,
   Modal,
 } from "react-native";
+import * as FileSystem from 'expo-file-system';
+
 import { Button, TextInput, Card } from "react-native-paper";
 import { useRouter } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
@@ -162,11 +164,17 @@ export default function Post() {
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
+      const base64Image = await FileSystem.readAsStringAsync(manipulatedImage.uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+
+
       const newPost: sendPost = {
-        userID: id,
+        uuid: id,
         caption,
-        images: [manipulatedImage.uri],
+        images: [base64Image]
       };
+
 
       const response = await createPost(newPost);
       const postId = response.postID;

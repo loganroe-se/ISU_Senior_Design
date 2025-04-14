@@ -1,6 +1,6 @@
 import { MarkAsSeen } from "@/types/HasSeen";
 import { Post } from "@/types/post";
-import { User } from "@/types/user";
+import { User } from "@/types/user.interface";
 import { apiRequest } from "./api";
 
 // Mark posts as seen by a given user
