@@ -16,6 +16,10 @@ export interface Post {
   clothesUrl: string;
   numLikes: number;
   numComments: number;
+  user: {
+    username: string;
+    profilePic: string;
+  };
   userHasLiked?: boolean
 }
 

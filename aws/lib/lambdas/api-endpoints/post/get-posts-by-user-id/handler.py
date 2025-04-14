@@ -68,6 +68,10 @@ def getPostsByUserId(session, uuid, post_status=None):
                 ],
                 "numLikes": len(post.likes),
                 "numComments": len(post.comments),
+                "user": {
+                    "username": post.userRel.username,
+                    "profilePic": post.userRel.profilePicURL,
+                },
             }
             for post in posts_result
         ]
