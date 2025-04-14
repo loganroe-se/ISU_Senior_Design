@@ -16,9 +16,9 @@ SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   return (
     <PaperProvider>
-    <UserProvider>
-      <AppContent />
-    </UserProvider>
+      <UserProvider>
+        <AppContent />
+      </UserProvider>
     </PaperProvider>
   );
 }
@@ -41,14 +41,19 @@ function AppContent() {
   }
 
   // Screens where Navbar should be hidden
-  const hideNavbar = ["/auth/signin", "/auth/signup", "/authenticated/posts"].includes(pathname);
+  const hideNavbar = [
+    "/auth/signin",
+    "/auth/signup",
+    "/authenticated/posts",
+  ].includes(pathname);
 
   return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: DefaultTheme.colors.background }}>
+      <SafeAreaView
+        style={{ flex: 1, backgroundColor: DefaultTheme.colors.background }}
+      >
         <Slot />
         {!hideNavbar && <Navbar />}
-        <StatusBar backgroundColor="black"/>
+        <StatusBar backgroundColor="black" />
       </SafeAreaView>
-       
   );
 }

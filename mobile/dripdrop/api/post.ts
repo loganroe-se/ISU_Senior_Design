@@ -1,22 +1,18 @@
-import { Post, sendPost } from "@/types/post";
+import { Post, FeedPost, sendPost } from "@/types/post";
 import { apiRequest } from "./api";
+import { fetchUserById } from "./user";
 
 // Create a new post
 export const createPost = async (newPost: sendPost): Promise<sendPost> => {
   console.log("Sending post data:", newPost);
-  const response = await apiRequest<string, sendPost>(
-    "POST",
-    "/posts/",
-    newPost
-  );
+  const response = await apiRequest<string, sendPost>("POST", "/posts/", newPost);
 
-  // Parse the string response to extract postID
   const postIdMatch = response.match(/postID: (\d+)/);
-  const postId = postIdMatch ? parseInt(postIdMatch[1]) : undefined;
+  const postID = postIdMatch ? parseInt(postIdMatch[1]) : undefined;
 
   return {
     ...newPost,
-    postID: postId,
+    postID,
   };
 };
 
@@ -29,12 +25,33 @@ export const getPostById = async (postId: number): Promise<Post> => {
   return apiRequest<Post>("GET", `/posts/${postId}`);
 };
 
-// Fetch all user posts
 export const fetchUserPosts = async (userID: string, status: string): Promise<Post[]> => {
   return apiRequest<Post[]>("GET", `/posts/user/${userID}?status=${status}`);
 };
 
-//Publish a post
+// Publish a post
 export const publishPost = async (postID: number): Promise<void> => {
   return apiRequest<void>("PUT", `/posts/publish/${postID}`);
+};
+
+// Search posts by search term and enrich with username
+export const searchPostsByTerm = async (searchTerm: string): Promise<Post[]> => {
+  try {
+    const posts = await apiRequest<Post[]>("GET", `/posts/search/${searchTerm}`);
+
+    const enrichedPosts = await Promise.all(
+      posts.map(async (post) => {
+        const user = await fetchUserById(String(post.uuid));
+        return {
+          ...post,
+          username: user?.username || "Unknown",
+        };
+      })
+    );
+
+    return enrichedPosts;
+  } catch (error) {
+    console.error("Error searching posts:", error);
+    return [];
+  }
 };

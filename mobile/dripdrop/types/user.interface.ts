@@ -20,9 +20,9 @@ export interface UserContextType {
   loading: boolean;
 }
 
-export interface NewUser {
+export interface BasicUserData {
   uuid: string;
   email: string;
-  username: string;
+  username?: string;
   profilePic?: string;
 }
