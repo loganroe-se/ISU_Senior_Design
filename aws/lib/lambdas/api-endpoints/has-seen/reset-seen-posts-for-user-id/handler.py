@@ -25,7 +25,7 @@ def resetSeenPosts(session, email):
         deleted_rows = session.query(HasSeen).filter_by(userID=user.userID).delete()
 
         if deleted_rows == 0:
-            return 404, f"No posts have been seen by user with email: {email}"
+            return 204, f"No posts have been seen by user with email: {email}"
 
         return 200, f"Successfully reset seen posts for user with email: {email}"
 

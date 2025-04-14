@@ -29,7 +29,7 @@ def getUsers(session, postID):
         ).filter(HasSeen.postID == postID).all()
 
         if not users:
-            return 404, f"No users have seen post with postID: {postID}"
+            return 204, f"No users have seen post with postID: {postID}"
 
         users_serialized = [
             {
