@@ -5,10 +5,12 @@ import {
   TouchableOpacity,
   StyleSheet,
   Linking,
+  Image,
+  Dimensions
 } from "react-native";
 import { Avatar, Text, Button } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
-import { fetchUserPosts } from "@/api/post";
+import { fetchUserPosts, updatePost } from "@/api/post";
 import {
   fetchFollowers,
   fetchFollowing,
@@ -24,7 +26,11 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { profileStyle } from "./_components/profileStyle";
 import { PostGrid } from "./_components/PostGrid";
-import * as ImagePicker from 'expo-image-picker';
+import { Colors } from "@/constants/Colors";
+
+const windowWidth = Dimensions.get('window').width * 0.95;
+const windowHeight = Dimensions.get('window').height;
+const headerHeight = 40;
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -41,8 +47,10 @@ const UserProfile = () => {
   const [subPage, setSubPage] = useState("PUBLIC");
   const [followModalVisible, setFollowModalVisible] = useState(false);
   const [followModalType, setFollowModalType] = useState("Followers");
+  const [postModalVisible, setPostModalVisible] = useState(false);
+  const [postModal, setPostModal] = useState<Post>();
   const [settingsVisible, setSettingsVisible] = useState(false);
-  const [base64Image, setBase64Image] = useState("");
+  const [expandedCaptions, setExpandedCaptions] = useState<{ [key: number]: boolean }>({});
 
   useEffect(() => {
     const getUserData = async () => {
@@ -83,34 +91,33 @@ const UserProfile = () => {
     setIsFollowing(isUserFollowing);
   };
 
-  const selectProfilePic = async () => {
-    // Ask for media library permissions
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  const setModalPost = (post:Post) => {
+    setPostModal(post);
+    setPostModalVisible(true);
+  };
 
-    if (!permissionResult.granted) {
-      alert("You'll need to allow access to your photos.");
-      return;
-    }
+  const setPostVisibility = async () => {
+    let post = postModal;
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      base64: true,
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets && result.assets.length > 0) {
-      if(result.assets[0].base64) {
-        let newUser = profileUser;
-
-        if(newUser) {
-          newUser.profilePic = result.assets[0].base64;
-          await updateUser(newUser);
-        }
-
-        setBase64Image(result.assets[0].base64);
-        setProfilePic(true);
+    if(post) {
+      if(post.status != "PUBLIC") {
+        post.status = "PUBLIC";
       }
+      else {
+        post.status = "PRIVATE";
+      }
+
+      await updatePost(post);
+
+      console.log("Post updating");
     }
+  }
+
+  const toggleCaption = (postID: number) => {
+    setExpandedCaptions(prev => ({
+      ...prev,
+      [postID]: !prev[postID]
+    }));
   };
 
   const actionPress = async () => {
@@ -195,17 +202,9 @@ const UserProfile = () => {
       <View style={profileStyle.profileContainer}>
         <View style={profileStyle.avatarContainer}>
           {
-            user != profileUser ?
-            <TouchableOpacity onPress={selectProfilePic}>
-              <Avatar.Image
-                size={90}
-                source={{ uri: profilePic ? `data:image/jpeg;base64,${base64Image}` : `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
-              />
-            </TouchableOpacity>
-            :
             <Avatar.Image
               size={90}
-              source={{ uri: profilePic ? `data:image/jpeg;base64,${base64Image}` : `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+              source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
             />
           }
         </View>
@@ -272,7 +271,7 @@ const UserProfile = () => {
         </View>
       )}
 
-      <PostGrid posts={posts} />
+      <PostGrid posts={posts} onPressPost={setModalPost} />
 
       {/* Settings Modal */}
       <Modal
@@ -314,6 +313,7 @@ const UserProfile = () => {
         </View>
       </Modal>
 
+      {/* Follow Modal */}
       <Modal
         transparent={true}
         visible={followModalVisible}
@@ -346,6 +346,76 @@ const UserProfile = () => {
           </View>
         </View>
       </Modal>
+      
+      {/* Post Modal */}
+      <Modal
+        transparent={true}
+        visible={postModalVisible}
+        onRequestClose={() => setPostModalVisible(false)}
+      >
+        <View style={styles.modalBackground}>
+          <View style={styles.modalContent}>
+            <View
+              style={{
+                flexDirection: "row",
+                justifyContent: "flex-end",
+                alignItems: "center",
+              }}
+            >
+              <Button onPress={() => setPostModalVisible(false)}>
+                <Text style={{color: "black"}}>x</Text>
+              </Button>
+            </View>
+            <View style={styles.feedItem}>
+              {postModal &&
+                <>
+                  {/* Display the poster's username */}
+                  <View style={{display: "flex", alignItems: "center", flexDirection: "row", width: "100%", borderBottomColor: "lightgray", borderBottomWidth: 1, padding: 5}}>
+                    <View style={profileStyle.avatarContainer}>
+                      {
+                        <Avatar.Image
+                          size={25}
+                          source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+                        />
+                      }
+                    </View>
+                    <Text style={styles.username}>{postModal.user.username}</Text>
+                  </View>
+
+                  {/* Display the post's image */}
+                  {(
+                    postModal.images && postModal.images[0]?.imageURL && (
+                      <Image
+                        source={{ uri: `https://cdn.dripdropco.com/${postModal?.images[0].imageURL}?format=png` }}
+                        style={[styles.image, { width: 200, height: 300, resizeMode: 'contain' }]}
+                      />
+                    )
+                  )}
+
+                  {/* Display the username & caption */}
+                  <Text style={styles.caption} numberOfLines={expandedCaptions[postModal.postID] ? undefined : 3} ellipsizeMode="tail">
+                    <Text style={styles.usernameInline}>{postModal.username}</Text> {postModal.caption}
+                  </Text>
+                  {postModal.caption.length > 100 && (
+                    <TouchableOpacity onPress={() => toggleCaption(postModal.postID)}>
+                      <Text style={styles.showMoreText}>
+                        {expandedCaptions[postModal.postID] ? "Show less" : "Show more"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+
+                  {/* Display the post date */}
+                  <Text style={styles.date}>{postModal.createdDate}</Text>
+
+                  <Button style={{backgroundColor: 'rgba(0, 122, 255, 1.00)', marginTop: 16, width: '100%'}} onPress={setPostVisibility}>
+                    <Text style={{color: "white"}}>Make {postModal.status !== "PUBLIC" ? "Public" : "Private"}</Text>
+                  </Button>
+                </>
+              }
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -364,6 +434,70 @@ const styles = StyleSheet.create({
     elevation: 5,
     width: "80%",
   },
+  header: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: headerHeight,
+    backgroundColor: Colors.light.background,
+    justifyContent: 'flex-start',
+    paddingTop: 5,
+    paddingLeft: 15,
+    zIndex: 1,
+  },
+  headerText: {
+    color: Colors.light.primary,
+    fontSize: 24,
+    fontWeight: 'bold',
+    fontStyle: 'italic',
+  },
+  text: {
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  username: {
+    color: "black",
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 5,
+    marginLeft: 5
+  },
+  usernameInline: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  feedItem: {
+    marginBottom: 15,
+    backgroundColor: Colors.light.background,
+    borderRadius: 8,
+    width: '100%',
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center"
+  },
+  image: {
+    borderRadius: 8,
+    marginBottom: 10,
+  },
+  caption: {
+    fontSize: 16,
+    marginBottom: 5,
+    color: "black"
+  },
+  date: {
+    fontSize: 14,
+    color: '#848484',
+  },
+  commentUsername: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginRight: 5,
+  },
+  showMoreText: {
+    color: "#a9a9a9",
+  }
 });
 
 export default UserProfile;
