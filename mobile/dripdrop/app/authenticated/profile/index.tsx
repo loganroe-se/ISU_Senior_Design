@@ -1,23 +1,16 @@
 import React, { useEffect, useState } from "react";
-import {
-  Modal,
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Linking,
-} from "react-native";
-import { Avatar, Text, Button } from "react-native-paper";
+import { View, TouchableOpacity, Linking } from "react-native";
+import { Avatar, Text } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts } from "@/api/post";
 import {
-  fetchFollowers,
-  fetchFollowing,
+  fetchFollowerCount,
+  fetchFollowingCount,
   fetchUserByUsername,
   followUser,
   unfollowUser,
 } from "@/api/following";
 import { fetchUserById } from "@/api/user";
-import { Follower, Following } from "@/types/Following";
 import { Post } from "@/types/post";
 import { User } from "@/types/user.interface";
 import { router, useLocalSearchParams } from "expo-router";
@@ -33,13 +26,10 @@ const UserProfile = () => {
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
-  const [followers, setFollowers] = useState<Follower[]>([]);
-  const [following, setFollowing] = useState<Following[]>([]);
+  const [followerCount, setFollowerCount] = useState<number>(0);
+  const [followingCount, setFollowingCount] = useState<number>(0);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const [subPage, setSubPage] = useState("PUBLIC");
-  const [followModalVisible, setFollowModalVisible] = useState(false);
-  const [followModalType, setFollowModalType] = useState("Followers");
-  const [settingsVisible, setSettingsVisible] = useState(false);
 
   useEffect(() => {
     const getUserData = async () => {
@@ -69,16 +59,27 @@ const UserProfile = () => {
 
   const updateFollows = async (id: string) => {
     if (!user) return;
-
-    const f = await fetchFollowing(id);
-    const fs = await fetchFollowers(id);
-
-    setFollowing(f);
-    setFollowers(fs);
-
-    const isUserFollowing = fs.some((follower) => follower.uuid === user.uuid);
-    setIsFollowing(isUserFollowing);
+  
+    const [fCount, followingCheck] = await Promise.all([
+      fetchFollowerCount(id),
+      fetchFollowingCount(id, true), // checkFollow=true
+    ]);
+  
+    // Follower count is always a number
+    setFollowerCount(fCount);
+  
+    // Extract count again using non-check version
+    const fwingCount = await fetchFollowingCount(id);
+    if (typeof fwingCount === "number") {
+      setFollowingCount(fwingCount);
+    }
+  
+    // Only update if checking follow status
+    if (typeof followingCheck !== "number") {
+      setIsFollowing(followingCheck.is_following);
+    }
   };
+  
 
   const actionPress = async () => {
     if (!user || !profileUser) return;
@@ -92,13 +93,6 @@ const UserProfile = () => {
         await unfollowUser(user.uuid, profileUser.uuid);
       }
       updateFollows(profileUser.uuid);
-    }
-  };
-
-  const redirectToUser = async (username: string) => {
-    const targetUser = await fetchUserByUsername(username);
-    if (targetUser) {
-      router.replace(`/authenticated/profile?id=${targetUser.uuid}` as any);
     }
   };
 
@@ -170,15 +164,20 @@ const UserProfile = () => {
         <View style={profileStyle.statsContainer}>
           {[
             ["Posts", posts.length],
-            ["Followers", followers.length],
-            ["Following", following.length],
+            ["Followers", followerCount],
+            ["Following", followingCount],
           ].map(([label, count]) => (
             <TouchableOpacity
               key={label.toString()}
               onPress={() => {
-                if (label !== "Posts") {
-                  setFollowModalVisible(true);
-                  setFollowModalType(label.toString());
+                if (label === "Followers" || label === "Following") {
+                  router.push({
+                    pathname: "../authenticated/profile/followers",
+                    params: {
+                      type: label.toLowerCase(),
+                      id: profileUser?.uuid,
+                    },
+                  });
                 }
               }}
             >
@@ -208,7 +207,7 @@ const UserProfile = () => {
 
       <View style={profileStyle.editButtonWrapper}>{renderActionButton()}</View>
 
-      {user.uuid === profileUser?.uuid && (
+      {user.uuid === profileUser?.uuid ? (
         <View style={profileStyle.subpageContainer}>
           {["PUBLIC", "PRIVATE", "NEEDS_REVIEW"].map((tab) => (
             <TouchableOpacity key={tab} onPress={() => setSubPage(tab)}>
@@ -228,60 +227,26 @@ const UserProfile = () => {
             </TouchableOpacity>
           ))}
         </View>
+      ) : (
+        <View style={profileStyle.postDivider} />
       )}
 
-      <PostGrid posts={posts} />
+      <PostGrid
+        posts={posts}
+        onPressPost={(post) => {
+          router.push({
+            pathname: "../authenticated/posts/viewposts",
+            params: {
+              postID: post.postID.toString(),
+              tab: subPage,
+              userID: profileUser?.uuid, // Needed to fetch scoped posts
+            },
+          });
+        }}
+      />
 
-      <Modal
-        transparent={true}
-        visible={followModalVisible}
-        onRequestClose={() => setFollowModalVisible(false)}
-      >
-        <View style={styles.modalBackground}>
-          <View style={styles.modalContent}>
-            <View
-              style={{
-                flexDirection: "row",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <Text style={{ fontWeight: "bold" }}>{followModalType}</Text>
-              <Button onPress={() => setFollowModalVisible(false)}>
-                <Text>x</Text>
-              </Button>
-            </View>
-            {(followModalType === "Followers" ? followers : following).map(
-              (u) => (
-                <TouchableOpacity
-                  key={u.uuid}
-                  onPress={() => redirectToUser(u.username)}
-                >
-                  <Text>{u.username}</Text>
-                </TouchableOpacity>
-              )
-            )}
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  modalBackground: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modalContent: {
-    backgroundColor: "white",
-    padding: 30,
-    borderRadius: 12,
-    elevation: 5,
-    width: "80%",
-  },
-});
 
 export default UserProfile;
