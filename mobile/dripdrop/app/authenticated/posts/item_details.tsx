@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { TextInput, Button } from "react-native-paper";
 
 import { item_details_styles } from "@/styles/post";
-import { updateItem, getItem, getMarker } from "@/api/items";
+import { updateItem, getItem, getMarker, createItem } from "@/api/items";
 import { getPostById } from "@/api/post";
 import { Item } from "@/types/Item";
 import { Post } from "@/types/post";
@@ -101,17 +101,19 @@ const Page = () => {
                         console.log("No imageId in postData.images[0]");
                         return;
                     }
-
-                    const existingItem = await getItem(parseInt(markerId));
-                    if (typeof existingItem !== "string") {
-                        setItem({
-                            name: existingItem!.name,
-                            brand: existingItem!.brand,
-                            category: existingItem!.category,
-                            price: existingItem!.price || 0,
-                            itemURL: existingItem!.itemURL,
-                            size: existingItem!.size,
-                        });
+                    if (Number.isInteger(Number(markerId))) {
+                        const existingItem = await getItem(parseInt(markerId));
+                        // do something with existingItem
+                        if (typeof existingItem !== "string") {
+                            setItem({
+                                name: existingItem!.name,
+                                brand: existingItem!.brand,
+                                category: existingItem!.category,
+                                price: existingItem!.price || 0,
+                                itemURL: existingItem!.itemURL,
+                                size: existingItem!.size,
+                            });
+                        }
                     }
                 }
             } catch (error) {
@@ -135,35 +137,26 @@ const Page = () => {
         itemExists: boolean,
         itemData: any,
         clothingItemID?: number
-    ): Promise<{ status: number, data: any }> => {
-        const url = itemExists
-            ? `${API_BASE_URL}/${clothingItemID}`
-            : API_BASE_URL;
-
-        const method = itemExists ? "PUT" : "POST";
-        console.log("ITEM EXITS?: ", itemExists)
-
-        console.log("📝 Save Item Triggered");
-        console.log("➡️ HTTP Method:", method);
-        console.log("📍 URL:", url);
-        console.log("📦 Item Data:", JSON.stringify(itemData, null, 2));
-
+    ): Promise<{ status: number; data: { itemId: number; message: string } }> => {
         try {
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(itemData),
-            });
-
-            const responseJson = await response.json();
+            const itemIdToUpdate = itemExists && clothingItemID ? clothingItemID : undefined;
+            const response = await updateItem(itemIdToUpdate as number, itemData);
 
             return {
-                status: response.status,
-                data: responseJson,
+                status: 200,
+                data: {
+                    itemId: response.itemId,
+                    message: itemExists ? "Item updated!" : "Item created!",
+                },
             };
-        } catch (error) {
-            console.error("❌ Error making request:", error);
-            throw error;
+        } catch (error: any) {
+            return {
+                status: 500,
+                data: {
+                    itemId: -1,  //  error value
+                    message: error.message || "Failed to save item.",
+                },
+            };
         }
     };
 

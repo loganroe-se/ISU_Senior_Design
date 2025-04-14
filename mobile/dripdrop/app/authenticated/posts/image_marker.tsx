@@ -105,7 +105,7 @@ const ImageMarkerScreen = () => {
     const confirmAddMarker = () => {
         if (newMarkerPosition) {
             const newMarker: Marker = {
-                clothingItemID: Date.now() + Math.random(), // Temporary unique ID
+                clothingItemID: -Date.now(), // Temporary unique ID
                 xCoord: newMarkerPosition.x,
                 yCoord: newMarkerPosition.y,
             };
@@ -158,7 +158,8 @@ const ImageMarkerScreen = () => {
 
     // Handle marker press (for verification)
     const handleMarkerPress = (marker: Marker) => {
-        if (mode === "cursor" && !verifiedMarkers.has(marker.clothingItemID)) {
+        if (mode === "cursor") {
+            if (marker.clothingItemID < 0) {
             router.push({
                 pathname: "./item_details",
                 params: {
@@ -169,6 +170,18 @@ const ImageMarkerScreen = () => {
                     image: image.toString(),
                 },
             });
+        }
+        else{
+                router.push({
+                    pathname: "./item_details",
+                    params: {
+                        markerId: marker.clothingItemID.toString(),
+                        postId: postId,
+                        image: image.toString()
+                    },
+                });
+
+        }
         } else if (mode === "delete") {
             setSelectedMarker(marker);
             setIsDeleteConfirmationVisible(true);

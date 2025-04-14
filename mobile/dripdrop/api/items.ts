@@ -49,12 +49,12 @@ export const getItem = async (itemId: number): Promise<Item | null> => {
 export const updateItem = async (
   itemId: number,
   itemData: any
-): Promise<Item> => {
+): Promise<{ itemId: number; message: string }> => {  // Updated return type
   const existing = await getItem(itemId);
   const method = existing ? "PUT" : "POST";
   const endpoint = existing ? `/items/${itemId}` : "/items";
 
-  return apiRequest<Item>(method, endpoint, itemData);
+  return apiRequest<{ itemId: number; message: string }>(method, endpoint, itemData);  // Updated generic type
 };
 
 // Create an item
