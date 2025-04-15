@@ -10,12 +10,12 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Platform,
+  PermissionsAndroid,
   Keyboard,
-  Modal,
 } from "react-native";
 import * as FileSystem from 'expo-file-system';
 
-import { Button, TextInput, Card } from "react-native-paper";
+import {  TextInput, Card } from "react-native-paper";
 import { useRouter } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
@@ -56,11 +56,39 @@ export default function Post() {
     })();
   }, []);
 
+  const requestAndroidMediaPermissions = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          {
+            title: "Access Your Photos",
+            message: "We need access to your media to let you choose photos.",
+            buttonPositive: "OK",
+          }
+        );
+
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true; // iOS handles this differently
+  };
   // Fetch photos from the media library
   useEffect(() => {
     const fetchPhotos = async () => {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
+      let granted = true;
+
+      if (Platform.OS === "android") {
+        granted = await requestAndroidMediaPermissions();
+      } else {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        granted = status === "granted";
+      }
+
+      if (!granted) {
         alert("Permission to access media library is required!");
         return;
       }
@@ -82,6 +110,7 @@ export default function Post() {
 
     fetchPhotos();
   }, []);
+
 
   // Load more photos from the media library
   const loadMorePhotos = async () => {

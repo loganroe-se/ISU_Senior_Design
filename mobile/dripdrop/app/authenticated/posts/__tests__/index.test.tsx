@@ -1,6 +1,6 @@
 import React from "react";
 import { render, fireEvent, waitFor, act } from "@testing-library/react-native";
-import Post from "./index";
+import Post from "../index";
 import { useUserContext } from "@/context/UserContext";
 import { createPost } from "@/api/post";
 import * as ImagePicker from "expo-image-picker";
