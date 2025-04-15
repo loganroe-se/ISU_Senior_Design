@@ -21,6 +21,7 @@ const Page = () => {
     const yCoord = params.yCoord as string | undefined;
     const markerId = params.markerId as string | undefined;
     const imageUri = params.image as string | undefined;
+    console.log("PARAMS: ", params)
 
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingItem, setIsLoadingItem] = useState(true);
@@ -97,34 +98,66 @@ const Page = () => {
         }));
     };
 
-    const handleSave = async () => {
-        console.log("Handling save...");
-        if (!postId || !post) {
-            Alert.alert("Error", "No post ID found or post not loaded");
-            console.error("No post found");
-            return;
-        }
+const handleSave = async () => {
+    console.log("Handling save...");
+    if (!postId || !post) {
+        Alert.alert("Error", "No post ID found or post not loaded");
+        console.error("No post found");
+        return;
+    }
 
-        setIsLoading(true);
+    setIsLoading(true);
 
-        try {
-            const numericPostId = parseInt(postId);
-            if (isNaN(numericPostId)) throw new Error("Invalid post ID");
+    try {
+        const numericPostId = parseInt(postId);
+        if (isNaN(numericPostId)) throw new Error("Invalid post ID");
 
-            const imageId = post.images[0]?.imageID;
-            if (!imageId) throw new Error("No image ID found in post");
-            if (!markerId) throw new Error("No marker ID provided");
+        const imageId = post.images[0]?.imageID;
+        if (!imageId) throw new Error("No image ID found in post");
+        if (!markerId) throw new Error("No marker ID provided");
 
-            const numericMarkerId = parseInt(markerId);
-            const itemExists = numericMarkerId > 0;
+        const numericMarkerId = parseInt(markerId);
+        const itemExists = numericMarkerId > 0;
 
-            const baseItemData = {
-                ...item,
-                price: Number(item.price) || 0,
-                image_id: imageId.toString(),
-            };
+        const baseItemData = {
+            ...item,
+            price: Number(item.price) || 0,
+            image_id: imageId.toString(),
+        };
 
-            if (itemExists) {
+        if (itemExists) {
+            console.log("Checking if item exists in system...");
+            const existingItem = await getItem(numericMarkerId);
+
+            if (!existingItem) {
+                console.log("Item not found in DB, treating as new item");
+                if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
+
+                const createData = {
+                    ...baseItemData,
+                    clothingItemID: numericMarkerId, // Use existing marker ID
+                    xCoord: Number(xCoord),
+                    yCoord: Number(yCoord),
+                };
+                const data = await createItem(createData);
+                console.log("Item created with marker ID:", data);
+                Alert.alert("Success", "Item created!");
+                handleSubmit(data.itemId.toString());
+            } else if (existingItem.name === "" && existingItem.brand === "") {
+                console.log("Item ID exists but has no details - creating new item");
+                if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
+
+                const createData = {
+                    ...baseItemData,
+                    clothingItemID: numericMarkerId,
+                    xCoord: Number(xCoord),
+                    yCoord: Number(yCoord),
+                };
+                const data = await createItem(createData);
+                console.log("Item created with existing ID:", data);
+                Alert.alert("Success", "Item created!");
+                handleSubmit(data.itemId.toString());
+            } else {
                 console.log("Updating existing item");
                 const updateData = {
                     ...baseItemData,
@@ -134,29 +167,18 @@ const Page = () => {
                 await updateItem(numericMarkerId, updateData);
                 console.log("Item updated successfully");
                 Alert.alert("Success", "Item updated!");
-                // Use the existing marker ID we already have
                 handleSubmit(numericMarkerId.toString());
-            } else {
-                console.log("Creating new item");
-                if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
-
-                const createData = {
-                    ...baseItemData,
-                    xCoord: Number(xCoord),
-                    yCoord: Number(yCoord),
-                };
-                const data = await createItem(createData);
-                console.log("Item created:", data);
-                Alert.alert("Success", "Item created!");
-                handleSubmit(data.itemId.toString());
             }
-        } catch (error) {
-            console.error("Save failed:", error);
-            Alert.alert("Error", error instanceof Error ? error.message : "Failed to save item");
-        } finally {
-            setIsLoading(false);
         }
-    };
+
+    } catch (error) {
+        console.error("Save failed:", error);
+        Alert.alert("Error", error instanceof Error ? error.message : "Failed to save item");
+    } finally {
+        setIsLoading(false);
+    }
+};
+
 
 
     const handleSubmit = (newClothingItemID: string) => {

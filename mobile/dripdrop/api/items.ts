@@ -52,13 +52,39 @@ export const getItemDetails = async (itemId: number | number[]): Promise<Item | 
 //getitems.ts
 export const getItem = async (itemId: number): Promise<Item | null> => {
   try {
-    const data = await apiRequest<Item[]>("GET", `/items/details?ids=${itemId}`);
-    return data[0] || null; // Return first item or null if empty array
+    const data = await apiRequest<Item[] | { error: string }>(
+      "GET",
+      `/items/details?ids=${itemId}`
+    );
+
+    // Handle "no details found" response
+    if (
+      typeof data === "object" &&
+      "error" in data &&
+      data.error.includes("No details found")
+    ) {
+      return {
+        clothingItemID: itemId,
+        name: "",
+        brand: "",
+        category: "",
+        price: 0,
+        itemURL: "",
+        size: "",
+      };
+    }
+
+    // Handle normal response
+    if (Array.isArray(data)) {
+      return data[0] || null;
+    }
+    return null;
   } catch (error) {
     console.error(`Error fetching item ${itemId}:`, error);
     return null;
   }
 };
+
 
 
 // Update an existing item

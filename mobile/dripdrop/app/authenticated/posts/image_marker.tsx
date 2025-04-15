@@ -148,8 +148,7 @@ const handleDeleteMarker = async (markerId: number) => {
 
     // Handle marker press (for verification)
     const handleMarkerPress = (marker: Marker) => {
-        if (mode === "cursor") {
-            if (marker.clothingItemID < 0) {
+        if (mode === "cursor") { 
             router.push({
                 pathname: "./item_details",
                 params: {
@@ -160,18 +159,8 @@ const handleDeleteMarker = async (markerId: number) => {
                     image: image.toString(),
                 },
             });
-        }
-        else{
-                router.push({
-                    pathname: "./item_details",
-                    params: {
-                        markerId: marker.clothingItemID.toString(),
-                        postId: postId,
-                        image: image.toString()
-                    },
-                });
+        
 
-        }
         } else if (mode === "delete") {
             setSelectedMarker(marker);
             setIsDeleteConfirmationVisible(true);
