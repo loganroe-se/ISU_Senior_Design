@@ -11,9 +11,10 @@ import Toolbar from "@/components/Toolbar";
 import { fetchMarkers, deleteMarker } from "@/api/items";
 import { getPostById } from "@/api/post";
 
+
 const ImageMarkerScreen = () => {
     const router = useRouter();
-    const { caption, image, postId, verifiedMarkerId, refresh } = useLocalSearchParams();
+    const { caption, image, postId, refresh, markerId } = useLocalSearchParams();
     const [markers, setMarkers] = useState<Marker[]>([]);
     const [verifiedMarkers, setVerifiedMarkers] = useState<Set<number>>(new Set());
     const [loading, setLoading] = useState(true);
@@ -24,6 +25,8 @@ const ImageMarkerScreen = () => {
     const [isDeleteConfirmationVisible, setIsDeleteConfirmationVisible] = useState(false);
     const [imageUri, setImageUri] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
+    const [imageLayout, setImageLayout] = useState<{ width: number; height: number }>({ width: 0, height: 0 });
+
 
 
     // Set image from params
@@ -32,6 +35,10 @@ const ImageMarkerScreen = () => {
             setImageUri(image.toString());
         }
     }, [image]);
+    useEffect(() => {
+        console.log("Updated markers:", markers);
+    }, [markers]);
+
 
     const loadMarkers = React.useCallback(async () => {
         try {
@@ -49,13 +56,21 @@ const ImageMarkerScreen = () => {
             }
 
             const data = await fetchMarkers(postData.postID);
-
+            console.log("Fetched marker data:", data);
             if (Array.isArray(data)) {
+                
                 setMarkers(data);
+
+                // Automatically mark all valid clothingItemIDs as verified
+                const verifiedSet = new Set<number>(
+                    data.filter(m => m.clothingItemID > 0).map(m => m.clothingItemID)
+                );
+                setVerifiedMarkers(verifiedSet);
             } else {
                 console.warn("Unexpected marker data format");
                 setMarkers([]);
             }
+
         } catch (error) {
             console.error("Error fetching markers:", error);
             setMarkers([]);
@@ -68,13 +83,6 @@ const ImageMarkerScreen = () => {
         loadMarkers();
     }, [loadMarkers, refresh]);
 
-    useEffect(() => {
-        if (verifiedMarkerId) {
-            const id = Number(verifiedMarkerId);
-            setVerifiedMarkers((prev) => new Set(prev).add(id));
-        }
-    }, [verifiedMarkerId]);
-
     const confirmAddMarker = () => {
         if (newMarkerPosition) {
             const newMarker: Marker = {
@@ -82,6 +90,7 @@ const ImageMarkerScreen = () => {
                 xCoord: newMarkerPosition.x,
                 yCoord: newMarkerPosition.y,
             };
+            console.log("Adding new marker at:", newMarkerPosition);
             setMarkers((prev) => [...prev, newMarker]);
             setNewMarkerPosition(null);
         }
@@ -235,25 +244,33 @@ const handleDeleteMarker = async (markerId: number) => {
                     <Image
                         source={{ uri: image.toString()  }}
                         style={image_marker_styles.image}
+                        onLayout={(event) => {
+                            const { width, height } = event.nativeEvent.layout;
+                            setImageLayout({ width, height });
+                        }}
                     />
-                    {markers.map((marker, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            onPress={() => handleMarkerPress(marker)}
-                            style={[
-                                image_marker_styles.marker,
-                                {
-                                    left: marker.xCoord,
-                                    top: marker.yCoord,
-                                    backgroundColor: verifiedMarkers.has(marker.clothingItemID) ? "green" : "grey",
-                                    borderWidth: selectedMarker?.clothingItemID === marker.clothingItemID ? 2 : 0,
-                                    borderColor: mode === "delete" ? "red" : Colors.light.primary,
-                                },
-                            ]}
-                    
-                        >
-                        </TouchableOpacity>
-                    ))}
+                    {markers.map((marker, index) => {
+                        const left = marker.xCoord * imageLayout.width;
+                        const top = marker.yCoord * imageLayout.height;
+
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                onPress={() => handleMarkerPress(marker)}
+                                style={[
+                                    image_marker_styles.marker,
+                                    {
+                                        left,
+                                        top,
+                                        backgroundColor: verifiedMarkers.has(marker.clothingItemID) ? "green" : "yellow",
+                                        borderWidth: selectedMarker?.clothingItemID === marker.clothingItemID ? 2 : 0,
+                                        borderColor: mode === "delete" ? "red" : Colors.light.primary,
+                                    },
+                                ]}
+                            />
+                        );
+                    })}
+
                     {newMarkerPosition && (
                         <View
                             style={[
@@ -284,34 +301,48 @@ const handleDeleteMarker = async (markerId: number) => {
 
             {/* Delete Confirmation Dialog */}
             {isDeleteConfirmationVisible && (
-                <View style={image_marker_styles.confirmationDialog}>
-                    {isDeleting ? (
-                        <ActivityIndicator size="large" color={Colors.light.primary} />
-                    ) : (
-                        <>
-                            <Text style={image_marker_styles.confirmationText}>
-                                Are you sure you want to delete this marker?
-                            </Text>
-                            <View style={image_marker_styles.confirmationButtons}>
-                                <Button
-                                    mode="contained"
-                                    onPress={() => handleDeleteMarker(selectedMarker!.clothingItemID)}
-                                    style={image_marker_styles.confirmButton}
-                                >
-                                    Delete
-                                </Button>
-                                <Button
-                                    mode="outlined"
-                                    onPress={() => setIsDeleteConfirmationVisible(false)}
-                                    style={image_marker_styles.cancelButton}
-                                >
-                                    Cancel
-                                </Button>
-                            </View>
-                        </>
-                    )}
-                </View>
+                <Modal
+                    transparent={true}
+                    animationType="fade"
+                    visible={isDeleteConfirmationVisible}
+                    onRequestClose={() => setIsDeleteConfirmationVisible(false)}
+                >
+                    <View style={image_marker_styles.overlay}>
+                        <View style={image_marker_styles.confirmationDialog}>
+                            {isDeleting ? (
+                                <ActivityIndicator size="large" color={Colors.light.primary} />
+                            ) : (
+                                <>
+                                    <Text style={image_marker_styles.confirmationTitle}>Delete Marker</Text>
+                                    <Text style={image_marker_styles.confirmationText}>
+                                        Are you sure you want to delete this marker?
+                                    </Text>
+                                    <View style={image_marker_styles.confirmationButtons}>
+                                        <Button
+                                            mode="contained"
+                                            buttonColor="#FF4C4C"
+                                            textColor="white"
+                                            style={image_marker_styles.button}
+                                            onPress={() => handleDeleteMarker(selectedMarker!.clothingItemID)}
+                                        >
+                                            Delete
+                                        </Button>
+                                        <Button
+                                            mode="outlined"
+                                            textColor={Colors.light.primary}
+                                            style={image_marker_styles.button}
+                                            onPress={() => setIsDeleteConfirmationVisible(false)}
+                                        >
+                                            Cancel
+                                        </Button>
+                                    </View>
+                                </>
+                            )}
+                        </View>
+                    </View>
+                </Modal>
             )}
+
 
 
             {/* Post Button */}

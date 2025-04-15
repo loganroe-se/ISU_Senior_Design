@@ -91,7 +91,6 @@ const Page = () => {
     }, [postId, markerId]);
 
     const handleChange = (field: keyof ItemFormData, value: string | number) => {
-        console.log(`Changing ${field} to ${value}`);
         setItem((prev) => ({
             ...prev,
             [field]: value,
@@ -170,7 +169,8 @@ const Page = () => {
                 verifiedMarkerId: newClothingItemID,
                 image: imageUri,
                 refresh: 'true',
-                postId: postId
+                postId: postId,
+                markerId: newClothingItemID
             },
         });
     };
