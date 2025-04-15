@@ -9,7 +9,7 @@ import { image_marker_styles } from "@/styles/post";
 import { Ionicons } from "@expo/vector-icons";
 import Toolbar from "@/components/Toolbar";
 import { fetchMarkers, deleteMarker } from "@/api/items";
-import { getPostById } from "@/api/post";
+import { getPostById, publishPost } from "@/api/post";
 
 
 const ImageMarkerScreen = () => {
@@ -177,9 +177,23 @@ const handleDeleteMarker = async (markerId: number) => {
     const allMarkersVerified = markers.length > 0 && verifiedMarkers.size === markers.length;
 
     // Handle Post button press
-    const handlePost = () => {
-        Alert.alert("Success", "Your post has been submitted!");
-        // Add logic to submit the post
+    const handlePost = async () => {
+        try {
+            if (!postId || isNaN(Number(postId))) {
+                throw new Error("Invalid post ID");
+            }
+
+            // Call the API to publish the post
+            await publishPost(Number(postId));
+
+            // Show success alert
+            Alert.alert("Success", "Your post has been published!");
+            router.navigate('/'); // Uncomment this to navigate after post submission
+
+        } catch (error) {
+            console.error("Error publishing post:", error);
+            Alert.alert("Error", "Failed to publish the post. Please try again.");
+        }
     };
 
     // Show loading indicator while fetching data
