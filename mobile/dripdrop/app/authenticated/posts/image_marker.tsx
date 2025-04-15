@@ -98,11 +98,17 @@ const ImageMarkerScreen = () => {
 
 
     const handleAddMarker = (event: any) => {
-        if (mode !== "add") return;
+        if (mode !== "add" || !imageLayout.width || !imageLayout.height) return;
 
         const { locationX, locationY } = event.nativeEvent;
-        setNewMarkerPosition({ x: locationX, y: locationY });
+
+        // Save relative position (0 to 1)
+        const relativeX = locationX / imageLayout.width;
+        const relativeY = locationY / imageLayout.height;
+
+        setNewMarkerPosition({ x: relativeX, y: relativeY });
     };
+
 
     // Cancel adding a new marker
     const cancelAddMarker = () => {
@@ -265,13 +271,14 @@ const handleDeleteMarker = async (markerId: number) => {
                             style={[
                                 image_marker_styles.marker,
                                 {
-                                    left: newMarkerPosition.x,
-                                    top: newMarkerPosition.y,
+                                    left: newMarkerPosition.x * imageLayout.width - 10, // Offset to center
+                                    top: newMarkerPosition.y * imageLayout.height - 10,
                                     backgroundColor: "#fff",
-                                    flexDirection: "row", // Align buttons horizontally
-                                    justifyContent: "space-between", // Space between buttons
+                                    flexDirection: "row",
+                                    justifyContent: "space-between",
                                     alignItems: "center",
-                                    opacity:1,
+                                    opacity: 1,
+                                    position: 'absolute', // Make sure this is set
                                 },
                             ]}
                         >
@@ -283,6 +290,7 @@ const handleDeleteMarker = async (markerId: number) => {
                             </TouchableOpacity>
                         </View>
                     )}
+
                 </View>
             )}
 
