@@ -2,16 +2,16 @@ import { Alert, View, Text, StyleSheet } from "react-native"
 import React from "react";
 import { likePost, unlikePost } from "@/api/like";
 import { Comment } from "@/types/Comment";
-import { FeedPost } from "@/types/post";
+import { Post } from "@/types/post";
 import { Colors } from "@/constants/Colors"
 import { fetchCommentsByPostID } from "@/api/comment";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 interface LikeCommentBarProps {
-    feedData: FeedPost[];
-    setFeedData: React.Dispatch<React.SetStateAction<FeedPost[]>>;
+    feedData: Post[];
+    setFeedData: React.Dispatch<React.SetStateAction<Post[]>>;
     userID: string;
-    item: FeedPost;
+    item: Post;
     setCurrentPostID: React.Dispatch<React.SetStateAction<number | null>>;
     setCommentModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
     setLoadingComments: React.Dispatch<React.SetStateAction<boolean>>;
