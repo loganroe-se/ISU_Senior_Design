@@ -15,9 +15,17 @@ export const processing_post_styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: "bold",
-        marginBottom: 20,
+        marginBottom: 10,  
         textAlign: "center",
         color: 'black'
+    },
+    subtitle: {
+        fontSize: 16,
+        marginBottom: 20,
+        textAlign: "center",
+        paddingHorizontal: 20,
+        color: 'gray',  
+        lineHeight: 24   
     },
     image: {
         width: 300,
@@ -36,6 +44,7 @@ export const processing_post_styles = StyleSheet.create({
         width: "80%",
         marginVertical: 10,
     },
+
 });
 
 
@@ -46,20 +55,18 @@ export const post_styles = StyleSheet.create({
         flex: 1,
     },
     cardContainer: {
-        backgroundColor: '#f2f2f2',
-        width: '90%',
+        backgroundColor: 'white',
+        width: '100%',
         alignSelf: 'center',
-        margin: '4%'
+        borderRadius:0
     },
     imageContainer: {
         alignItems: "center",
-        marginBottom: 10,
         position: 'relative',
     },
     image: {
         width: "100%",
         height: 300,
-        borderRadius: 10,
         marginVertical: 10,
         resizeMode: 'contain'
     },
@@ -73,7 +80,7 @@ export const post_styles = StyleSheet.create({
     placeholderContainer: {
         alignItems: "center",
         justifyContent: "center",
-        height: 200,
+        height: 300,
     },
     placeholderText: {
         fontSize: 16,
