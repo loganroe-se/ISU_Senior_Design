@@ -88,6 +88,7 @@ const DraggableItemModal = ({
     );
     const marker = markersWithDetails[currentIndex];
     const item = marker ? itemDetailsMap[marker.clothingItemID] : null;
+    console.log(item?.price !== 0);
 
     return (
         <Modal transparent visible animationType="fade">
@@ -153,7 +154,7 @@ const DraggableItemModal = ({
                             <Text style={styles.boldText}>Category: </Text>{item.category}
                         </Text>
                     )}
-                    {item?.price && (
+                    {item?.price !== 0 && item?.price && (
                         <Text style={styles.itemPrice}>
                             <Text style={styles.boldText}>Price: </Text>${item.price}
                         </Text>
