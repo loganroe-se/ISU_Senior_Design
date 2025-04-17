@@ -1,19 +1,21 @@
-import { Text, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState, Switch } from "react-native";
+import { Text, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState, Switch, Touchable } from "react-native";
 import React, { useState, useEffect, useRef } from "react";
+import { router } from "expo-router";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
+import { fetchUserByUsername } from "@/api/following";
 import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
-import { FeedPost } from "@/types/post";
+import { Post } from "@/types/post";
 import { Comment } from "@/types/Comment";
 import { profileStyle } from "@/styles/profile";
 import { feedStyle } from "@/styles/feed";
 import { Marker } from "@/types/Marker";
 import { fetchMarkers, getItemDetails } from "@/api/items";
 import { Item } from "@/types/Item";
+import { Colors } from "@/constants/Colors";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
 import DraggableItemModal from "@/components/DraggableItemModal";
-import { Colors } from "@/constants/Colors";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -23,7 +25,7 @@ const headerHeight = 40;
 const Page = () => {
   const { user } = useUserContext();
   const [userID, setUserID] = useState<string | null>(null);
-  const [feedData, setFeedData] = useState<FeedPost[]>([]);
+  const [feedData, setFeedData] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingComments, setLoadingComments] = useState<boolean>(false);
   const [loadingAddComment, setLoadingAddComment] = useState<boolean>(false);
@@ -46,6 +48,7 @@ const Page = () => {
   const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
   const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; clothingItemID: number } | null>(null);
   const [activeClothingItemID, setActiveClothingItemID] = useState<number>(0);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
 
   useEffect(() => {
@@ -264,6 +267,16 @@ const Page = () => {
     }));
   };
 
+  // Handle navigating to a user's profile page
+  const handleProfileNavigation = async (username: string) => {
+    setLoadingProfile(true);
+    const user = await fetchUserByUsername(username);
+    if (user) {
+      router.replace(`/authenticated/profile?id=${user.uuid}`);
+    }
+    setLoadingProfile(false);
+  };
+
   // Toggle markers on/off for a given post
   const toggleMarkers = (postID: number) => {
     setAreMarkersVisible(prev => ({
@@ -293,6 +306,7 @@ const Page = () => {
       setExpandedCaptions({});
       setSeenPosts(new Set());
       setPostPositions({});
+      setAreMarkersVisible({});
 
       getNewPosts();
     } catch (error) {
@@ -323,11 +337,18 @@ const Page = () => {
             renderItem={({ item }) => {
               const imageHeight = imageDimensions[item.postID];
               const imageURL = item.images && item.images[0]?.imageURL ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`: "";
-  
+              const profilePicURL = item.user && item.user?.profilePic ? `https://cdn.dripdropco.com/${item.user.profilePic}?format=png` : "";
+
               return (
                 <View style={feedStyle.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
                   {/* Display the poster's username */}
-                  <Text style={feedStyle.username}>{item.username}</Text>
+                  <TouchableOpacity onPress={() => handleProfileNavigation(item.username)} style={feedStyle.postHeader}>
+                    {profilePicURL !== "" && <Image 
+                      source={{ uri: profilePicURL }}
+                      style={feedStyle.profilePicture}
+                    />}
+                    <Text style={feedStyle.username}>{item.username}</Text>
+                  </TouchableOpacity>
   
                   {/* Display the post's image */}
                   {imageErrors[item.postID] || !(item.images && item.images[0]?.imageURL) ? (
@@ -391,7 +412,7 @@ const Page = () => {
   
                   {/* Display the username & caption */}
                   <Text style={feedStyle.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
-                    <Text style={feedStyle.usernameInline}>{item.username}</Text> {item.caption}
+                    <Text style={feedStyle.usernameInline} onPress={() => handleProfileNavigation(item.username)}>{item.username}</Text> {item.caption}
                   </Text>
                   {item.caption.length > 100 && (
                     <TouchableOpacity onPress={() => toggleCaption(item.postID)}>
@@ -428,6 +449,7 @@ const Page = () => {
           <CommentModal 
             userID={userID ? userID : ""}
             commentInputRef={commentInputRef}
+            handleProfileNavigation={(username) => { handleProfileNavigation(username) }}
             commentText={commentText}
             setCommentText={setCommentText}
             currentPostID={currentPostID}
@@ -456,6 +478,13 @@ const Page = () => {
             markersMap={markersMap}
             itemDetailsMap={itemDetailsMap}
           />
+        </View>
+      )}
+      
+      {loadingProfile && (
+        <View style={feedStyle.loadingProfileContainer}>
+          <ActivityIndicator size="small" color="#5271ff" />
+          <Text style={feedStyle.loadingProfileText}>Loading profile...</Text>
         </View>
       )}
     </View>
