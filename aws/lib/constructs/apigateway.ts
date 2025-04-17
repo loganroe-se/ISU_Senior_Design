@@ -475,6 +475,45 @@ export class ApigatewayConstruct extends Construct {
       }
     );
 
+    // ----------------------------- BOOKMARK ENDPOINTS -----------------------------
+
+    // Define the /follow resource
+    const bookmark = api.root.addResource("bookmark");
+
+    // POST /bookmark - bookmark a post
+    bookmark.addMethod(
+      "POST",
+      new LambdaIntegration(lambdaConstruct.bookmarkLambdas["createBookmarkLambda"]),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "CreateBookmark",
+      }
+    );
+
+    // DELETE /bookmark - remove a bookmark
+    bookmark.addMethod(
+      "DELETE",
+      new LambdaIntegration(
+        lambdaConstruct.bookmarkLambdas["deleteBookmarkLambda"]
+      ),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "DeleteBookmark",
+      }
+    );
+
+    // GET /bookmark - get comments for a post
+    bookmark.addMethod(
+      "GET",
+      new LambdaIntegration(
+        lambdaConstruct.commentLambdas["getBookmarksLambda"]
+      ),
+      {
+        authorizer: CognitoConstruct.authorizer,
+        operationName: "GetBookmarks",
+      }
+    );
+
     //--------------------------- ITEM ENDPOINTS -----------------------------
 
     // Define the /items resource

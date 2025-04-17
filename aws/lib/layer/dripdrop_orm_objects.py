@@ -162,6 +162,7 @@ class User(Base):
     has_seen = relationship("HasSeen", back_populates="user", cascade="all, delete-orphan")
     likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+    bookmarks = relationship("Bookmark", back_populates="user", cascade="all, delete-orphan")
 
 # Follow table
 class Follow(Base):
@@ -186,6 +187,8 @@ class Post(Base):
     has_seen = relationship("HasSeen", back_populates="post", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
     likes = relationship("Like", back_populates="post", cascade="all, delete-orphan")
+    bookmarks = relationship("Bookmark", back_populates="post", cascade="all, delete-orphan")
+
 
 # HasSeen table
 class HasSeen(Base):
@@ -335,4 +338,13 @@ class Like(Base):
     # Relationships
     user = relationship("User", back_populates="likes")
     post = relationship("Post", back_populates="likes")
+
+# Bookmarks table
+class Bookmark(Base):
+    __tablename__ = 'bookmark'
+    userID = Column(Integer, ForeignKey('users.userID'), primary_key=True)
+    postID = Column(Integer, ForeignKey('posts.postID'), primary_key=True)
+    # Relationships
+    user = relationship("User", back_populates="bookmarks")
+    post = relationship("Post", back_populates="bookmarks")
 
