@@ -88,7 +88,6 @@ const DraggableItemModal = ({
     );
     const marker = markersWithDetails[currentIndex];
     const item = marker ? itemDetailsMap[marker.clothingItemID] : null;
-    console.log(item?.price !== 0);
 
     return (
         <Modal transparent visible animationType="fade">
