@@ -28,7 +28,6 @@ export const feedStyle = StyleSheet.create({
   username: {
     fontSize: 18,
     fontWeight: 'bold',
-    marginBottom: 10,
   },
   usernameInline: {
     fontSize: 16,
@@ -104,5 +103,32 @@ export const feedStyle = StyleSheet.create({
     zIndex: 5,
     justifyContent: 'center',
     alignItems: 'center',
-  }
+  },
+  loadingProfileContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 10,
+    zIndex: 999,
+  },
+  loadingProfileText: {
+    fontSize: 14,
+    color: "#5271ff",
+    marginTop: 10,
+  },
+  profilePicture: {
+    width: 35,
+    height: 35,
+    borderRadius: 20,
+    marginRight: 10,
+  },
+  postHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 4,
+  },
 });

@@ -214,8 +214,7 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 10,
-    minHeight: 300,
-    maxHeight: "75%",
+    minHeight: "80%",
     position: "relative",
   },
   modalContent: {

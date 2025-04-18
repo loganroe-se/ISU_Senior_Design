@@ -33,7 +33,8 @@ export default function ProcessingScreen() {
 
   return (
     <View style={processing_post_styles.container}>
-      <Text style={processing_post_styles.title}>We are Currently Processing Your Post</Text>
+      <Text style={processing_post_styles.title}>We are currently processing your draft</Text>
+      <Text style={processing_post_styles.subtitle}>Come back soon to finish the post and share it with the world! </Text>
 
       {image && (
         <Image
@@ -48,20 +49,10 @@ export default function ProcessingScreen() {
         </Text>
       )}
 
-
-      <Button
-        mode="contained"
-        onPress={() => alert("AI is still processing, please wait.")}
-        style={[processing_post_styles.button, { backgroundColor: Colors.light.primary }]}
-        labelStyle={{ color: "#fff" }} // White text for the contained button
-        icon="progress-clock"
-      >
-        Wait for AI to Finish Processing
-      </Button>
       <Button
         mode="outlined"
         onPress={() => {
-          router.replace('/authenticated');
+          router.replace('/authenticated/profile');
         }}
         style={[processing_post_styles.button, { borderColor: Colors.light.primary }]}
         labelStyle={{ color: Colors.light.primary }} // Primary color text for the outlined button

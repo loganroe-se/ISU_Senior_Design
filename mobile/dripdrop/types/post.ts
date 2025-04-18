@@ -23,11 +23,6 @@ export interface Post {
   userHasLiked?: boolean
 }
 
-export interface FeedPost extends Post {
-  username: string;
-  userHasLiked: boolean;
-}
-
 export interface Marker {
   x: number;
   y: number;
