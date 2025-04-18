@@ -1,0 +1,28 @@
+meta {
+  name: Get Bookmarks
+  type: http
+  seq: 3
+}
+
+get {
+  url: https://api.dripdropco.com/bookmark
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: eyJraWQiOiJhVUVNQjU1MVhaSEdYcHRjcXRQS1RyTVYrOW8xUWwwblc2OXpWVXJwaTM0PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJkNGI4NDRmOC0xMDAxLTcwOTAtMTY2MS1kZjA4MTU3MGQ5MDkiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfeGI0d3lwYW1jIiwiY29nbml0bzp1c2VybmFtZSI6ImQ0Yjg0NGY4LTEwMDEtNzA5MC0xNjYxLWRmMDgxNTcwZDkwOSIsIm9yaWdpbl9qdGkiOiI4YTYyNDZkZS00NjI3LTQ2N2EtYjEyYy1mYmFmZTI4ODIyYjQiLCJhdWQiOiI1Nm05MTBjc2hxZXVuYXIyZmRpODI3cjZnZCIsImV2ZW50X2lkIjoiYzY5YWQwOTUtNjM3NC00Yjg1LWE0ZTMtNzNlYzRlZjQ1N2JkIiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3NDQ0OTA5NTksIm5hbWUiOiJlc2Fta3JpZWdlbCIsImV4cCI6MTc0NDQ5NDU1OSwiaWF0IjoxNzQ0NDkwOTU5LCJqdGkiOiJkZTZjNTA0NS05YWU3LTQ4MzMtYmRjNi1mMjIwMDc2MzE1YTgiLCJlbWFpbCI6ImVzYW1rcmllZ2VsQGdtYWlsLmNvbSJ9.BTCpfNuSNQa4gja4EjicZa6JngM7zHf3fY2hMne9bxSmapphKCGFBTy08ZYdMKZedfNfV5qBXjSs5QkNP_XC_yPWjL83dtviHu6tP3VKFB3LNlfsG5boOAGBCMLkPhikDD20CTmSkHKuDb1OCOpUBTgK-kt8Acr3psBXpePCjRKi4YBZTVNT_Ox8_HKjvkyt11xSyhfC8M4ooKioOzwzF9GJ_ZW9avhGZXlMnJE-tf-5dqpUQ3U2GkC5kNaHFbAL38cRFtXDhPJVIFN4p64eHt7VQ2_JM5ST-6lXwxHrV3iY758IssEqWzV8_8AeFwdEaYDFxrYRUUbs1nITXtNZKQ
+}
+
+script:pre-request {
+  const token = bru.getVar("id_token");  // Use bru.getVar() instead of bru.getEnvVar()
+  const tokenExpiresAt = parseInt(bru.getVar("token_expires_at"), 10);  // Use bru.getVar() here too
+  const now = Math.floor(Date.now() / 1000);
+  
+  if (!token || now >= tokenExpiresAt) {
+    throw new Error("Token expired or missing. Please run the 'Get Token' request manually.");
+  } else {
+    req.setHeader("Authorization", `Bearer ${token}`);
+  }
+  
+}

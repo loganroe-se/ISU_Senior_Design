@@ -31,6 +31,7 @@ export class LambdasConstruct extends Construct {
   public readonly followLambdas: Record<string, Function>;
   public readonly likeLambdas: Record<string, Function>;
   public readonly commentLambdas: Record<string, Function>;
+  public readonly bookmarkLambdas: Record<string, Function>;
 
   constructor(
     scope: Construct,
@@ -382,6 +383,24 @@ export class LambdasConstruct extends Construct {
       getCommentsLambda: createLambda(
         "GetCommentsLambda",
         "lib/lambdas/api-endpoints/comment/get-comments",
+        "handler"
+      ),
+    };
+
+    this.bookmarkLambdas = {
+      createBookmarkLambda: createLambda(
+        "CreateBookmarkLambda",
+        "lib/lambdas/api-endpoints/bookmark/create-bookmark",
+        "handler"
+      ),
+      removeBookmarkLambda: createLambda(
+        "RemoveBookmarkLambda",
+        "lib/lambdas/api-endpoints/bookmark/remove-bookmark",
+        "handler"
+      ),
+      getBookmarksLambda: createLambda(
+        "GetBookmarksLambda",
+        "lib/lambdas/api-endpoints/bookmark/get-bookmarks",
         "handler"
       ),
     };
