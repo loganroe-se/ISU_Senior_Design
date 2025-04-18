@@ -21,6 +21,8 @@ class User(Base):
     has_seen = relationship("HasSeen", back_populates="user", cascade="all, delete-orphan")
     likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="user", cascade="all, delete-orphan")
+    bookmarks = relationship("Bookmark", back_populates="user", cascade="all, delete-orphan")
+    profile = relationship("UserProfile", uselist=False, back_populates="user", cascade="all, delete-orphan", single_parent=True)
     
 class UserProfile(Base):
     __tablename__ = 'user_profiles'
@@ -175,3 +177,12 @@ class Like(Base):
 
     user = relationship("User", back_populates="likes")
     post = relationship("Post", back_populates="likes")
+
+# Bookmark table
+class Bookmark(Base):
+    __tablename__ = 'bookmarks'
+    userID = Column(Integer, ForeignKey('users.userID', ondelete="CASCADE"), primary_key=True)
+    postID = Column(Integer, ForeignKey('posts.postID', ondelete="CASCADE"), primary_key=True)
+
+    user = relationship("User", back_populates="bookmarks")
+    post = relationship("Post", back_populates="bookmarks")

@@ -494,11 +494,11 @@ export class ApigatewayConstruct extends Construct {
     bookmark.addMethod(
       "DELETE",
       new LambdaIntegration(
-        lambdaConstruct.bookmarkLambdas["deleteBookmarkLambda"]
+        lambdaConstruct.bookmarkLambdas["removeBookmarkLambda"]
       ),
       {
         authorizer: CognitoConstruct.authorizer,
-        operationName: "DeleteBookmark",
+        operationName: "RemoveBookmark",
       }
     );
 
@@ -506,7 +506,7 @@ export class ApigatewayConstruct extends Construct {
     bookmark.addMethod(
       "GET",
       new LambdaIntegration(
-        lambdaConstruct.commentLambdas["getBookmarksLambda"]
+        lambdaConstruct.bookmarkLambdas["getBookmarksLambda"]
       ),
       {
         authorizer: CognitoConstruct.authorizer,
