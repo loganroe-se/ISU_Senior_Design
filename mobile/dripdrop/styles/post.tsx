@@ -198,7 +198,7 @@ export const post_styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: Colors.light.primary,
         backgroundColor: Colors.light.primary,
-        marginTop: "50%",
+        marginTop: "80%",
         alignSelf: "center", // Center the button itself
     },
 
