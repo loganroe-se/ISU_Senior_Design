@@ -28,8 +28,8 @@ export const processing_post_styles = StyleSheet.create({
         lineHeight: 24
     },
     image: {
-        width: 300,
-        height: 300,
+        width: 400,
+        height: 400,
         borderRadius: 10,
         marginBottom: 15,
         resizeMode: 'contain',
@@ -45,6 +45,12 @@ export const processing_post_styles = StyleSheet.create({
         width: "80%",
         marginVertical: 10,
     },
+    buttonContainer: {
+        width: "100%",
+        alignItems: 'center',
+        justifyContent: 'flex-end'
+    },
+
 
 });
 
