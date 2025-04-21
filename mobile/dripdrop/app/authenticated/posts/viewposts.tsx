@@ -40,18 +40,11 @@ const ViewPosts = () => {
   }, [posts, userID, tab]);
 
   useEffect(() => {
-    if (!loading && postList.length && postID) {
-      const index = postList.findIndex((p) => p.postID.toString() === postID);
-      if (index >= 0) {
-        setTimeout(() => {
-          flatListRef.current?.scrollToIndex({ index, animated: false });
-        }, 100);
-      }
-    } else if (!loading && initialIndex && postList.length) {
-      const index = parseInt(initialIndex as string, 10);
+    if (!loading && postList.length) {
+      const index = initialIndex ? parseInt(initialIndex as string, 10) : 0;
       flatListRef.current?.scrollToIndex({ index, animated: false });
     }
-  }, [loading, postList, postID, initialIndex]);
+  }, [loading, postList, initialIndex]);
 
   const onScrollToIndexFailed = (info: {
     index: number;
