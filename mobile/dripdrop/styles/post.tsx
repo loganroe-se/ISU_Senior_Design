@@ -15,7 +15,7 @@ export const processing_post_styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: "bold",
-        marginBottom: 10,  
+        marginBottom: 10,
         textAlign: "center",
         color: 'black'
     },
@@ -24,14 +24,15 @@ export const processing_post_styles = StyleSheet.create({
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 20,
-        color: 'gray',  
-        lineHeight: 24   
+        color: 'gray',
+        lineHeight: 24
     },
     image: {
-        width: 300,
-        height: 300,
+        width: 400,
+        height: 400,
         borderRadius: 10,
         marginBottom: 15,
+        resizeMode: 'contain',
     },
     caption: {
         fontSize: 16,
@@ -44,6 +45,12 @@ export const processing_post_styles = StyleSheet.create({
         width: "80%",
         marginVertical: 10,
     },
+    buttonContainer: {
+        width: "100%",
+        alignItems: 'center',
+        justifyContent: 'flex-end'
+    },
+
 
 });
 
@@ -58,7 +65,7 @@ export const post_styles = StyleSheet.create({
         backgroundColor: 'white',
         width: '100%',
         alignSelf: 'center',
-        borderRadius:0
+        borderRadius: 0
     },
     imageContainer: {
         alignItems: "center",
@@ -187,11 +194,36 @@ export const post_styles = StyleSheet.create({
     cameraIcon: {
         marginRight: 8,
     },
-    takePhotoText: {
+
+    androidImageUpload: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center", // Center content horizontally
+        padding: 6, // Increase padding for height
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: Colors.light.primary,
+        backgroundColor: Colors.light.primary,
+        marginTop: "80%",
+        alignSelf: "center", // Center the button itself
+    },
+
+    androidCameraIcon: {
+        marginRight: 8,
+        padding: 10
+    },
+    androidTakePhotoText: {
         color: "#fff",
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: "bold",
     },
+    takePhotoText: {
+        color: "#fff",
+        fontSize: 18,
+        fontWeight: "bold",
+    },
+
+
 });
 
 
