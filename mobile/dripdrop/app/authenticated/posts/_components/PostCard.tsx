@@ -17,6 +17,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
 import { Comment } from "@/types/Comment";
 import { useUserContext } from "@/context/UserContext";
+import { Dimensions } from "react-native";
+
+const { width: screenWidth, height: screenHeight } = Dimensions.get("window");
+
 
 export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [liked, setLiked] = useState(post.userHasLiked || false);
@@ -264,7 +268,7 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", padding: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
   username: { fontWeight: "bold" },
-  image: { width: "100%", height: 400 },
+  image: { width: "100%", height: screenHeight * .61 },
   actions: { flexDirection: "row", padding: 10 },
   caption: { paddingHorizontal: 10, marginTop: 5 },
   viewComments: { paddingHorizontal: 10, color: "gray", marginTop: 4 },
