@@ -57,13 +57,19 @@ export default function SearchScreen() {
   const handlePostClick = (post: Post) => {
     const index = posts.findIndex((p) => p.postID === post.postID);
     if (index === -1) return;
-
+  
+    // Move the selected post and all after it to the top
+    const reorderedPosts = [
+      ...posts.slice(index), // from the clicked post to the end
+      ...posts.slice(0, index), // then the posts before the clicked one
+    ];
+  
     router.push({
       pathname: "/authenticated/posts/viewposts",
       params: {
-        posts: encodeURIComponent(JSON.stringify(posts)),
+        posts: encodeURIComponent(JSON.stringify(reorderedPosts)),
         postID: post.postID.toString(),
-        initialIndex: index.toString(),
+        initialIndex: "0", // always start at 0 since selected post is now at front
       },
     });
   };
