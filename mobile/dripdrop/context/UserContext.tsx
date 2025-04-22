@@ -1,93 +1,91 @@
-import React, { createContext, useContext, useState, ReactNode, useEffect, useCallback } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+  ReactNode,
+} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchUserEmail } from "@/api/user";
 import { User, UserContextType } from "@/types/user.interface";
 import { router } from "expo-router";
+import { apiRequest } from "@/api/api";
+import { loadUserFromStorage, decodeJWT, saveUserToStorage, getValidBearerToken, clearTokenCache } from "@/api/auth";
 
+const USER_STORAGE_KEY = "user";
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [loading, setLoading] = useState<boolean>(true);
+  const [loading, setLoading] = useState(true);
 
-  // Load user data from AsyncStorage on app start
   useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const storedUser = await AsyncStorage.getItem("user");
-        if (storedUser) {
-          setUser(JSON.parse(storedUser));
-        }
-      } catch (error) {
-        console.error("Failed to load user from storage:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    loadUser();
+    loadUserFromStorage().then(u => {
+      if (u) setUser(u);
+      setLoading(false);
+    });
   }, []);
 
-  const signIn = useCallback(async (username: string, password: string): Promise<void> => {
+  const signIn = useCallback(async (email: string, password: string) => {
+    setLoading(true);
     try {
-      setLoading(true);
+      // ✅ Use centralized apiRequest with POST
+      const data = await apiRequest<any, { email: string; password: string }>(
+        "POST",
+        "/users/signIn",
+        { email, password },
+        true
+      );
 
-      const response = await fetch("https://api.dripdropco.com/users/signIn", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: username,
-          password,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error(`Sign-in failed: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      const userWithEmail = await fetchUserEmail(data.id);
+      const decoded = decodeJWT(data.id_token);
 
       const signedInUser: User = {
-        id: data.id,
-        username: data.username,
-        email: userWithEmail ?? "",
+        username: decoded.name,
+        email: decoded.email,
+        uuid: decoded.sub,
+        exp: decoded.exp,
+        id_token: data.id_token,
+        access_token: data.access_token,
+        refresh_token: data.refresh_token,
       };
 
+      await saveUserToStorage(signedInUser);
       setUser(signedInUser);
-      await AsyncStorage.setItem("user", JSON.stringify(signedInUser));
-    } catch (error) {
-      console.error("Sign-in failed:", error);
-      throw error;
+    } catch (err) {
+      console.error("Sign-in failed:", err);
+      throw err;
     } finally {
       setLoading(false);
     }
   }, []);
+
 
   const signOut = useCallback(async () => {
+    setLoading(true);
     try {
-      setLoading(true);
       setUser(null);
+      clearTokenCache(); // ✅ Clear in-memory tokens
       await AsyncStorage.removeItem("user");
-      router.replace("/auth/signin");
-    } catch (error) {
-      console.error("Sign-out failed:", error);
+      router.replace("../auth/signin");
+    } catch (err) {
+      console.error("Sign-out failed:", err);
     } finally {
       setLoading(false);
     }
   }, []);
+  
 
   return (
-    <UserContext.Provider value={{ user, signIn, signOut, loading }}>
+    <UserContext.Provider
+      value={{ user, loading, signIn, signOut, getBearerToken: getValidBearerToken }}
+    >
       {children}
     </UserContext.Provider>
   );
 };
 
-// Export the context
 export const useUserContext = (): UserContextType => {
-  const context = useContext(UserContext);
-  if (!context) {
-    throw new Error("useUserContext must be used within a UserProvider");
-  }
-  return context;
+  const ctx = useContext(UserContext);
+  if (!ctx) throw new Error("useUserContext must be used within a UserProvider");
+  return ctx;
 };

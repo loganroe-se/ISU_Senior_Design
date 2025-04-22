@@ -1,148 +1,299 @@
-import { Text, View, Alert, TextInput, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import React, { useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Import AsyncStorage
-import { useRouter } from "expo-router"; // Import useRouter for navigation
+import { Text, View, Alert, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { TextInput, Button } from "react-native-paper";
 import { item_details_styles } from "@/styles/post";
+import { updateItem, getItem, createItem } from "@/api/items";
+import { getPostById } from "@/api/post";
+import { Item } from "@/types/Item";
+import { Post } from "@/types/post";
+import { Colors } from "@/constants/Colors";
+
+type ItemFormData = Omit<Item, "id">;
 
 const Page = () => {
-    const [email, setEmail] = useState<string | null>(null);
-    const [username, setUsername] = useState<string | null>(null);
-    const [name, setName] = useState<string>("");
-    const [brand, setBrand] = useState<string>("");
-    const [category, setCategory] = useState<string>("");
-    const [price, setPrice] = useState<string>("");
-    const [itemURL, setItemURL] = useState<string>("");
-    const [size, setSize] = useState<string>("");
-    const [isLoading, setIsLoading] = useState<boolean>(false); // New state for loading indicator
+    const params = useLocalSearchParams();
+    const router = useRouter();
 
-    const router = useRouter(); // Initialize the router
+    const postId = params.postId as string;
+    const xCoord = params.xCoord as string | undefined;
+    const yCoord = params.yCoord as string | undefined;
+    const markerId = params.markerId as string | undefined;
+    const imageUri = params.image as string | undefined;
 
+    const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingItem, setIsLoadingItem] = useState(true);
+    const [post, setPost] = useState<Post | null>(null);
+    const [item, setItem] = useState<ItemFormData>({
+        clothingItemID: 0,
+        name: "",
+        brand: "",
+        category: "",
+        price: 0,
+        itemURL: "",
+        size: "",
+    });
+
+    // Load initial data
     useEffect(() => {
-        const getUserData = async () => {
+        // item_details.tsx
+        const loadData = async () => {
             try {
-                const storedEmail = await AsyncStorage.getItem("email");
-                const storedUsername = await AsyncStorage.getItem("username");
+                console.log("Starting to load data...");
+                if (markerId) {
+                    console.log(`Marker ID: ${markerId}`);
+                    const numericPostId = parseInt(postId);
+                    console.log(`Parsed Post ID: ${numericPostId}`);
+                    if (isNaN(numericPostId)) {
+                        console.error("Invalid post ID");
+                        return;
+                    }
 
-                // Set them to state if they exist
-                if (storedEmail && storedUsername) {
-                    setEmail(storedEmail);
-                    setUsername(storedUsername);
-                } else {
-                    Alert.alert("No user data", "User is not logged in.");
+                    const postData = await getPostById(numericPostId);
+                    console.log("Post data:", postData);
+                    setPost(postData);
+
+                    console.log("Marker ID in loadData:", Number(markerId));
+                    if (Number(markerId) < 0) {
+                        setIsLoadingItem(false);
+                        return; // Skip loading for temporary markers
+                    }
+
+                    const existingItem = await getItem(parseInt(markerId));
+                    console.log("Existing item:", existingItem);
+
+                    if (!existingItem) {
+                        console.log("No item found, keeping default form values");
+                        setIsLoadingItem(false);
+                        return;
+                    }
+
+                    setItem({
+                        clothingItemID: existingItem.clothingItemID,
+                        name: existingItem.name,
+                        brand: existingItem.brand,
+                        category: existingItem.category,
+                        price: existingItem.price || 0,
+                        itemURL: existingItem.itemURL,
+                        size: existingItem.size,
+                    });
                 }
             } catch (error) {
-                console.error("Error retrieving data", error);
-                Alert.alert("Error", "Failed to load user data.");
+                console.error("Error loading data:", error);
+                Alert.alert("Error", "Failed to load item data");
+            } finally {
+                setIsLoadingItem(false);
             }
         };
 
-        getUserData();
-    }, []); // Empty array ensures this effect runs only once when the component mounts
+        loadData();
+    }, [postId, markerId]);
+
+    const handleChange = (field: keyof ItemFormData, value: string | number) => {
+        setItem((prev) => ({
+            ...prev,
+            [field]: value,
+        }));
+    };
 
     const handleSave = async () => {
-        setIsLoading(true); // Set loading to true when the save process starts
+        console.log("Handling save...");
+        if (!postId || !post) {
+            Alert.alert("Error", "No post ID found or post not loaded");
+            console.error("No post found");
+            return;
+        }
 
-        // Prepare the request body
-        const itemData = {
-            name,
-            brand,
-            category,
-            price: parseFloat(price), // Convert price to a number
-            itemURL,
-            size,
-        };
+        setIsLoading(true);
 
         try {
-            // Send a POST request to the backend
-            const response = await fetch("https://api.dripdropco.com/items/1", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(itemData),
-            });
+            const numericPostId = parseInt(postId);
+            if (isNaN(numericPostId)) throw new Error("Invalid post ID");
 
-            if (!response.ok) {
-                throw new Error("Failed to save item details.");
+            const imageId = post.images[0]?.imageID;
+            if (!imageId) throw new Error("No image ID found in post");
+            if (!markerId) throw new Error("No marker ID provided");
+
+            const numericMarkerId = parseInt(markerId);
+            const itemExists = numericMarkerId > 0; // True if the markerId is positive
+
+            const baseItemData = {
+                ...item,
+                price: Number(item.price) || 0,
+                image_id: imageId.toString(),
+            };
+
+            if (numericMarkerId < 0) {
+                // Negative ID: Create new item with no existing database item
+                console.log("Creating new item for temporary marker");
+                if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
+
+                const createData = {
+                    ...baseItemData,
+                    clothingItemID: numericMarkerId, // Temporary negative ID
+                    xCoord: Number(xCoord),
+                    yCoord: Number(yCoord),
+                };
+                const data = await createItem(createData);
+                console.log("Item created with temporary marker ID:", data);
+                Alert.alert("Success", "Item created!");
+                handleSubmit(data.itemId.toString());
+            } else {
+                // Positive ID
+                const existingItem = await getItem(numericMarkerId);
+
+                if (!existingItem) {
+                    // Positive ID does not exist in DB: Create new item with the existing ID
+                    console.log("Item not found in DB, treating as new item with existing marker ID");
+                    if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
+
+                    const createData = {
+                        ...baseItemData,
+                        clothingItemID: numericMarkerId, // Use the existing marker ID
+                        xCoord: Number(xCoord),
+                        yCoord: Number(yCoord),
+                    };
+                    const data = await createItem(createData);
+                    console.log("Item created with existing marker ID:", data);
+                    Alert.alert("Success", "Item created!");
+                    handleSubmit(data.itemId.toString());
+                } else {
+                    // Positive ID exists in DB: Update the item
+                    console.log("Updating existing item");
+                    const updateData = {
+                        ...baseItemData,
+                        clothingItemID: numericMarkerId,
+                    };
+                    console.log("Updating item with ID:", numericMarkerId, "Data:", updateData);
+                    await updateItem(numericMarkerId, updateData);
+                    console.log("Item updated successfully");
+                    Alert.alert("Success", "Item updated!");
+                    handleSubmit(numericMarkerId.toString());
+                }
             }
-
-            const result = await response.json();
-            console.log("Item saved successfully:", result);
-
-            // Show success message
-            Alert.alert("Success", "Item details saved successfully!");
-
-            // Optionally, navigate back or reset the form
-            router.back(); // Navigate back to the previous screen
         } catch (error) {
-            console.error("Error saving item details:", error);
-            Alert.alert("Error", "Failed to save item details. Please try again.");
+            console.error("Save failed:", error);
+            Alert.alert("Error", error instanceof Error ? error.message : "Failed to save item");
         } finally {
-            setIsLoading(false); // Set loading to false when the save process completes
+            setIsLoading(false);
         }
+    };
+
+
+
+
+    const handleSubmit = (newClothingItemID: string) => {
+        console.log("Submitting item with ID:", newClothingItemID);
+        if (!markerId) return;
+
+        router.replace({
+            pathname: "./image_marker",
+            params: {
+                verifiedMarkerId: newClothingItemID,
+                image: imageUri,
+                refresh: 'true',
+                postId: postId,
+                markerId: newClothingItemID
+            },
+        });
+    };
+
+    if (isLoadingItem) {
+        return (
+            <SafeAreaView style={item_details_styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.light.primary} />
+                <Text>Loading item data...</Text>
+            </SafeAreaView>
+        );
+    }
+
+    const inputProps = {
+        mode: "outlined" as const,
+        style: item_details_styles.input,
+        textColor: "#000000",
+        activeUnderlineColor: Colors.light.primary,
+        activeOutlineColor: Colors.light.primary,
     };
 
     return (
         <SafeAreaView style={item_details_styles.container}>
-            <ScrollView
-                contentContainerStyle={item_details_styles.scrollContainer}
-                style={item_details_styles.scrollView} // Apply scrollView style
-            >
-                <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
+                <ScrollView
+                    contentContainerStyle={item_details_styles.scrollContainer}
+                    style={item_details_styles.scrollView}
+                >
+                    <Text style={item_details_styles.header}>Verify Clothing Item Details</Text>
 
-                {/* Input fields for item details */}
-                <TextInput
-                    placeholder="Name"
-                    value={name}
-                    onChangeText={setName}
-                    style={item_details_styles.input}
-                />
-                <TextInput
-                    placeholder="Brand"
-                    value={brand}
-                    onChangeText={setBrand}
-                    style={item_details_styles.input}
-                />
-                <TextInput
-                    placeholder="Category"
-                    value={category}
-                    onChangeText={setCategory}
-                    style={item_details_styles.input}
-                />
-                <TextInput
-                    placeholder="Price"
-                    value={price}
-                    onChangeText={setPrice}
-                    keyboardType="numeric"
-                    style={item_details_styles.input}
-                />
-                <TextInput
-                    placeholder="Item URL"
-                    value={itemURL}
-                    onChangeText={setItemURL}
-                    style={item_details_styles.input}
-                />
-                <TextInput
-                    placeholder="Size"
-                    value={size}
-                    onChangeText={setSize}
-                    style={item_details_styles.input}
-                />
+                    <TextInput
+                        {...inputProps}
+                        label="Item Name"
+                        value={item.name}
+                        onChangeText={(text) => handleChange("name", text)}
+                        placeholder="e.g. Nike Air Max"
+                    />
 
-            </ScrollView>
-            {/* Buttons above the navbar */}
+                    <TextInput
+                        {...inputProps}
+                        label="Brand"
+                        value={item.brand}
+                        onChangeText={(text) => handleChange("brand", text)}
+                        placeholder="e.g. Nike, Adidas"
+                    />
+
+                    <TextInput
+                        {...inputProps}
+                        label="Category"
+                        value={item.category}
+                        onChangeText={(text) => handleChange("category", text)}
+                        placeholder="e.g. Shoes, T-Shirt"
+                    />
+
+                    <TextInput
+                        {...inputProps}
+                        label="Price"
+                        value={item.price.toString()}
+                        onChangeText={(text) => handleChange("price", text)}
+                        keyboardType="numeric"
+                        placeholder="e.g. 99.99"
+                        left={<TextInput.Affix text="$" />}
+                    />
+
+                    <TextInput
+                        {...inputProps}
+                        label="Item URL"
+                        value={item.itemURL}
+                        onChangeText={(text) => handleChange("itemURL", text)}
+                        placeholder="https://example.com/item"
+                    />
+
+                    <TextInput
+                        {...inputProps}
+                        label="Size"
+                        value={item.size}
+                        onChangeText={(text) => handleChange("size", text)}
+                        placeholder="e.g. M, 10, 28x32"
+                    />
+                </ScrollView>
+            </KeyboardAvoidingView>
+
             <View style={item_details_styles.buttonContainer}>
-                <TouchableOpacity onPress={() => router.back()} style={item_details_styles.backButton}>
-                    <Text style={item_details_styles.buttonText}>Back</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={handleSave} style={item_details_styles.saveButton} disabled={isLoading}>
-                    {isLoading ? (
-                        <ActivityIndicator color="#fff" /> // Show loading indicator when isLoading is true
-                    ) : (
-                        <Text style={item_details_styles.buttonText}>Save</Text>
-                    )}
-                </TouchableOpacity>
+                <Button
+                    mode="outlined"
+                    onPress={() => router.back()}
+                    style={item_details_styles.backButton}
+                >
+                    Back
+                </Button>
+                <Button
+                    mode="contained"
+                    onPress={handleSave}
+                    style={item_details_styles.saveButton}
+                    loading={isLoading}
+                    disabled={isLoading}
+                >
+                    Save
+                </Button>
             </View>
         </SafeAreaView>
     );

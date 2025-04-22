@@ -7,6 +7,7 @@ import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as event_sources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 import * as s3 from "aws-cdk-lib/aws-s3";
+import { CfnOutput } from "aws-cdk-lib";
 
 export class ImageProcessingStepFunctionStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
@@ -131,7 +132,7 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
     classifyTask.next(sendToSqsTask);
     const workflow = new sfn.StateMachine(this, "ImageProcessingStateMachine", {
       definitionBody: sfn.DefinitionBody.fromChainable(segmentTask),
-      timeout: cdk.Duration.minutes(5),
+      timeout: cdk.Duration.minutes(10),
     });
 
     // Lambda that triggers Step Function from SQS
@@ -170,5 +171,25 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
         resources: ["arn:aws:sagemaker:region:626635444817:endpoint/*"],
       })
     );
+
+    new CfnOutput(this, 'ImageProcessingQueueArn', {
+      value: imageProcessingQueue.queueArn,
+      exportName: 'ImageProcessingQueueArn',
+    });
+    
+    new CfnOutput(this, 'ImageProcessingQueueUrl', {
+      value: imageProcessingQueue.queueUrl,
+      exportName: 'ImageProcessingQueueUrl',
+    });
+
+    new cdk.CfnOutput(this, 'ClassificationResultsQueueArn', {
+      value: classificationResultsQueue.queueArn,
+      exportName: 'ClassificationResultsQueueArn',
+    });
+    
+    new cdk.CfnOutput(this, 'ClassificationResultsQueueUrl', {
+      value: classificationResultsQueue.queueUrl,
+      exportName: 'ClassificationResultsQueueUrl',
+    });
   }
 }

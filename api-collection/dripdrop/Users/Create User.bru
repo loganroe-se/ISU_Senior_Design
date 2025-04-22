@@ -12,9 +12,22 @@ post {
 
 body:json {
   {
-      "username": "testUsername1",
-      "email": "testusername1@test.edu",
-      "password": "password123",
+      "username": "esamkriegel",
+      "email": "esamkriegel@gmail.com",
+      "password": "@testPassword123!",
       "dob": "2000-12-12"
   }
+}
+
+script:pre-request {
+  const token = bru.getVar("id_token");  // Use bru.getVar() instead of bru.getEnvVar()
+  const tokenExpiresAt = parseInt(bru.getVar("token_expires_at"), 10);  // Use bru.getVar() here too
+  const now = Math.floor(Date.now() / 1000);
+  
+  if (!token || now >= tokenExpiresAt) {
+    throw new Error("Token expired or missing. Please run the 'Get Token' request manually.");
+  } else {
+    req.setHeader("Authorization", `Bearer ${token}`);
+  }
+  
 }

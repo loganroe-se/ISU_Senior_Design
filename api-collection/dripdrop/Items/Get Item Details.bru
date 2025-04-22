@@ -5,7 +5,28 @@ meta {
 }
 
 get {
-  url: https://api.dripdropco.com/items/12
+  url: https://api.dripdropco.com/items/details?ids=82
   body: none
-  auth: none
+  auth: bearer
+}
+
+params:query {
+  ids: 82
+}
+
+auth:bearer {
+  token: eyJraWQiOiJhVUVNQjU1MVhaSEdYcHRjcXRQS1RyTVYrOW8xUWwwblc2OXpWVXJwaTM0PSIsImFsZyI6IlJTMjU2In0.eyJzdWIiOiJkNGI4NDRmOC0xMDAxLTcwOTAtMTY2MS1kZjA4MTU3MGQ5MDkiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiaXNzIjoiaHR0cHM6XC9cL2NvZ25pdG8taWRwLnVzLWVhc3QtMS5hbWF6b25hd3MuY29tXC91cy1lYXN0LTFfeGI0d3lwYW1jIiwiY29nbml0bzp1c2VybmFtZSI6ImQ0Yjg0NGY4LTEwMDEtNzA5MC0xNjYxLWRmMDgxNTcwZDkwOSIsIm9yaWdpbl9qdGkiOiJhZWVmMDViNC0zZmM4LTRlYTUtYjk3YS0wZWY3Yzk1ODg1NWYiLCJhdWQiOiI1Nm05MTBjc2hxZXVuYXIyZmRpODI3cjZnZCIsImV2ZW50X2lkIjoiODY1YzM0OGItMzlhNS00MmE4LWFjYzctNDFkMTY0MGE2ZWU5IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3NDQ0Mjc0NTcsIm5hbWUiOiJlc2Fta3JpZWdlbCIsImV4cCI6MTc0NDQzMTA1NywiaWF0IjoxNzQ0NDI3NDU3LCJqdGkiOiI1NGQ1YTkxNy1iMzgzLTRiYzItOGY4Zi0yNWQ0Mjg3MzQ3MjkiLCJlbWFpbCI6ImVzYW1rcmllZ2VsQGdtYWlsLmNvbSJ9.hiEv7Qgoav5zt-SKBocJK9b6mjcsAg3rwUY9tP0Tcliof0br4NXqere3Fmsu6lML52SQvU4dJKnjkxm33VJpq-9SOW-M0zoJHgDaDGysEod0TWMsttC_LoqpwUfb0tWmv7z1HlnZjCuYo--T_lA1VmGt5ljXBFJLZvrl12xwgsR4A0YK5kxnqsiDazr1PBSAHhP8AD_jgVr381XaCMZmg4RQm587-UB97l99fP-7pLlc6umD0EmtteRkCcOPAQ1pt6cTHpO3hV6z5bcy_DkKrCjXd_zetrkv2kKk93GHWUjnH2myT1n9970kR8K5LwXpR7YJiF7lhulFXu88eNQoig
+}
+
+script:pre-request {
+  const token = bru.getVar("id_token");  // Use bru.getVar() instead of bru.getEnvVar()
+  const tokenExpiresAt = parseInt(bru.getVar("token_expires_at"), 10);  // Use bru.getVar() here too
+  const now = Math.floor(Date.now() / 1000);
+  
+  if (!token || now >= tokenExpiresAt) {
+    throw new Error("Token expired or missing. Please run the 'Get Token' request manually.");
+  } else {
+    req.setHeader("Authorization", `Bearer ${token}`);
+  }
+  
 }

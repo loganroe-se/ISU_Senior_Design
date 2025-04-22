@@ -1,56 +1,76 @@
 from utils import create_response, handle_exception
-from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import User
+from sqlalchemy_utils import session_handler, get_user_by_email
+from dripdrop_orm_objects import User, Follow
+from sqlalchemy import select, func, and_
 
 def handler(event, context):
     try:
-        # Get id from path parameters
-        user_id = event['pathParameters'].get('id')
-        
-        # Check for missing required value
-        if not user_id:
-            return create_response(400, 'Missing user ID')
-        
-        # Call getFollowers function to get followers from the database
-        status_code, message = getFollowing(user_id)
+        # Get target UUID from path parameters
+        uuid = event['pathParameters'].get('id')
+        if not uuid:
+            return create_response(400, 'Missing uuid')
 
-        # Return message
+        # Get query parameters
+        raw_query = event.get('queryStringParameters') or {}
+        count_only = raw_query.get('countOnly', 'false').lower() == 'true'
+        check_follow = raw_query.get('checkFollow', 'false').lower() == 'true'
+
+        # Get requester's email if follow-check is enabled
+        email = None
+        if check_follow:
+            claims = event.get('requestContext', {}).get('authorizer', {}).get('claims')
+            email = claims.get('email') if claims else None
+            if not email:
+                return create_response(401, "Missing or invalid authorization")
+
+        # Call logic
+        status_code, message = get_followers(uuid, count_only, check_follow, email)
         return create_response(status_code, message)
-    
-    except Exception as e:
-        return create_response(500, f"Error retrieving following list: {str(e)}")
-    
 
-def getFollowing(user_id):
-    # Try to get list of all users who user_id follows
+    except Exception as e:
+        return create_response(500, f"Error retrieving followers: {str(e)}")
+
+
+@session_handler
+def get_followers(session, uuid, count_only=False, check_follow=False, email=None):
     try:
-        # Create the session
-        session = create_session()
+        target_user = session.query(User).filter(User.uuid == uuid).one_or_none()
+        if not target_user:
+            return 404, f"User with uuid {uuid} does not exist."
 
-        # Fetch the user by ID
-        user = session.query(User).filter(User.userID == user_id).one_or_none()
+        if check_follow and email:
+            caller_user = get_user_by_email(session, email)
+            if not caller_user:
+                return 404, f"User for email {email} does not exist."
 
-        # If user does not exist, return 404
-        if not user:
-            return 404, f"User with ID {user_id} does not exist."
+            is_following = session.execute(
+                select(func.count()).select_from(Follow).where(
+                    and_(
+                        Follow.followerId == caller_user.userID,
+                        Follow.followedId == target_user.userID
+                    )
+                )
+            ).scalar()
 
-        # Get all users that the current user is following
-        following = [
+            return 200, { "is_following": is_following > 0 }
+
+        if count_only:
+            count = session.execute(
+                select(func.count()).select_from(Follow).where(
+                    Follow.followedId == target_user.userID
+                )
+            ).scalar()
+            return 200, { "following_count": count }
+
+        followers = [
             {
-                "userID": follow.followed.userID,
-                "username": follow.followed.username,
+                "uuid": follow.follower.uuid,
+                "username": follow.follower.username,
+                "profilePic": follow.follower.profilePicURL
             }
-            for follow in user.following
+            for follow in target_user.followers
         ]
-
-        # Return the list of following users
-        return 200, following
+        return 200, followers
 
     except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Error accessing database")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+        return handle_exception(e, "Error accessing database")

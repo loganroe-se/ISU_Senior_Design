@@ -1,17 +1,21 @@
-import { Text, StyleSheet, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, Modal, KeyboardAvoidingView, Platform, Keyboard, TouchableOpacity, TextInput, SafeAreaView } from "react-native";
-import React, { useState, useEffect, useCallback, useRef } from "react";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { Text, View, Alert, Image, FlatList, ActivityIndicator, Dimensions, TouchableOpacity, TextInput, NativeSyntheticEvent, NativeScrollEvent, LayoutChangeEvent, Button, AppState, Switch, Touchable } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import { router } from "expo-router";
 import { useUserContext } from "@/context/UserContext";
 import { getFeed } from "@/api/feed";
-import { likePost, unlikePost } from "@/api/like"
-import { createComment, fetchCommentsByPostID } from "@/api/comment";
-import { FeedPost } from "@/types/post";
+import { fetchUserByUsername } from "@/api/following";
+import { markPostsAsSeen, resetSeenPosts } from "@/api/has_seen";
+import { Post } from "@/types/post";
 import { Comment } from "@/types/Comment";
-import { sendComment } from "@/types/sendComment.interface";
-import { Colors } from "@/constants/Colors"
 import { profileStyle } from "@/styles/profile";
-import { GestureHandlerRootView, PanGestureHandler, TouchableWithoutFeedback } from "react-native-gesture-handler";
-import Icon from "react-native-vector-icons/FontAwesome";
+import { feedStyle } from "@/styles/feed";
+import { Marker } from "@/types/Marker";
+import { fetchMarkers, getItemDetails } from "@/api/items";
+import { Item } from "@/types/Item";
+import { Colors } from "@/constants/Colors";
+import LikeCommentBar from "@/components/LikeCommentBar";
+import CommentModal from "@/components/CommentModal";
+import DraggableItemModal from "@/components/DraggableItemModal";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -20,8 +24,8 @@ const headerHeight = 40;
 
 const Page = () => {
   const { user } = useUserContext();
-  const [userID, setUserID] = useState<number | null>(null);
-  const [feedData, setFeedData] = useState<FeedPost[]>([]);
+  const [userID, setUserID] = useState<string | null>(null);
+  const [feedData, setFeedData] = useState<Post[]>([]);
   const [loading, setLoading] = useState<boolean>(false);
   const [loadingComments, setLoadingComments] = useState<boolean>(false);
   const [loadingAddComment, setLoadingAddComment] = useState<boolean>(false);
@@ -33,11 +37,24 @@ const Page = () => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [commentText, setCommentText] = useState("");
   const commentInputRef = useRef<TextInput | null>(null);
+  const [seenPosts, setSeenPosts] = useState(new Set<number>());
+  const [postPositions, setPostPositions] = useState<{ [postID: number]: { y: number; height: number } }>({});
+  const [isFetching, setIsFetching] = useState(false);
+  const [hasSeenPosts, setHasSeenPosts] = useState(false);
+  const [noMorePosts, setNoMorePosts] = useState(false);
+  const [expandedCaptions, setExpandedCaptions] = useState<{ [key: number]: boolean }>({});
+  const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
+  const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
+  const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
+  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; clothingItemID: number } | null>(null);
+  const [activeClothingItemID, setActiveClothingItemID] = useState<number>(0);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+
 
   useEffect(() => {
     const getUserData = async () => {
       try {
-        const storedUserID = user?.id;
+        const storedUserID = user?.uuid;
 
         // Set them to state if they exist
         if (storedUserID) {
@@ -73,94 +90,141 @@ const Page = () => {
     }
   }, [userID]);
 
-  // Handle a like
-  const handleLike = useCallback(async (postID: number) => {
-    if (!userID) return;
+  // Update markers when feed data is changed
+  useEffect(() => {
+    const loadMarkers = async () => {
+      const newMarkersMap: Record<number, Marker[]> = {};
+      const allItemIDs = new Set<number>();
 
-    try {
-      // Check if it has already been liked
-      const hasLiked = feedData.some((post) => post.postID === postID && post.userHasLiked);
+      await Promise.all(feedData.map(async (post) => {
+        try {
+          const markers = await fetchMarkers(post.postID);
+          if (markers.length > 0) {
+            newMarkersMap[post.postID] = markers;
+          }
 
-      // If the post is already called, unlike it, else like it
-      if (hasLiked) {
-        // Update local state
-        setFeedData((prevFeedData) => 
-          prevFeedData.map((post) =>
-            post.postID === postID ? { ...post, userHasLiked: false, numLikes: post.numLikes - 1 } : post
-          )
-        );
+          markers.forEach(marker => allItemIDs.add(marker.clothingItemID));
+        } catch (error) {
+          console.error("Failed to fetch markers for post ", post.postID);
+        }
+      }));
+      
+      setMarkersMap(newMarkersMap);
 
-        // Unlike the post
-        await unlikePost(userID, postID);
-      } else {
-        // Update local state
-        setFeedData((prevFeedData) => 
-          prevFeedData.map((post) =>
-            post.postID === postID ? { ...post, userHasLiked: true, numLikes: post.numLikes + 1 } : post
-          )
-        );
-
-        // Like the post
-        await likePost(userID, postID);
+      // Fetch item details for all unique IDs that aren't already in the map
+      const idsToFetch = Array.from(allItemIDs).filter(id => !itemDetailsMap[id]);
+  
+      if (idsToFetch.length > 0) {
+        try {
+          const fetched = await getItemDetails(idsToFetch);
+    
+          if (fetched) {
+            const newMap = { ...itemDetailsMap };
+            if (Array.isArray(fetched)) {
+              fetched.forEach(item => {
+                newMap[item.clothingItemID] = item;
+              });
+            }
+            setItemDetailsMap(newMap);
+          }
+        } catch (error) {
+          console.error("Failed to fetch item details: ", error);
+        }
       }
-    } catch (error) {
-      console.error('Error handling like: ', error);
-      Alert.alert('Error', 'Failed to update like status')
-    }
-  }, [feedData, userID]);
+    };
+    
+    if (feedData.length > 0) loadMarkers();
+  }, [feedData]);
 
-  // Get comments on comment open
-  const handleComment = async (postID: number) => {
-    setCurrentPostID(postID);
-    setCommentModalVisible(true);
-    setLoadingComments(true);
+  // // Ensure posts get marked as seen once the app is closed/minimized --- TODO: Does not properly track posts seen so this does not work yet
+  // useEffect(() => {
+  //   const appStateListener = AppState.addEventListener('change', (nextAppState) => {
+  //     console.log(nextAppState);
+  //     if (nextAppState === 'background' || nextAppState === 'inactive') {
+  //       if (seenPosts.size > 0) {
+  //         console.log(Array.from(seenPosts));
+  //         markPostsAsSeen({ userID: Number(userID), postIDs: Array.from(seenPosts) });
+  //       }
+  //     }
+  //   });
 
-    try {
-      const comments = await fetchCommentsByPostID(postID);
-      comments.length === 0 ? setComments([]): setComments(comments);
-    } catch (error) {
-      console.error("Error fetching comments: ", error)
-    } finally {
-      setLoadingComments(false);
+  //   return () => {
+  //     appStateListener.remove();
+  //   };
+  // }, [seenPosts]);
+
+  // See more/less of a caption
+  const toggleCaption = (postID: number) => {
+    setExpandedCaptions(prev => ({
+      ...prev,
+      [postID]: !prev[postID]
+    }));
+  };
+
+  // Keep track of seen posts
+  const onScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const scrollY = event.nativeEvent.contentOffset.y;
+    const screenHeight = event.nativeEvent.layoutMeasurement.height;
+
+    Object.entries(postPositions).forEach(([postID, { y, height }]) => {
+      const postBottom = y + height;
+      if (postBottom <= scrollY + screenHeight) {
+        setSeenPosts((prev) => new Set(prev).add(Number(postID)));
+      }
+    });
+
+    // Check if at the bottom
+    const contentHeight = event.nativeEvent.contentSize.height;
+    if (scrollY + screenHeight >= contentHeight - 50 && !isFetching && !hasSeenPosts) {
+      if (seenPosts.size > 0 && userID) {
+        markPostsAsSeen({ postIDs: Array.from(seenPosts) });
+        setHasSeenPosts(true);
+      }
+      getNewPosts();
     }
   };
 
-  // Add a new comment
-  const handleAddComment = async () => {
-    if (!commentText.trim() || currentPostID === null) return;
+  // Get new posts
+  const getNewPosts = async () => {
+    if (isFetching) return;
     if ((userID ?? 0) === 0) return;
 
-    setLoadingAddComment(true);
-
-    const newComment: sendComment = {
-      postId: currentPostID,
-      userId: userID ?? 0,
-      content: commentText,
-    };
+    setIsFetching(true);
 
     try {
-      await createComment(newComment);
-      setCommentText("");
-      setFeedData((prevFeedData) => 
-        prevFeedData.map((post) => 
-          post.postID === currentPostID ? { ...post, numComments: post.numComments + 1} : post
-        )
-      );
-      handleComment(currentPostID);
-      setLoadingAddComment(false);
+      if (userID) {
+        getFeed(userID)
+          .then((data) => {
+            if (data) {
+              setFeedData((prev) => {
+                const newPostIDs = data.map((p) => p.postID);
+                const existingPostIDs = prev.map((p) => p.postID);
+                if (newPostIDs.length > 0 && !newPostIDs.every(id => existingPostIDs.includes(id))) {
+                  setNoMorePosts(false);
+                  setHasSeenPosts(false)
+                } else {
+                  setNoMorePosts(true);
+                }
+                const uniquePosts = [
+                  ...prev,
+                  ...data.filter((newPost) => !existingPostIDs.includes(newPost.postID)),
+                ];
+                return uniquePosts
+              });
+              setLoading(false);
+            } else {
+              setError('Failed to fetch feed');
+            }
+          }).catch(() => {
+            setError('Failed to fetch feed');
+          });
+      }
     } catch (error) {
-      console.error("Error adding a new comment: ", error);
+      console.error("Error fetching new posts:", error);
     }
-  };
 
-  // Focus the input when the modal opens
-  useEffect(() => {
-    if (commentModalVisible) {
-      setTimeout(() => {
-        commentInputRef.current?.focus();
-      }, 100);
-    }
-  }, [commentModalVisible]);
+    setIsFetching(false);
+  };
 
   // Get image dimensions dynamically
   const onImageLayout = (postID: number, imageURL: string) => {
@@ -173,7 +237,7 @@ const Page = () => {
         [postID]: calculatedHeight,
       }));
     }, () => {
-      // If the it failes to get a size, there was an error
+      // If it fails to get a size, there was an error
       setImageErrors(prevState => ({
         ...prevState,
         [postID]: true,
@@ -189,327 +253,242 @@ const Page = () => {
     }));
   };
 
+  // Handle the post layout
+  const handleLayout = (postID: number, event: LayoutChangeEvent) => {
+    event.persist();
+    if (!event.nativeEvent.layout) return;
+
+    setPostPositions((prev) => ({
+      ...prev,
+      [postID]: {
+        y: event.nativeEvent.layout.y,
+        height: event.nativeEvent.layout.height,
+      },
+    }));
+  };
+
+  // Handle navigating to a user's profile page
+  const handleProfileNavigation = async (username: string) => {
+    setLoadingProfile(true);
+    const user = await fetchUserByUsername(username);
+    if (user) {
+      router.replace(`/authenticated/profile?id=${user.uuid}`);
+    }
+    setLoadingProfile(false);
+  };
+
+  // Toggle markers on/off for a given post
+  const toggleMarkers = (postID: number) => {
+    setAreMarkersVisible(prev => ({
+      ...prev,
+      [postID]: !prev[postID],
+    }));
+  };
+
+  // Show the clothing item details
+  const showItemDetails = async (postID: number, clothingItemID: number) => {
+    if (itemDetailsMap[clothingItemID]) {
+      setVisibleItemModal({ postID, clothingItemID });
+      setActiveClothingItemID(clothingItemID);
+    }
+  };
+
+  // Reset feed
+  const resetFeed = async () => {
+    if (!userID) return;
+    setFeedData([]);
+    setHasSeenPosts(false);
+    setNoMorePosts(false);
+    setLoading(true);
+
+    try {
+      await resetSeenPosts(userID);
+      setExpandedCaptions({});
+      setSeenPosts(new Set());
+      setPostPositions({});
+      setAreMarkersVisible({});
+
+      getNewPosts();
+    } catch (error) {
+      console.error("Error resetting feed:", error);
+    }
+  };
+
   return (
     <View style={profileStyle.feedContainer}>
-        {/* Header */}
-        <View style={styles.header}>
-          <Text style={styles.headerText}>dripdrop</Text>
-        </View>
+      {/* Header */}
+      <View style={[feedStyle.header, {height: headerHeight}]}>
+        <Text style={feedStyle.headerText}>dripdrop</Text>
+      </View>
 
-        {loading  ? (
-          <ActivityIndicator size="large" color="#0000ff" />
-        ) : error ? (
-          <Text style={styles.text}>{error}</Text>
-        ) : (
-          <View style={{ flex: 1 }}>
-            <FlatList 
-              contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
-              data={feedData}
-              keyExtractor={(item) => item.postID.toString()}
-              renderItem={({ item }) => {
-                const imageHeight = imageDimensions[item.postID];
-                const imageURL = `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
-    
-                return (
-                  <View style={styles.feedItem}>
-                    {/* Display the poster's username */}
-                    <Text style={styles.username}>{item.username}</Text>
-    
-                    {/* Display the post's image */}
-                    {imageErrors[item.postID] ? (
-                      <View style={styles.imageErrorBox}>
-                        <Text style={styles.imageErrorText}>There was an error loading the image.</Text>
-                      </View>
-                    ) : (
-                      item.images && item.images[0]?.imageURL && (
+      {loading  ? (
+        <ActivityIndicator size="large" color="#0000ff" />
+      ) : error ? (
+        <Text style={feedStyle.text}>{error}</Text>
+      ) : (
+        <View style={{ flex: 1 }}>
+          <FlatList 
+            contentContainerStyle={{ paddingTop: headerHeight, paddingBottom: navbarHeight }}
+            data={feedData}
+            keyExtractor={(item) => item.postID.toString()}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
+            renderItem={({ item }) => {
+              const imageHeight = imageDimensions[item.postID];
+              const imageURL = item.images && item.images[0]?.imageURL ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`: "";
+              const profilePicURL = item.user && item.user?.profilePic ? `https://cdn.dripdropco.com/${item.user.profilePic}?format=png` : "";
+
+              return (
+                <View style={feedStyle.feedItem} onLayout={(event) => handleLayout(item.postID, event)}>
+                  {/* Display the poster's username */}
+                  <TouchableOpacity onPress={() => handleProfileNavigation(item.username)} style={feedStyle.postHeader}>
+                    {profilePicURL !== "" && <Image 
+                      source={{ uri: profilePicURL }}
+                      style={feedStyle.profilePicture}
+                    />}
+                    <Text style={feedStyle.username}>{item.username}</Text>
+                  </TouchableOpacity>
+  
+                  {/* Display the post's image */}
+                  {imageErrors[item.postID] || !(item.images && item.images[0]?.imageURL) ? (
+                    <View style={feedStyle.imageErrorBox}>
+                      <Text style={feedStyle.imageErrorText}>There was an error loading the image.</Text>
+                    </View>
+                  ) : (
+                    item.images && item.images[0]?.imageURL && (
+                      <View style={{ position: 'relative' }}>
                         <Image
                           source={{ uri: imageURL }}
-                          style={[styles.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
+                          style={[feedStyle.image, { width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain' }]}
                           onLoad={() => onImageLayout(item.postID, imageURL)}
                           onError={() => onImageError(item.postID)}
                         />
-                      )
-                    )}
-    
-                    {/* Buttons for liking and commenting */}
-                    <View style={styles.iconContainer}>
-                      <Icon 
-                        name={ item.userHasLiked ? 'heart' : 'heart-o' }
-                        size={30}
-                        color={ item.userHasLiked ? 'red' : Colors.light.contrast }
-                        onPress={() => handleLike(item.postID)}
-                        style={styles.icon}
-                      />
-                      <Text style={styles.iconCount}>{item.numLikes}</Text>
-                      <Icon 
-                        name="comment-o"
-                        size={30}
-                        color={Colors.light.contrast}
-                        onPress={() => handleComment(item.postID)}
-                        style={styles.icon}
-                      />
-                      <Text style={styles.iconCount}>{item.numComments}</Text>
-                    </View>
-    
-                    {/* Display the username & caption */}
-                    <Text style={styles.caption}><Text style={styles.usernameInline}>{item.username}</Text> {item.caption}</Text>
-    
-                    {/* Display the post date */}
-                    <Text style={styles.date}>{item.createdDate}</Text>
-                  </View>
-                );
-              }}
-            />
 
-            {/* Comment Modal */}
-            {commentModalVisible && <Modal 
-              animationType="slide"
-              transparent={false}
-              visible={commentModalVisible}
-              onRequestClose={() => setCommentModalVisible(false)}
-            >
-              <SafeAreaView style={{ flex: 1 }}>
-                <GestureHandlerRootView style={{ flex: 1 }}>
-                  <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
-                    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-                      <View style={styles.commentContainer}>
-                        {/* Header - Swipe down indicator */}
-                        <PanGestureHandler
-                          onGestureEvent={(event) => {
-                            if (event.nativeEvent.translationY > 50) {
-                              setCommentModalVisible(false);
-                            }
-                          }}
-                        >
-                          <View style={styles.modalHeader}>
-                            <View style={styles.swipeIndicator}/>
-                            <Text style={styles.commentsText}>Comments</Text>
+                        {/* Toggle Markers Button */}
+                        {markersMap[item.postID] && (
+                          <View style={feedStyle.markerToggleContainer}>
+                            <Switch 
+                              value={!!areMarkersVisible[item.postID]}
+                              onValueChange={() => toggleMarkers(item.postID)}
+                              trackColor={{ false: "black", true: "blue" }}
+                            />
                           </View>
-                        </PanGestureHandler>
+                        )}
 
-                        {/* Comments List */}
-                        <KeyboardAwareScrollView style={[styles.commentList, { maxHeight: windowHeight - 150 }]} keyboardShouldPersistTaps="handled" contentContainerStyle={{ flexGrow: 1 }} onScroll={Keyboard.dismiss} scrollEnabled={true}>
-                          {loadingComments ? (
-                            <ActivityIndicator size="large" color={Colors.light.primary}/>
-                          ) : comments.length > 0 ? (
-                            comments.map((comment) => (
-                              <View key={comment.commentID} style={styles.commentItem}>
-                                <Image 
-                                  source={{ uri: `https://cdn.dripdropco.com/${comment.profilePic !== "default" ? comment.profilePic : "profilePics/default.jpg" }?format=png` }}
-                                  style={styles.profilePicture}
-                                />
-                                <View style={styles.commentTextContainer}>
-                                  <View style={styles.commentHeader}>
-                                    <Text style={styles.commentUsername}>{comment.username}</Text>
-                                    <Text style={styles.commentDate}>{comment.createdDate}</Text>
-                                  </View>
-                                  <Text>{comment.content}</Text>
-                                </View>
-                              </View>
-                            ))
-                          ) : (
-                            <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
-                          )}
-                        </KeyboardAwareScrollView>
+                        {/* Display the markers on each post */}
+                        {areMarkersVisible[item.postID] && markersMap[item.postID]?.filter(marker => itemDetailsMap[marker.clothingItemID]).map((marker) => {
+                          const scaleX = windowWidth;
+                          const scaleY = imageHeight || 1;
+                          
+                          const x = marker.xCoord * scaleX;
+                          const y = marker.yCoord * scaleY;
 
-                        {/* Comment Input */}
-                        <View style={styles.inputContainer}>
-                          <TextInput 
-                            ref={commentInputRef}
-                            style={styles.commentInput}
-                            placeholder="Add a comment..."
-                            value={commentText}
-                            onChangeText={setCommentText}
-                            autoFocus={true}
-                            multiline={true}
-                            numberOfLines={5}
-                            scrollEnabled={true}
-                          />
-                          <TouchableOpacity onPress={handleAddComment}>
-                            {loadingAddComment ? (
-                              <ActivityIndicator size="small" color={Colors.light.primary}/>
-                            ) : (
-                              <Text style={styles.sendButton}>Post</Text>
-                            )}
-                          </TouchableOpacity>
-                        </View>
+                          return (
+                            <TouchableOpacity
+                              key={`${item.postID}-${marker.clothingItemID}`}
+                              onPress={() => {showItemDetails(item.postID, marker.clothingItemID)}}
+                              style={[feedStyle.marker, {left: x, top: y, backgroundColor: marker.clothingItemID === activeClothingItemID ? Colors.light.primary : "rgba(255, 255, 255, 0.8)"}]}
+                            >
+                              <Text style={{ fontSize: 16 }}>•</Text>
+                            </TouchableOpacity>
+                          );
+                        })}
                       </View>
-                      
-                    </TouchableWithoutFeedback>
-                  </KeyboardAvoidingView>
-                </GestureHandlerRootView>
-              </SafeAreaView>
-            </Modal>}
-          </View>
-        )}
+                    )
+                  )}
+  
+                  {/* Buttons for liking and commenting */}
+                  <LikeCommentBar 
+                    feedData={feedData}
+                    setFeedData={setFeedData}
+                    userID={userID ? userID : ""}
+                    item={item}
+                    setCurrentPostID={setCurrentPostID}
+                    setCommentModalVisible={setCommentModalVisible}
+                    setLoadingComments={setLoadingComments}
+                    setComments={setComments}
+                  />
+  
+                  {/* Display the username & caption */}
+                  <Text style={feedStyle.caption} numberOfLines={expandedCaptions[item.postID] ? undefined : 3} ellipsizeMode="tail">
+                    <Text style={feedStyle.usernameInline} onPress={() => handleProfileNavigation(item.username)}>{item.username}</Text> {item.caption}
+                  </Text>
+                  {item.caption.length > 100 && (
+                    <TouchableOpacity onPress={() => toggleCaption(item.postID)}>
+                      <Text style={feedStyle.showMoreText}>
+                        {expandedCaptions[item.postID] ? "Show less" : "Show more"}
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+  
+                  {/* Display the post date */}
+                  <Text style={feedStyle.date}>{item.createdDate}</Text>
+                </View>
+              );
+            }}
+            ListFooterComponent={
+              noMorePosts ? (
+                <View style={feedStyle.noMorePostsMessage}>
+                  <Text style={feedStyle.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+                  <Button title="Reset Feed" onPress={resetFeed} />
+                </View>
+              ) : null
+            }
+          />
+
+          {/* There are no posts, ask if the user wants to reset feed */}
+          {feedData.length === 0 && <View
+            style={{ justifyContent: "center", alignItems: "center", minHeight: windowHeight }}
+          >
+            <Text style={feedStyle.noMorePostsMessageText}>There are no more new posts to view. Would you like to reset your feed?</Text>
+            <Button title="Reset Feed" onPress={resetFeed} />
+          </View>}
+
+          {/* Comment Modal */}
+          <CommentModal 
+            userID={userID ? userID : ""}
+            commentInputRef={commentInputRef}
+            handleProfileNavigation={(username) => { handleProfileNavigation(username) }}
+            commentText={commentText}
+            setCommentText={setCommentText}
+            currentPostID={currentPostID}
+            setCurrentPostID={setCurrentPostID}
+            commentModalVisible={commentModalVisible}
+            setCommentModalVisible={setCommentModalVisible}
+            loadingComments={loadingComments}
+            setLoadingComments={setLoadingComments}
+            comments={comments}
+            setComments={setComments}
+            loadingAddComment={loadingAddComment}
+            setLoadingAddComment={setLoadingAddComment}
+            setFeedData={setFeedData}
+          />
+
+          {/* Draggable Item Modal */}
+          <DraggableItemModal 
+            visibleItemModal={visibleItemModal}
+            onClose={() => {setVisibleItemModal(null); setActiveClothingItemID(0)}}
+            onChangeIndex={(newClothingItemID) => {
+              setActiveClothingItemID(newClothingItemID)
+              setVisibleItemModal((prev) => 
+                prev ? { postID: prev.postID, clothingItemID: newClothingItemID } : null
+              )
+            }}
+            markersMap={markersMap}
+            itemDetailsMap={itemDetailsMap}
+          />
+        </View>
+      )}
+      
+      {loadingProfile && (
+        <View style={feedStyle.loadingProfileContainer}>
+          <ActivityIndicator size="small" color="#5271ff" />
+          <Text style={feedStyle.loadingProfileText}>Loading profile...</Text>
+        </View>
+      )}
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  header: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    height: headerHeight,
-    backgroundColor: Colors.light.background,
-    justifyContent: 'flex-start',
-    paddingTop: 5,
-    paddingLeft: 15,
-    zIndex: 1,
-  },
-  headerText: {
-    color: Colors.light.primary,
-    fontSize: 24,
-    fontWeight: 'bold',
-    fontStyle: 'italic',
-  },
-  text: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  username: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-  },
-  usernameInline: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  feedItem: {
-    marginBottom: 15,
-    padding: 10,
-    backgroundColor: Colors.light.background,
-    borderRadius: 8,
-    width: '100%'
-  },
-  image: {
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  imageErrorBox: {
-    width: windowWidth,
-    height: windowWidth,
-    backgroundColor: "#ccc",
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginBottom: 10,
-  },
-  imageErrorText: {
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  caption: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  date: {
-    fontSize: 14,
-    color: 'gray',
-  },
-  iconContainer: {
-    flexDirection: 'row',
-    justifyContent: 'flex-start',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  icon: {
-    marginRight: 10,
-  },
-  iconCount: {
-    fontSize: 12,
-    color: Colors.light.contrast,
-    marginRight: 20,
-  },
-  commentContainer: {
-    backgroundColor: Colors.light.background,
-    padding: 10,
-    borderTopLeftRadius: 20, // TODO: Can't get the radius to work 
-    borderTopRightRadius: 20,
-  },
-  commentHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 2,
-  },
-  commentUsername: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    marginRight: 5,
-  },
-  modalHeader: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  swipeIndicator: {
-    width: 40,
-    height: 4,
-    backgroundColor: Colors.light.primary,
-    borderRadius: 2,
-  },
-  commentsText: {
-    marginVertical: 10,
-    fontSize: 16,
-    textAlign: 'center',
-  },
-  commentList: {
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  commentItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 15,
-  },
-  profilePicture: {
-    width: 35,
-    height: 35,
-    borderRadius: 20,
-    marginRight: 10,
-    marginTop: 5,
-  },
-  commentTextContainer: {
-    flex: 1,
-    flexDirection: 'column',
-  },
-  commentDate: {
-    marginLeft: 5,
-    fontSize: 14,
-    color: 'gray',
-  },
-  noCommentsText: {
-    textAlign: 'center',
-    color: 'gray',
-    fontStyle: 'italic',
-    fontSize: 16,
-  },
-  inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderTopWidth: 1,
-    borderTopColor: Colors.light.contrast,
-  },
-  commentInput: {
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    backgroundColor: '#f1f1f1',
-    borderRadius: 20,
-    fontSize: 16,
-    marginRight: 10,
-  },
-  sendButton: {
-    fontSize: 18,
-    color: Colors.light.primary,
-    fontWeight: 'bold',
-  }
-});
 
 export default Page;

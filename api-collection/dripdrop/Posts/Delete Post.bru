@@ -1,11 +1,24 @@
 meta {
   name: Delete Post
   type: http
-  seq: 7
+  seq: 8
 }
 
 delete {
   url: https://api.dripdropco.com/posts/59
   body: none
   auth: none
+}
+
+script:pre-request {
+  const token = bru.getVar("id_token");  // Use bru.getVar() instead of bru.getEnvVar()
+  const tokenExpiresAt = parseInt(bru.getVar("token_expires_at"), 10);  // Use bru.getVar() here too
+  const now = Math.floor(Date.now() / 1000);
+  
+  if (!token || now >= tokenExpiresAt) {
+    throw new Error("Token expired or missing. Please run the 'Get Token' request manually.");
+  } else {
+    req.setHeader("Authorization", `Bearer ${token}`);
+  }
+  
 }

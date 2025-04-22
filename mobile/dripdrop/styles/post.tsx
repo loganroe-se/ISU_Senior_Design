@@ -4,35 +4,54 @@ import { Dimensions, StyleSheet } from "react-native";
 
 
 
-export const preview_post_styles = StyleSheet.create({
+export const processing_post_styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
         padding: 20,
+
     },
     title: {
         fontSize: 20,
         fontWeight: "bold",
+        marginBottom: 10,
+        textAlign: "center",
+        color: 'black'
+    },
+    subtitle: {
+        fontSize: 16,
         marginBottom: 20,
         textAlign: "center",
+        paddingHorizontal: 20,
+        color: 'gray',
+        lineHeight: 24
     },
     image: {
-        width: 300,
-        height: 300,
+        width: 400,
+        height: 400,
         borderRadius: 10,
         marginBottom: 15,
+        resizeMode: 'contain',
     },
     caption: {
         fontSize: 16,
         marginBottom: 20,
         textAlign: "center",
         paddingHorizontal: 10,
+        color: 'black'
     },
     button: {
         width: "80%",
         marginVertical: 10,
     },
+    buttonContainer: {
+        width: "100%",
+        alignItems: 'center',
+        justifyContent: 'flex-end'
+    },
+
+
 });
 
 
@@ -43,34 +62,32 @@ export const post_styles = StyleSheet.create({
         flex: 1,
     },
     cardContainer: {
-        borderRadius: 12,
-        elevation: 5,
-        backgroundColor: '#f2f2f2'
+        backgroundColor: 'white',
+        width: '100%',
+        alignSelf: 'center',
+        borderRadius: 0
     },
     imageContainer: {
         alignItems: "center",
-        marginBottom: 10,
         position: 'relative',
     },
     image: {
         width: "100%",
-        height: 200,
-        borderRadius: 10,
+        height: 300,
         marginVertical: 10,
-        objectFit: 'contain',
+        resizeMode: 'contain'
     },
     removeIconContainer: {
         position: "absolute", // Position the X icon absolutely
-        top: 10, // Distance from the top
-        right: 10, // Distance from the right
-
-        borderRadius: 12, // Rounded corners
-        padding: 4, // Padding around the icon
+        top: 10,
+        right: 10,
+        borderRadius: 12,
+        padding: 4,
     },
     placeholderContainer: {
         alignItems: "center",
         justifyContent: "center",
-        height: 200,
+        height: 300,
     },
     placeholderText: {
         fontSize: 16,
@@ -81,10 +98,6 @@ export const post_styles = StyleSheet.create({
         justifyContent: "center",
         padding: 5,
         borderRadius: 5,
-    },
-    removeButton: {
-        backgroundColor: Colors.redButtonColor,
-        alignSelf: 'center'
     },
     input: {
         borderRadius: 8,
@@ -108,29 +121,33 @@ export const post_styles = StyleSheet.create({
         backgroundColor: "rgba(0, 0, 0, 0.8)",
     },
     frame: {
-        width: 300,
-        height: 300,
-        borderWidth: 2,
-        borderColor: "#fff",
-        overflow: "hidden",
+        width: '90%',
+        height: '60%',
+        borderWidth: 1,
+        borderColor: '#ccc',
+        overflow: 'hidden',
+        marginBottom: 20,
     },
     adjustableImage: {
         width: "100%",
         height: "100%",
     },
     modal_button: {
-        width: 200, // Fixed width for both buttons
-        height: 40, // Fixed height for both buttons
-        justifyContent: "center", // Center text horizontally
-
-        alignSelf: 'center',
-        marginTop: 10, // Space between buttons
+        marginVertical: 5,
+        width: '80%',
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
     },
     cancelButton: {
         borderColor: 'red',
+    },
+    resetButton: {
+        borderColor: 'blue',
+    },
+    buttonGroup: {
+        width: '100%',
+        alignItems: 'center',
     },
 
     topBar: {
@@ -148,6 +165,7 @@ export const post_styles = StyleSheet.create({
     },
     continueButton: {
         padding: 8,
+        borderRadius: 4
     },
     continueText: {
         fontSize: 16,
@@ -157,6 +175,12 @@ export const post_styles = StyleSheet.create({
     loadingText: {
         color: 'grey',
         opacity: 0.7,
+    },
+    disabledButton: {
+        backgroundColor: "#d3d3d3", // Grey out the button when disabled
+    },
+    disabledText: {
+        color: "#a1a1a1", // Lighter color for the text when disabled
     },
     takePhotoButton: {
         flexDirection: "row",
@@ -170,11 +194,36 @@ export const post_styles = StyleSheet.create({
     cameraIcon: {
         marginRight: 8,
     },
-    takePhotoText: {
+
+    androidImageUpload: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center", // Center content horizontally
+        padding: 6, // Increase padding for height
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: Colors.light.primary,
+        backgroundColor: Colors.light.primary,
+        marginTop: "80%",
+        alignSelf: "center", // Center the button itself
+    },
+
+    androidCameraIcon: {
+        marginRight: 8,
+        padding: 10
+    },
+    androidTakePhotoText: {
         color: "#fff",
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: "bold",
     },
+    takePhotoText: {
+        color: "#fff",
+        fontSize: 18,
+        fontWeight: "bold",
+    },
+
+
 });
 
 
@@ -185,6 +234,7 @@ export const image_marker_styles = StyleSheet.create({
         padding: 16,
         backgroundColor: "#fff",
     },
+
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
@@ -218,11 +268,11 @@ export const image_marker_styles = StyleSheet.create({
     },
     marker: {
         position: "absolute",
-        width: '8%', 
-        height: '8%', 
+        width: '8%',
+        height: '8%',
         borderRadius: '100%', // Circular marker
         backgroundColor: "grey", // Default color for unverified markers
-        opacity: 0.7, // Semi-transparent
+        opacity: 0.9, // Semi-transparent
     },
     caption: {
         fontSize: 16,
@@ -238,10 +288,11 @@ export const image_marker_styles = StyleSheet.create({
     },
     modalContainer: {
         flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-        backgroundColor: "rgba(0, 0, 0, 0.5)",
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.7)',
     },
+
     modalContent: {
         width: "80%",
         padding: 20,
@@ -271,25 +322,6 @@ export const image_marker_styles = StyleSheet.create({
         top: -8,
         right: -8,
     },
-    confirmationDialog: {
-        position: "absolute",
-        bottom: 100,
-        width: "80%",
-        alignSelf: "center",
-        backgroundColor: "#fff",
-        padding: 16,
-        borderRadius: 8,
-        elevation: 5,
-    },
-    confirmationText: {
-        fontSize: 16,
-        textAlign: "center",
-        marginBottom: 16,
-    },
-    confirmationButtons: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-    },
     confirmButton: {
         flex: 1,
         marginRight: 8,
@@ -298,7 +330,7 @@ export const image_marker_styles = StyleSheet.create({
         flex: 1,
         marginLeft: 8,
     },
-        editButton: {
+    editButton: {
         position: "absolute",
         top: 16,
         right: 16,
@@ -321,7 +353,54 @@ export const image_marker_styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
     },
-    
+    overlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    confirmationDialog: {
+        backgroundColor: "#fff",
+        padding: 24,
+        borderRadius: 16,
+        width: "80%",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+
+    confirmationTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 8,
+        textAlign: "center",
+        color: "#222",
+    },
+
+    confirmationText: {
+        fontSize: 16,
+        textAlign: "center",
+        color: "#444",
+        marginBottom: 20,
+    },
+
+    confirmationButtons: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
+    },
+
+    button: {
+        flex: 1,
+        marginHorizontal: 8,
+        borderRadius: 8,
+    },
+
+
 });
 
 
@@ -342,33 +421,29 @@ export const item_details_styles = StyleSheet.create({
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
-        padding: 10,
+
         position: "absolute", // Position the buttons absolutely
         alignSelf: 'center',
         bottom: '-.1%'
     },
-
     backButton: {
         borderWidth: 1.5,
         borderColor: "black",
-        paddingVertical: 12,
-        paddingHorizontal: 24,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginRight: 8, // Add spacing between buttons
-        backgroundColor: "#fff", // White background for the button
+        margin: 8,
+        backgroundColor: "#0",
     },
     saveButton: {
         backgroundColor: Colors.light.primary,
-        paddingVertical: 12,
-        paddingHorizontal: 24,
+        borderWidth: 1.5,
         borderRadius: 8,
         alignItems: "center",
         justifyContent: "center",
         flex: 1,
-        marginLeft: 8, // Add spacing between buttons
+        margin: 8,
     },
     buttonText: {
         fontSize: 16,
@@ -384,18 +459,19 @@ export const item_details_styles = StyleSheet.create({
     text: {
         fontSize: 18,
         marginBottom: 10,
-        color: "#555", // Medium gray text color
     },
     input: {
         height: 50,
-        borderColor: "#ccc",
-        borderWidth: 1,
-        borderRadius: 8,
-        paddingHorizontal: 12,
         marginBottom: 16,
-        width: "100%",
         backgroundColor: "#fff", // White background for inputs
-        fontSize: 16,
+
     },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#fff',
+    },
+
 });
 

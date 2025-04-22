@@ -1,56 +1,52 @@
 from utils import create_response, handle_exception
-from sqlalchemy_utils import create_session
-from dripdrop_orm_objects import User
+from sqlalchemy_utils import session_handler
+from dripdrop_orm_objects import User, Follow
+from sqlalchemy import select, func
+from urllib.parse import parse_qs
 
 def handler(event, context):
     try:
-        # Get id from path parameters
-        user_id = event['pathParameters'].get('id')
-        
-        # Check for missing required value
-        if not user_id:
-            return create_response(400, 'Missing user ID')
-        
-        # Call getFollowers function to get followers from the database
-        status_code, message = getFollowers(user_id)
+        # Get UUID from path parameters
+        uuid = event['pathParameters'].get('id')
+        if not uuid:
+            return create_response(400, 'Missing uuid')
 
-        # Return message
+        # Parse query string for countOnly flag
+        raw_query = event.get('queryStringParameters') or {}
+        count_only = raw_query.get('countOnly', 'false').lower() == 'true'
+
+        status_code, message = get_followers(uuid, count_only)
         return create_response(status_code, message)
-    
+
     except Exception as e:
         return create_response(500, f"Error retrieving followers: {str(e)}")
-    
 
-def getFollowers(user_id):
-    # Try to get list of all users following user_id
+
+@session_handler
+def get_followers(session, uuid, count_only=False):
     try:
-        # Create the session
-        session = create_session()
-
-        # Fetch the user by ID
-        user = session.query(User).filter(User.userID == user_id).one_or_none()
-
-        # If user does not exist, return 404
+        user = session.query(User).filter(User.uuid == uuid).one_or_none()
         if not user:
-            return 404, f"User with ID {user_id} does not exist."
+            return 404, f"User with uuid {uuid} does not exist."
 
-        # Get all users that follow the current user
-        followers = [
-            {
-                "userID": follow.follower.userID,
-                "username": follow.follower.username,
-            }
-            for follow in user.followers
-        ]
+        if count_only:
+            # Efficient count using JOIN
+            count = session.execute(
+                select(func.count()).select_from(Follow).where(Follow.followedId == user.userID)
+            ).scalar()
+            return 200, { "follower_count": count }
 
-        # Return the list of followers
-        return 200, followers
+        else:
+            # Full list of followers
+            followers = [
+                {
+                    "uuid": follow.follower.uuid,
+                    "username": follow.follower.username,
+                    "profilePic": follow.follower.profilePicURL
+                }
+                for follow in user.followers
+            ]
+            return 200, followers
 
     except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "Error accessing database")
-        return code, msg
-
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+        return handle_exception(e, "Error accessing database")

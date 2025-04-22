@@ -1,70 +1,50 @@
 import json, datetime
-from sqlalchemy_utils import create_session
+from sqlalchemy_utils import session_handler, get_user_by_email
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, User, HasSeen
 
 def handler(event, context):
     try:
-        # Parse the user data from event
         body = json.loads(event['body'])
 
-        # Get all body attributes
-        userID = body.get('userID')
         postIDs = body.get('postIDs')
+        email = event['requestContext']['authorizer']['claims']['email']
 
-        # Check for missing, required values
-        if not userID or not postIDs:
-            return create_response(400, 'Missing required fields to mark post(s) as seen. Required fields: userID & postIDs')
-        
-        # Call another function to mark as seen
-        status_code, message = markAsSeen(userID, postIDs)
+        if not postIDs:
+            return create_response(400, 'Missing required fields: postIDs')
 
-        # Return message
+        status_code, message = markAsSeen(email, postIDs)
         return create_response(status_code, message)
-        
+
     except Exception as e:
         print(f"Error: {e}")
-        return create_response(500, f"Error marking as seen: {str(e)}")
-    
+        return create_response(500, f"Error marking posts as seen: {str(e)}")
 
-def markAsSeen(userID, postIDs):
-    # Ensure postIDs is always a list (if a single postID is passed)
-    if isinstance(postIDs, int):
-        postIDs = [postIDs]
 
-    # Try to mark the posts as seen
+@session_handler
+def markAsSeen(session, email, postIDs):
     try:
-        # Create the session
-        session = create_session()
+        # Ensure postIDs is a list
+        if isinstance(postIDs, int):
+            postIDs = [postIDs]
 
-        # Check if the userID exists
-        user = session.query(User).filter_by(userID=userID).first()
+        user = get_user_by_email(session, email)
+
         if not user:
-            raise Exception("404", f"User with userID: {userID} was not found")
-        
-        # Check if the postID(s) exist
+            return 404, f"User with userID: {email} was not found"
+
         posts = session.query(Post).filter(Post.postID.in_(postIDs)).all()
         valid_postIDs = {post.postID for post in posts}
 
-        # Filter out the invalid postIDs
         invalid_postIDs = set(postIDs) - valid_postIDs
         if invalid_postIDs:
-            raise Exception(404, f"Invalid postIDs: {', '.join(map(str, invalid_postIDs))}")
-        
-        # Mark the valid posts as seen
+            return 404, f"Invalid postIDs: {', '.join(map(str, invalid_postIDs))}"
+
+        # Insert HasSeen entries
         for postID in valid_postIDs:
-            session.add(HasSeen(userID=userID, postID=postID, timeViewed=datetime.datetime.now()))
+            session.add(HasSeen(userID=user.userID, postID=postID, timeViewed=datetime.datetime.now()))
 
-        # Commit the changes
-        session.commit()
-
-        return 200, f"Posts marked as seen succesfully for the user with userID: {userID}"
+        return 200, f"Posts marked as seen successfully for email: {email}"
 
     except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "MarkAsSeen Handler.py")
-        return code, msg
-    
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+        return handle_exception(e, "markAsSeen")

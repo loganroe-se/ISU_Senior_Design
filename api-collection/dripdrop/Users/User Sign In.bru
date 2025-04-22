@@ -12,8 +12,26 @@ post {
 
 body:json {
   {
-      "email": "testusername@test.edu",
-      "password": "password123"
+      "email": "esamkriegel@gmail.com",
+      "password": "@testPassword123!"
   }
+  
+}
+
+script:post-response {
+  // If res.body is already an object, no need to parse
+  const responseBody = typeof res.body === 'string' ? JSON.parse(res.body) : res.body;
+  
+  // Now proceed with the logic assuming responseBody is the parsed JSON
+  const token = responseBody.id_token;
+  
+  const base64Url = token.split('.')[1];
+  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  const decodedPayload = JSON.parse(Buffer.from(base64, 'base64').toString());
+  const expiresAt = decodedPayload.exp;
+  
+  // Store the token and expiration time in runtime variables
+  bru.setVar("id_token", token);
+  bru.setVar("token_expires_at", expiresAt);
   
 }

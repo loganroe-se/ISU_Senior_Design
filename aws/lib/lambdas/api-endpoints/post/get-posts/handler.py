@@ -1,46 +1,38 @@
-from sqlalchemy_utils import create_session
+from sqlalchemy_utils import session_handler
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post
-from sqlalchemy.orm import joinedload 
+from sqlalchemy.orm import joinedload
 from datetime import datetime, date
 
 def handler(event, context):
     try:
-
-        # Call function to get all posts
         status_code, message = getPosts()
-
-        # Return message
         return create_response(status_code, message)
-    
+
     except Exception as e:
         print(f"Error: {e}")
         return create_response(500, f"Error getting posts: {str(e)}")
-    
 
-def getPosts():
+
+@session_handler
+def getPosts(session):
     try:
-        # Create the session
-        session = create_session()
-
-        # Fetch all posts with their related images
         posts_result = (
             session.query(Post)
             .options(joinedload(Post.images), joinedload(Post.likes), joinedload(Post.comments))
             .all()
         )
 
-        # Create a list of post dictionaries, including images
         posts_list = [
             {
                 "postID": post.postID,
-                "userID": post.userID,
+                "uuid": post.userRel.uuid,
                 "status": post.status,
                 "caption": post.caption,
                 "createdDate": (
                     post.createdDate.isoformat()
                     if isinstance(post.createdDate, (datetime, date))
-                    else post.createdDate
+                    else str(post.createdDate)
                 ),
                 "images": [
                     {"imageID": image.imageID, "imageURL": image.imageURL}
@@ -52,15 +44,7 @@ def getPosts():
             for post in posts_result
         ]
 
-        # Return message
         return 200, posts_list
 
     except Exception as e:
-        # Handle the exception
-        code, msg = handle_exception(e, "Error accessing database")
-        return code, msg
-
-    finally:
-        # Ensure session is closed
-        if "session" in locals() and session:
-            session.close()
+        return handle_exception(e, "Error accessing database")

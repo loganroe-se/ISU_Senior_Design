@@ -1,21 +1,15 @@
-from sqlalchemy_utils import create_session
+from sqlalchemy_utils import session_handler, get_user_by_email
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, User, HasSeen
 from datetime import datetime, date
 
 def handler(event, context):
     try:
-        # Get id from path parameters
-        user_id = event['pathParameters'].get('id')
+        # Get user ID from path parameters
+        email = event['requestContext']['authorizer']['claims']['email']
 
-        # Check for missing, required values
-        if not user_id:
-            return create_response(400, 'Missing user ID')
-        
-        # Call another function to get the posts
-        status_code, message = getSeenPosts(user_id)
 
-        # Return message
+        status_code, message = getSeenPosts(email)
         return create_response(status_code, message)
 
     except Exception as e:
@@ -23,49 +17,41 @@ def handler(event, context):
         return create_response(500, f"Error getting seen posts: {str(e)}")
 
 
-def getSeenPosts(userID):
-    # Try to get seen posts by userID
+@session_handler
+def getSeenPosts(session, email):
     try:
-        # Create the session
-        session = create_session()
+        user = get_user_by_email(session, email)
+        userID = user.userID
 
-        # Check if the userID exists
-        user = session.query(User).filter_by(userID=userID).first()
         if not user:
-            raise Exception("404", f"User with userID: {userID} was not found")
-        
-        # Get the list of posts for the userID
-        seen_posts_query = session.query(Post).join(HasSeen, HasSeen.postID == Post.postID).filter(HasSeen.userID == userID)
-        seen_posts = seen_posts_query.all()
+            return 404, f"User with userID: {email} was not found"
+
+        seen_posts = session.query(Post).join(
+            HasSeen, HasSeen.postID == Post.postID
+        ).filter(HasSeen.userID == userID).all()
 
         if not seen_posts:
-            return 404, f"No posts have been seen by user with userID: {userID}"
-        else:
-            # Serialize the posts
-            seen_posts_data = [
-                {
-                    "postID": post.postID,
-                    "userID": post.userID,
-                    "caption": post.caption,
-                    "createdDate": (
-                        post.createdDate.isoformat()
-                        if isinstance(post.createdDate, (datetime, date))
-                        else post.createdDate
-                    ),
-                    "images": [
-                        {"imageID": image.imageID, "imageURL": image.imageURL}
-                        for image in post.images
-                    ],
-                } for post in seen_posts
-            ]
-            
-            return 200, seen_posts_data
+            return 204, f"No posts have been seen by user with email: {email}"
+
+        seen_posts_data = [
+            {
+                "postID": post.postID,
+                "uuid": post.userRel.uuid if post.userRel else None,
+                "caption": post.caption,
+                "createdDate": (
+                    post.createdDate.isoformat()
+                    if isinstance(post.createdDate, (datetime, date))
+                    else str(post.createdDate)
+                ),
+                "images": [
+                    {"imageID": image.imageID, "imageURL": image.imageURL}
+                    for image in post.images
+                ],
+            }
+            for post in seen_posts
+        ]
+
+        return 200, seen_posts_data
 
     except Exception as e:
-        # Call a helper to handle the exception
-        code, msg = handle_exception(e, "GetSeenPostsByUserID Handler.py")
-        return code, msg
-    
-    finally:
-        if 'session' in locals() and session:
-            session.close()
+        return handle_exception(e, "GetSeenPostsByUserID")

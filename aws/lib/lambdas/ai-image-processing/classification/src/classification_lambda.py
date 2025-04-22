@@ -39,10 +39,11 @@ def handler(event, context):
         # Perform classification (dummy classification here)
         print("Classifying")
         classified_output = classify_segment(segmentation_result)
+        print("Done with  Classification")
 
         return {
             "statusCode": 200,
-            "body": json.dumps({"image_id": image_id, "clothing_items": classified_output})
+            "body": json.dumps({"image_id": image_id, "image_path": response["Item"]["image_path"], "clothing_items": classified_output})
         }
 
     except Exception as e:
