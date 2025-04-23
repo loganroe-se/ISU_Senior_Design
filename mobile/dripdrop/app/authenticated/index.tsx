@@ -402,7 +402,6 @@ const Page = () => {
                   <LikeCommentBar 
                     feedData={feedData}
                     setFeedData={setFeedData}
-                    userID={userID ? userID : ""}
                     item={item}
                     setCurrentPostID={setCurrentPostID}
                     setCommentModalVisible={setCommentModalVisible}

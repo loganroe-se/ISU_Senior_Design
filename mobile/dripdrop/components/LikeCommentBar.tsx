@@ -11,7 +11,6 @@ import Icon from "react-native-vector-icons/FontAwesome";
 interface LikeCommentBarProps {
     feedData: Post[];
     setFeedData: React.Dispatch<React.SetStateAction<Post[]>>;
-    userID: string;
     item: Post;
     setCurrentPostID: React.Dispatch<React.SetStateAction<number | null>>;
     setCommentModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,7 +21,6 @@ interface LikeCommentBarProps {
 const LikeCommentBar = ({ 
     feedData, 
     setFeedData, 
-    userID, 
     item, 
     setCurrentPostID, 
     setCommentModalVisible,
