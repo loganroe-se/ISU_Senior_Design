@@ -10,12 +10,12 @@ import {
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Platform,
+  PermissionsAndroid,
   Keyboard,
-  Modal,
 } from "react-native";
 import * as FileSystem from 'expo-file-system';
 
-import { Button, TextInput, Card } from "react-native-paper";
+import {  TextInput, Card } from "react-native-paper";
 import { useRouter } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
@@ -56,11 +56,39 @@ export default function Post() {
     })();
   }, []);
 
+  const requestAndroidMediaPermissions = async () => {
+    if (Platform.OS === "android") {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES,
+          {
+            title: "Access Your Photos",
+            message: "We need access to your media to let you choose photos.",
+            buttonPositive: "OK",
+          }
+        );
+
+        return granted === PermissionsAndroid.RESULTS.GRANTED;
+      } catch (err) {
+        console.warn(err);
+        return false;
+      }
+    }
+    return true; // iOS handles this differently
+  };
   // Fetch photos from the media library
   useEffect(() => {
     const fetchPhotos = async () => {
-      const { status } = await MediaLibrary.requestPermissionsAsync();
-      if (status !== "granted") {
+      let granted = true;
+
+      if (Platform.OS === "android") {
+        granted = await requestAndroidMediaPermissions();
+      } else {
+        const { status } = await MediaLibrary.requestPermissionsAsync();
+        granted = status === "granted";
+      }
+
+      if (!granted) {
         alert("Permission to access media library is required!");
         return;
       }
@@ -82,6 +110,7 @@ export default function Post() {
 
     fetchPhotos();
   }, []);
+
 
   // Load more photos from the media library
   const loadMorePhotos = async () => {
@@ -160,7 +189,7 @@ export default function Post() {
     try {
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         image,
-        [{ resize: { width: 800 } }],
+        [{ resize: { width: 300 } }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
@@ -203,6 +232,22 @@ export default function Post() {
     Math.floor(Dimensions.get("window").width / (Dimensions.get("window").width / 4)),
     4
   );
+
+  const pickImageFromCameraRoll = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      setSelectedImageUri(result.assets[0].uri);
+      setImageAdjustmentVisible(true); // Open adjustment modal if needed
+    }
+  };
+
 
   return (
     <SafeAreaView style={post_styles.container}>
@@ -265,8 +310,18 @@ export default function Post() {
               </View>
             )}
           </Card>
+          <View style={{ flex: 1 }}>
+          {/* Bottom Half Android: Choose image from Camera Roll */}
+          {Platform.OS === 'android' && (
+            <TouchableOpacity onPress={pickImageFromCameraRoll} style={post_styles.androidImageUpload}>
+              <Ionicons name="images" size={20} color="#fff" style={post_styles.androidCameraIcon} />
+              <Text style={post_styles.androidTakePhotoText}>Choose from Camera Roll</Text>
+            </TouchableOpacity>
+          )}
 
-          {/* Bottom Half: Image Gallery */}
+         
+          {/* Bottom Half iOS: Image Gallery */}
+          {Platform.OS === 'ios' && (
           <FlatList
             data={photos}
             renderItem={({ item }) => (
@@ -286,6 +341,8 @@ export default function Post() {
               ) : null
             }
           />
+          )}
+          </View>
 
           {/* Caption Input */}
           <View style={post_styles.bottomContainer}>

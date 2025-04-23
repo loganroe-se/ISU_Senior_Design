@@ -49,37 +49,71 @@ export const getItemDetails = async (itemId: number | number[]): Promise<Item | 
   }
 };
 
-// Get an item
+//getitems.ts
 export const getItem = async (itemId: number): Promise<Item | null> => {
   try {
-    const data = await apiRequest<Item[] | Item>("GET", `/items/${itemId}`);
-    return Array.isArray(data) ? data[0] : data;
+    const data = await apiRequest<Item[] | { error: string }>(
+      "GET",
+      `/items/details?ids=${itemId}`
+    );
+
+    // Handle "no details found" response
+    if (
+      typeof data === "object" &&
+      "error" in data &&
+      data.error.includes("No details found")
+    ) {
+      return {
+        clothingItemID: itemId,
+        name: "",
+        brand: "",
+        category: "",
+        price: 0,
+        itemURL: "",
+        size: "",
+      };
+    }
+
+    // Handle normal response
+    if (Array.isArray(data)) {
+      return data[0] || null;
+    }
+    return null;
   } catch (error) {
-    console.error("Error fetching item:", error);
+    console.error(`Error fetching item ${itemId}:`, error);
     return null;
   }
 };
 
 
-// Update or create an item
+
+// Update an existing item
 export const updateItem = async (
   itemId: number,
-  itemData: any
-): Promise<Item> => {
+  itemData: Partial<Item> & { image_id?: string }
+): Promise<{ message: string }> => {  // Changed return type
   const existing = await getItem(itemId);
-  const method = existing ? "PUT" : "POST";
-  const endpoint = existing ? `/items/${itemId}` : "/items";
+  if (!existing) {
+    throw new Error(`Item with ID ${itemId} does not exist for update.`);
+  }
 
-  return apiRequest<Item>(method, endpoint, itemData);
+  return apiRequest<{ message: string }>(
+    "PUT",
+    `/items/${itemId}`,
+    itemData
+  );
 };
-
-// Create an item
+// Create a new item
 export const createItem = async (
   itemData: Omit<Item, "id"> & {
     image_id: string;
     xCoord: number;
     yCoord: number;
   }
-): Promise<Item> => {
-  return apiRequest<Item>("POST", "/items", itemData);
+): Promise<{ itemId: number; message: string }> => {
+  return apiRequest<{ itemId: number; message: string }>(
+    "POST",
+    "/items",
+    itemData
+  );
 };

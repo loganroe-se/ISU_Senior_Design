@@ -1,48 +1,51 @@
-import json
-from utils import create_response, handle_exception
 from sqlalchemy import select
 from sqlalchemy_utils import session_handler, get_user_by_email
-from dripdrop_orm_objects import Post, Like
+from sqlalchemy.orm import joinedload
+from sqlalchemy.exc import NoResultFound
+from utils import create_response, handle_exception
+from dripdrop_orm_objects import Post, Bookmark
 from datetime import datetime, date
 
 def handler(event, context):
     try:
-        search_string = event['pathParameters'].get('searchString')
         email = event['requestContext']['authorizer']['claims']['email']
 
-        if not search_string:
-            return create_response(400, 'Missing searchString')
-
-        status_code, message = searchPosts(search_string, email)
+        status_code, message = getBookmarks(email)
         return create_response(status_code, message)
 
     except Exception as e:
-        return create_response(500, f"Error searching posts: {str(e)}")
+        print(f"Error: {e}")
+        return create_response(500, f"Error getting bookmarks: {str(e)}")
 
 
 @session_handler
-def searchPosts(session, search_string, email):
+def getBookmarks(session, email):
     try:
         user = get_user_by_email(session, email)
+        if not user:
+            return 404, "User does not exist."
 
-        # Get up to 20 posts matching the search string
-        posts = session.execute(
+        # Query to fetch posts bookmarked by the user
+        query = (
             select(Post)
-            .filter(Post.caption.ilike(f"%{search_string}%"))
-            .limit(20)
-        ).scalars().all()
-
-        # Get the set of postIDs liked by the current user
-        liked_post_ids = set(
-            row[0] for row in session.execute(
-                select(Like.postID).filter(Like.userID == user.userID)
-            ).all()
+            .join(Bookmark, Bookmark.postID == Post.postID)
+            .where(Bookmark.userID == user.userID)
+            .options(
+                joinedload(Post.images),
+                joinedload(Post.likes),
+                joinedload(Post.comments),
+                joinedload(Post.userRel)
+            )
         )
 
-        posts_list = [
+        # Execute the query and fetch results
+        bookmarks_result = session.execute(query).unique().scalars().all()
+
+        # Construct the response
+        bookmarks_list = [
             {
                 "postID": post.postID,
-                "uuid": post.userRel.uuid if post.userRel else None,
+                "uuid": post.userRel.uuid,
                 "status": post.status,
                 "caption": post.caption,
                 "createdDate": (
@@ -56,17 +59,17 @@ def searchPosts(session, search_string, email):
                 ],
                 "numLikes": len(post.likes),
                 "numComments": len(post.comments),
-                "hasLiked": post.postID in liked_post_ids,
                 "user": {
                     "username": post.userRel.username,
                     "profilePic": post.userRel.profilePicURL,
                 },
             }
-            for post in posts
+            for post in bookmarks_result
         ]
 
-        return 200, posts_list
+        return 200, bookmarks_list
 
+    except NoResultFound:
+        return 404, f"Invalid user {email}."
     except Exception as e:
         return handle_exception(e, "Error accessing database")
-

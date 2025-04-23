@@ -1,25 +1,19 @@
 meta {
-  name: Update Details
+  name: Bookmark Post
   type: http
-  seq: 6
+  seq: 1
 }
 
-put {
-  url: https://api.dripdropco.com/items/14
+post {
+  url: https://api.dripdropco.com/bookmark
   body: json
   auth: none
 }
 
 body:json {
   {
-    "name": "Nike Air Force 1",
-    "brand": "Nike",
-    "category": "Shoes",
-    "price": 109.99,
-    "itemURL": "https://example.com/nike-af1",
-    "size": "10"
+    "postId": "3"
   }
-  
 }
 
 script:pre-request {

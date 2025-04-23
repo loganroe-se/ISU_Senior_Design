@@ -1,4 +1,3 @@
-// components/PostCard.tsx
 import React, { useState } from "react";
 import {
   View,
@@ -11,19 +10,18 @@ import {
   KeyboardAvoidingView,
   TextInput,
   ActivityIndicator,
+  Platform,
 } from "react-native";
 import { Post } from "@/types/post";
 import { Ionicons } from "@expo/vector-icons";
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
 import { Comment } from "@/types/Comment";
-import { Platform } from "react-native";
 import { useUserContext } from "@/context/UserContext";
 
 export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
-  const [liked, setLiked] = useState(false);
+  const [liked, setLiked] = useState(post.userHasLiked || false);
   const { user } = useUserContext();
   const [input, setInput] = useState("");
-
   const [comments, setComments] = useState<Comment[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
@@ -46,11 +44,10 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
   const handleSubmitComment = async () => {
     if (!input.trim() || !user) return;
-    // Later: Send comment to API
-    setComments([
-      ...comments,
+    setComments((prev) => [
+      ...prev,
       {
-        commentID: Date.now(), // Temporary local ID
+        commentID: Date.now(),
         postID: post.postID,
         content: input,
         createdDate: new Date().toISOString(),
@@ -58,15 +55,10 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         profilePic: user.profilePic!,
       },
     ]);
-
     setInput("");
     setSubmitting(true);
-
     try {
-      await createComment({
-        postId: post.postID,
-        content: input.trim(),
-      });
+      await createComment({ postId: post.postID, content: input.trim() });
     } catch (err) {
       console.error("Failed to submit comment:", err);
     } finally {
@@ -95,7 +87,7 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         style={styles.image}
       />
 
-      {/* Buttons */}
+      {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={toggleLike}>
           <Ionicons
@@ -123,11 +115,11 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
       {/* View Comments */}
       <TouchableOpacity onPress={openComments}>
         <Text style={styles.viewComments}>
-          View all {comments.length} comments
+          View all {post.numComments} comments
         </Text>
       </TouchableOpacity>
 
-      {/* Comment Modal */}
+      {/* Comments Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
         <KeyboardAvoidingView
           style={{ flex: 1 }}
@@ -169,7 +161,7 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                 )}
               </View>
 
-              {/* Input Bar pinned to bottom */}
+              {/* Input Bar */}
               <View style={styles.inputContainer}>
                 <TextInput
                   placeholder="Add a comment..."
@@ -194,7 +186,7 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                 </TouchableOpacity>
               </View>
 
-              {/* Close button in top-right corner (small and subtle) */}
+              {/* Close */}
               <TouchableOpacity
                 onPress={() => setModalVisible(false)}
                 style={styles.closeIcon}
@@ -215,7 +207,6 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "flex-end",
   },
-
   modalContainer: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 16,
@@ -223,22 +214,18 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingHorizontal: 20,
     paddingBottom: 10,
-    minHeight: 300,
-    maxHeight: "75%",
-    position: "relative", // for absolute close button
+    minHeight: "80%",
+    position: "relative",
   },
-
   modalContent: {
     flex: 1,
   },
-
   closeIcon: {
     position: "absolute",
     top: 10,
     right: 10,
     padding: 6,
   },
-
   inputContainer: {
     flexDirection: "row",
     alignItems: "center",
@@ -249,7 +236,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     backgroundColor: "#fff",
   },
-
   textInput: {
     flex: 1,
     paddingVertical: 6,
@@ -258,11 +244,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 10,
   },
-
   commentList: {
     flexGrow: 0,
   },
-
   commentItem: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -276,7 +260,6 @@ const styles = StyleSheet.create({
   },
   commentUser: { fontWeight: "bold" },
   commentText: { flexShrink: 1 },
-
   card: { paddingBottom: 20, backgroundColor: "#fff" },
   header: { flexDirection: "row", alignItems: "center", padding: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
@@ -286,12 +269,4 @@ const styles = StyleSheet.create({
   caption: { paddingHorizontal: 10, marginTop: 5 },
   viewComments: { paddingHorizontal: 10, color: "gray", marginTop: 4 },
   modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
-  closeButton: {
-    marginTop: 20,
-    padding: 10,
-    backgroundColor: "#000",
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  closeButtonText: { color: "#fff" },
 });

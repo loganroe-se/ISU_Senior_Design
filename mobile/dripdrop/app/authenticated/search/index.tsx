@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
-  Dimensions,
+  FlatList,
   ActivityIndicator,
 } from "react-native";
 import { searchUsersByUsername } from "@/api/user";
@@ -17,15 +17,13 @@ import { User } from "@/types/user.interface";
 import { Post } from "@/types/post";
 import { fetchUserByUsername } from "@/api/following";
 
-const windowWidth = Dimensions.get("window").width;
-
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
   const [users, setUsers] = useState<User[]>([]);
   const [posts, setPosts] = useState<Post[]>([]);
   const [searchType, setSearchType] = useState<"accounts" | "posts">("accounts");
-  const [loading, setLoading] = useState(false); // Loading state for search results
-  const [loadingProfile, setLoadingProfile] = useState(false); // Loading state for profile navigation
+  const [loading, setLoading] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(false);
 
   useEffect(() => {
     if (searchQuery === "") {
@@ -33,7 +31,7 @@ export default function SearchScreen() {
       setPosts([]);
     } else {
       const fetchData = async () => {
-        setLoading(true); // Start loading
+        setLoading(true);
         if (searchType === "accounts") {
           const fetchedUsers = await searchUsersByUsername(searchQuery);
           setUsers(fetchedUsers ?? []);
@@ -41,109 +39,110 @@ export default function SearchScreen() {
           const fetchedPosts = await searchPostsByTerm(searchQuery);
           setPosts(Array.isArray(fetchedPosts) ? fetchedPosts : []);
         }
-        setLoading(false); // End loading
+        setLoading(false);
       };
       fetchData();
     }
   }, [searchQuery, searchType]);
 
   const handleUserPress = async (username: string) => {
-    setLoadingProfile(true); // Start profile loading
+    setLoadingProfile(true);
     const user = await fetchUserByUsername(username);
-    if (user != null) {
+    if (user) {
       router.replace(`/authenticated/profile?id=${user.uuid}`);
     }
-    setLoadingProfile(false); // End profile loading
+    setLoadingProfile(false);
   };
 
   const handlePostClick = (post: Post) => {
     const index = posts.findIndex((p) => p.postID === post.postID);
-
     if (index === -1) return;
 
     router.push({
-      pathname: "/authenticated/search/search_feed",
+      pathname: "/authenticated/posts/viewposts",
       params: {
         posts: encodeURIComponent(JSON.stringify(posts)),
+        postID: post.postID.toString(),
         initialIndex: index.toString(),
       },
     });
   };
 
+  const renderUser = (user: User) => (
+    <TouchableOpacity key={user.uuid} style={styles.userRow} onPress={() => handleUserPress(user.username)}>
+      <Image
+        source={{ uri: `https://cdn.dripdropco.com/${user.profilePic}?format=png` }}
+        style={styles.avatar}
+      />
+      <Text style={styles.username}>{user.username}</Text>
+    </TouchableOpacity>
+  );
+
+  const renderPost = ({ item }: { item: Post }) => {
+    const imageURL = item.images?.[0]?.imageURL
+      ? `https://cdn.dripdropco.com/${item.images[0].imageURL}?format=png`
+      : "default_image.png";
+
+    return (
+      <TouchableOpacity
+        style={styles.postCard}
+        onPress={() => handlePostClick(item)}
+      >
+        <Image source={{ uri: imageURL }} style={styles.postImage} />
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>Search</Text>
-
       <TextInput
         style={styles.searchBar}
-        placeholder="Search for a username or post"
-        placeholderTextColor="#D3D3D3"
+        placeholder="Search"
+        placeholderTextColor="#aaa"
         value={searchQuery}
         onChangeText={setSearchQuery}
         returnKeyType="search"
       />
 
-      <View style={styles.toggleContainer}>
+      <View style={styles.tabContainer}>
         <TouchableOpacity
-          style={[styles.toggleButton, searchType === "accounts" && styles.activeToggle]}
+          style={[styles.tab, searchType === "accounts" && styles.activeTab]}
           onPress={() => setSearchType("accounts")}
         >
-          <Text style={styles.toggleText}>Accounts</Text>
+          <Text style={[styles.tabText, searchType === "accounts" && styles.activeTabText]}>Accounts</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          style={[styles.toggleButton, searchType === "posts" && styles.activeToggle]}
+          style={[styles.tab, searchType === "posts" && styles.activeTab]}
           onPress={() => setSearchType("posts")}
         >
-          <Text style={styles.toggleText}>Posts</Text>
+          <Text style={[styles.tabText, searchType === "posts" && styles.activeTabText]}>Posts</Text>
         </TouchableOpacity>
       </View>
 
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#5271ff" />
-          <Text style={styles.loadingText}>Searching...</Text>
         </View>
       ) : searchType === "accounts" ? (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
-          {users.length > 0 ? (
-            users.map((item) => (
-              <TouchableOpacity key={item.uuid} onPress={() => handleUserPress(item.username)}>
-                <Text style={styles.userItem}>{item.username}</Text>
-              </TouchableOpacity>
-            ))
-          ) : (
-            <Text style={styles.noResultsText}>No accounts found</Text>
-          )}
+          {users.length > 0 ? users.map(renderUser) : <Text style={styles.noResultsText}>No accounts found</Text>}
         </ScrollView>
       ) : (
-        <ScrollView contentContainerStyle={styles.gridContainer}>
-          {posts.length > 0 ? (
-            posts.map((post) => {
-              const imageURL =
-                post.images?.[0]?.imageURL
-                  ? `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`
-                  : "default_image.png";
-
-              return (
-                <TouchableOpacity
-                  key={post.postID.toString()}
-                  style={styles.postCard}
-                  onPress={() => handlePostClick(post)}
-                >
-                  <Image source={{ uri: imageURL }} style={styles.postImage} />
-                </TouchableOpacity>
-              );
-            })
-          ) : (
-            <Text style={styles.noResultsText}>No posts found</Text>
-          )}
-        </ScrollView>
+        <FlatList
+          data={posts}
+          keyExtractor={(item) => item.postID.toString()}
+          numColumns={3}
+          columnWrapperStyle={{ justifyContent: "space-between" }}
+          contentContainerStyle={styles.gridContainer}
+          renderItem={renderPost}
+          ListEmptyComponent={<Text style={styles.noResultsText}>No posts found</Text>}
+        />
       )}
 
       {loadingProfile && (
         <View style={styles.loadingProfileContainer}>
           <ActivityIndicator size="small" color="#5271ff" />
-          <Text style={styles.loadingProfileText}>Navigating to profile...</Text>
+          <Text style={styles.loadingProfileText}>Loading profile...</Text>
         </View>
       )}
     </View>
@@ -152,90 +151,87 @@ export default function SearchScreen() {
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 50,
     flex: 1,
-    padding: 20,
-  },
-  header: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 10,
-    textAlign: "center",
+    paddingTop: 50,
+    backgroundColor: "#fff",
+    paddingHorizontal: 16,
   },
   searchBar: {
-    height: 40,
-    width: 300,
-    borderColor: "grey",
-    borderWidth: 1,
-    marginBottom: 15,
-    paddingLeft: 10,
-    borderRadius: 5,
-    alignSelf: "center",
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#f0f0f0",
+    paddingHorizontal: 12,
+    fontSize: 16,
+    marginBottom: 12,
   },
-  toggleContainer: {
+  tabContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: "#ddd",
+    marginBottom: 12,
   },
-  toggleButton: {
-    padding: 10,
-    margin: 5,
-    backgroundColor: "#ccc",
-    borderRadius: 5,
+  tab: {
+    flex: 1,
+    alignItems: "center",
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: "transparent",
   },
-  activeToggle: {
-    backgroundColor: "#5271ff",
+  activeTab: {
+    borderBottomColor: "#5271ff",
   },
-  toggleText: {
-    color: "#fff",
-    fontWeight: "bold",
+  tabText: {
+    fontSize: 16,
+    color: "#666",
+    fontWeight: "500",
+  },
+  activeTabText: {
+    color: "#000",
+    fontWeight: "700",
   },
   scrollContainer: {
     paddingBottom: 20,
   },
-  userItem: {
-    fontSize: 18,
+  userRow: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: "#ddd",
+    borderBottomColor: "#eee",
+  },
+  avatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    marginRight: 12,
+  },
+  username: {
+    fontSize: 16,
+    fontWeight: "500",
   },
   gridContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
+    gap: 1,
     paddingBottom: 20,
   },
   postCard: {
-    width: "48%",
-    backgroundColor: "#f9f9f9",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-    marginBottom: 10,
+    width: "32%",
+    aspectRatio: 1,
+    marginBottom: 4,
+    backgroundColor: "#eee",
   },
   postImage: {
     width: "100%",
-    height: 200,
-    borderRadius: 5,
-    resizeMode: "cover",
+    height: "100%",
   },
   noResultsText: {
     textAlign: "center",
-    color: "grey",
+    color: "#999",
     marginTop: 20,
-    alignSelf: "center",
-    width: "100%",
   },
   loadingContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-  },
-  loadingText: {
-    fontSize: 16,
-    color: "#5271ff",
-    marginBottom: 200,
   },
   loadingProfileContainer: {
     position: "absolute",

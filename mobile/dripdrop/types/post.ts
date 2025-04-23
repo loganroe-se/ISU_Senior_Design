@@ -20,12 +20,8 @@ export interface Post {
     username: string;
     profilePic: string;
   };
-  userHasLiked?: boolean
-}
-
-export interface FeedPost extends Post {
-  username: string;
-  userHasLiked: boolean;
+  userHasLiked?: boolean;
+  userHasSaved?: boolean;
 }
 
 export interface Marker {

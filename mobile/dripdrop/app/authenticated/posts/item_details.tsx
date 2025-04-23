@@ -1,64 +1,30 @@
-// item_details.tsx
 import React, { useState, useEffect } from "react";
-import {
-    Text,
-    View,
-    Alert,
-    ScrollView,
-    ActivityIndicator,
-    KeyboardAvoidingView, Platform
-} from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Text, View, Alert, ScrollView, ActivityIndicator, KeyboardAvoidingView, Platform } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { TextInput, Button } from "react-native-paper";
-
 import { item_details_styles } from "@/styles/post";
-import { updateItem, getItem, getMarker } from "@/api/items";
+import { updateItem, getItem, createItem } from "@/api/items";
 import { getPostById } from "@/api/post";
 import { Item } from "@/types/Item";
 import { Post } from "@/types/post";
 import { Colors } from "@/constants/Colors";
 
-
 type ItemFormData = Omit<Item, "id">;
-
-const API_BASE_URL = "https://api.dripdropco.com/items";
 
 const Page = () => {
     const params = useLocalSearchParams();
     const router = useRouter();
 
-    // Extract and type route params
     const postId = params.postId as string;
     const xCoord = params.xCoord as string | undefined;
     const yCoord = params.yCoord as string | undefined;
     const markerId = params.markerId as string | undefined;
+    const imageUri = params.image as string | undefined;
 
-    // State management
-    const [email, setEmail] = useState<string | null>(null);
-    const [username, setUsername] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingItem, setIsLoadingItem] = useState(true);
     const [post, setPost] = useState<Post | null>(null);
-    const [image, setImage] = useState<string | null>(null);
-
-    useEffect(() => {
-        const loadImageFromAsyncStorage = async () => {
-            try {
-                const savedImage = await AsyncStorage.getItem('selectedImage');
-                if (savedImage) {
-                    setImage(savedImage);
-                }
-            } catch (error) {
-                console.error("Failed to load image from AsyncStorage:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-        loadImageFromAsyncStorage();
-    }, []);
-
     const [item, setItem] = useState<ItemFormData>({
         clothingItemID: 0,
         name: "",
@@ -71,53 +37,51 @@ const Page = () => {
 
     // Load initial data
     useEffect(() => {
+        // item_details.tsx
         const loadData = async () => {
             try {
-                // Load user data
-                const [storedEmail, storedUsername] = await Promise.all([
-                    AsyncStorage.getItem("email"),
-                    AsyncStorage.getItem("username"),
-                ]);
-
-                if (storedEmail && storedUsername) {
-                    setEmail(storedEmail);
-                    setUsername(storedUsername);
-                } else {
-                    Alert.alert("No user data", "User is not logged in.");
-                }
-
-                // Load post and item data if marker exists
+                console.log("Starting to load data...");
                 if (markerId) {
+                    console.log(`Marker ID: ${markerId}`);
                     const numericPostId = parseInt(postId);
+                    console.log(`Parsed Post ID: ${numericPostId}`);
                     if (isNaN(numericPostId)) {
-                        console.log("Invalid numeric postId:", postId);
+                        console.error("Invalid post ID");
                         return;
                     }
 
                     const postData = await getPostById(numericPostId);
+                    console.log("Post data:", postData);
                     setPost(postData);
 
-                    const imageId = postData.images?.[0]?.imageID;
-                    if (!imageId) {
-                        console.log("No imageId in postData.images[0]");
-                        return;
+                    console.log("Marker ID in loadData:", Number(markerId));
+                    if (Number(markerId) < 0) {
+                        setIsLoadingItem(false);
+                        return; // Skip loading for temporary markers
                     }
 
                     const existingItem = await getItem(parseInt(markerId));
-                    if (typeof existingItem !== "string") {
-                        setItem({
-                            clothingItemID: existingItem!.clothingItemID,
-                            name: existingItem!.name,
-                            brand: existingItem!.brand,
-                            category: existingItem!.category,
-                            price: existingItem!.price || 0,
-                            itemURL: existingItem!.itemURL,
-                            size: existingItem!.size,
-                        });
+                    console.log("Existing item:", existingItem);
+
+                    if (!existingItem) {
+                        console.log("No item found, keeping default form values");
+                        setIsLoadingItem(false);
+                        return;
                     }
+
+                    setItem({
+                        clothingItemID: existingItem.clothingItemID,
+                        name: existingItem.name,
+                        brand: existingItem.brand,
+                        category: existingItem.category,
+                        price: existingItem.price || 0,
+                        itemURL: existingItem.itemURL,
+                        size: existingItem.size,
+                    });
                 }
             } catch (error) {
                 console.error("Error loading data:", error);
+                Alert.alert("Error", "Failed to load item data");
             } finally {
                 setIsLoadingItem(false);
             }
@@ -126,55 +90,18 @@ const Page = () => {
         loadData();
     }, [postId, markerId]);
 
-    const handleChange = (field: keyof ItemFormData, value: string) => {
+    const handleChange = (field: keyof ItemFormData, value: string | number) => {
         setItem((prev) => ({
             ...prev,
-            [field]: field === "price" ? value.replace(/[^0-9.]/g, "") : value,
+            [field]: value,
         }));
     };
 
-    const saveItem = async (
-        itemExists: boolean,
-        itemData: any,
-        clothingItemID?: number
-    ): Promise<{ status: number, data: any }> => {
-        const url = itemExists
-            ? `${API_BASE_URL}/${clothingItemID}`
-            : API_BASE_URL;
-
-        const method = itemExists ? "PUT" : "POST";
-        console.log("ITEM EXITS?: ", itemExists)
-
-        console.log("📝 Save Item Triggered");
-        console.log("➡️ HTTP Method:", method);
-        console.log("📍 URL:", url);
-        console.log("📦 Item Data:", JSON.stringify(itemData, null, 2));
-
-        try {
-            const response = await fetch(url, {
-                method,
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(itemData),
-            });
-
-            const responseJson = await response.json();
-
-            return {
-                status: response.status,
-                data: responseJson,
-            };
-        } catch (error) {
-            console.error("❌ Error making request:", error);
-            throw error;
-        }
-    };
-
-
-
-
     const handleSave = async () => {
+        console.log("Handling save...");
         if (!postId || !post) {
             Alert.alert("Error", "No post ID found or post not loaded");
+            console.error("No post found");
             return;
         }
 
@@ -186,38 +113,65 @@ const Page = () => {
 
             const imageId = post.images[0]?.imageID;
             if (!imageId) throw new Error("No image ID found in post");
-
             if (!markerId) throw new Error("No marker ID provided");
 
-            const existingItem = await getMarker(parseInt(markerId));
-            const itemExists = !!existingItem?.clothingItemID;
+            const numericMarkerId = parseInt(markerId);
+            const itemExists = numericMarkerId > 0; // True if the markerId is positive
 
-            const itemData = {
+            const baseItemData = {
                 ...item,
-                price: Number(item.price),
-                image_id: imageId,
-                ...(!itemExists && { xCoord, yCoord }),
+                price: Number(item.price) || 0,
+                image_id: imageId.toString(),
             };
 
-            const { status, data } = await saveItem(itemExists, itemData, existingItem?.clothingItemID);
+            if (numericMarkerId < 0) {
+                // Negative ID: Create new item with no existing database item
+                console.log("Creating new item for temporary marker");
+                if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
 
-            if (status !== 200) {
-                throw new Error(data?.message || "Failed to save item");
+                const createData = {
+                    ...baseItemData,
+                    clothingItemID: numericMarkerId, // Temporary negative ID
+                    xCoord: Number(xCoord),
+                    yCoord: Number(yCoord),
+                };
+                const data = await createItem(createData);
+                console.log("Item created with temporary marker ID:", data);
+                Alert.alert("Success", "Item created!");
+                handleSubmit(data.itemId.toString());
+            } else {
+                // Positive ID
+                const existingItem = await getItem(numericMarkerId);
+
+                if (!existingItem) {
+                    // Positive ID does not exist in DB: Create new item with the existing ID
+                    console.log("Item not found in DB, treating as new item with existing marker ID");
+                    if (!xCoord || !yCoord) throw new Error("Coordinates are required for new items");
+
+                    const createData = {
+                        ...baseItemData,
+                        clothingItemID: numericMarkerId, // Use the existing marker ID
+                        xCoord: Number(xCoord),
+                        yCoord: Number(yCoord),
+                    };
+                    const data = await createItem(createData);
+                    console.log("Item created with existing marker ID:", data);
+                    Alert.alert("Success", "Item created!");
+                    handleSubmit(data.itemId.toString());
+                } else {
+                    // Positive ID exists in DB: Update the item
+                    console.log("Updating existing item");
+                    const updateData = {
+                        ...baseItemData,
+                        clothingItemID: numericMarkerId,
+                    };
+                    console.log("Updating item with ID:", numericMarkerId, "Data:", updateData);
+                    await updateItem(numericMarkerId, updateData);
+                    console.log("Item updated successfully");
+                    Alert.alert("Success", "Item updated!");
+                    handleSubmit(numericMarkerId.toString());
+                }
             }
-
-            // The backend returns: { itemId: {123}, message: "..." }
-            const newItemId = Array.isArray(data.itemId)
-                ? data.itemId[0]
-                : typeof data.itemId === 'object'
-                    ? Object.values(data.itemId)[0]
-                    : data.itemId;
-
-            console.log("🆔 New Item ID:", newItemId);
-
-            await AsyncStorage.setItem(`item_${imageId}`, JSON.stringify(itemData));
-            Alert.alert("Success", itemExists ? "Item updated!" : "Item created!");
-            await handleSubmit(newItemId.toString());
-
         } catch (error) {
             console.error("Save failed:", error);
             Alert.alert("Error", error instanceof Error ? error.message : "Failed to save item");
@@ -228,28 +182,21 @@ const Page = () => {
 
 
 
-    const handleSubmit = async (newClothingItemID: string) => {
-        try {
-            if (!markerId) return;
 
-            const storedMarker = await AsyncStorage.getItem(`marker_${markerId}_coords`);
-            console.log("Stored marker: ", storedMarker)
-            if (storedMarker) {
-                const parsedMarker = JSON.parse(storedMarker);
-                parsedMarker.clothingItemID = newClothingItemID;
-                await AsyncStorage.setItem(
-                    `marker_${newClothingItemID}_coords`,
-                    JSON.stringify(parsedMarker)
-                );
-            }
+    const handleSubmit = (newClothingItemID: string) => {
+        console.log("Submitting item with ID:", newClothingItemID);
+        if (!markerId) return;
 
-            router.replace({
-                pathname: "./image_marker",
-                params: { verifiedMarkerId: newClothingItemID, image, refresh: 'true', postId: postId },
-            });
-        } catch (error) {
-            Alert.alert("Error", "Failed to update item.");
-        }
+        router.replace({
+            pathname: "./image_marker",
+            params: {
+                verifiedMarkerId: newClothingItemID,
+                image: imageUri,
+                refresh: 'true',
+                postId: postId,
+                markerId: newClothingItemID
+            },
+        });
     };
 
     if (isLoadingItem) {

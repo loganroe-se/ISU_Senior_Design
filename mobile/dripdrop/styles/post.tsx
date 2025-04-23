@@ -15,15 +15,24 @@ export const processing_post_styles = StyleSheet.create({
     title: {
         fontSize: 20,
         fontWeight: "bold",
-        marginBottom: 20,
+        marginBottom: 10,
         textAlign: "center",
         color: 'black'
     },
+    subtitle: {
+        fontSize: 16,
+        marginBottom: 20,
+        textAlign: "center",
+        paddingHorizontal: 20,
+        color: 'gray',
+        lineHeight: 24
+    },
     image: {
-        width: 300,
-        height: 300,
+        width: 400,
+        height: 400,
         borderRadius: 10,
         marginBottom: 15,
+        resizeMode: 'contain',
     },
     caption: {
         fontSize: 16,
@@ -36,6 +45,13 @@ export const processing_post_styles = StyleSheet.create({
         width: "80%",
         marginVertical: 10,
     },
+    buttonContainer: {
+        width: "100%",
+        alignItems: 'center',
+        justifyContent: 'flex-end'
+    },
+
+
 });
 
 
@@ -46,34 +62,32 @@ export const post_styles = StyleSheet.create({
         flex: 1,
     },
     cardContainer: {
-        backgroundColor: '#f2f2f2',
-        width: '90%',
+        backgroundColor: 'white',
+        width: '100%',
         alignSelf: 'center',
-        margin: '4%'
+        borderRadius: 0
     },
     imageContainer: {
         alignItems: "center",
-        marginBottom: 10,
         position: 'relative',
     },
     image: {
         width: "100%",
         height: 300,
-        borderRadius: 10,
         marginVertical: 10,
         resizeMode: 'contain'
     },
     removeIconContainer: {
         position: "absolute", // Position the X icon absolutely
-        top: 10, 
-        right: 10, 
-        borderRadius: 12, 
-        padding: 4, 
+        top: 10,
+        right: 10,
+        borderRadius: 12,
+        padding: 4,
     },
     placeholderContainer: {
         alignItems: "center",
         justifyContent: "center",
-        height: 200,
+        height: 300,
     },
     placeholderText: {
         fontSize: 16,
@@ -180,11 +194,36 @@ export const post_styles = StyleSheet.create({
     cameraIcon: {
         marginRight: 8,
     },
-    takePhotoText: {
+
+    androidImageUpload: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center", // Center content horizontally
+        padding: 6, // Increase padding for height
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: Colors.light.primary,
+        backgroundColor: Colors.light.primary,
+        marginTop: "80%",
+        alignSelf: "center", // Center the button itself
+    },
+
+    androidCameraIcon: {
+        marginRight: 8,
+        padding: 10
+    },
+    androidTakePhotoText: {
         color: "#fff",
-        fontSize: 16,
+        fontSize: 18,
         fontWeight: "bold",
     },
+    takePhotoText: {
+        color: "#fff",
+        fontSize: 18,
+        fontWeight: "bold",
+    },
+
+
 });
 
 
@@ -195,6 +234,7 @@ export const image_marker_styles = StyleSheet.create({
         padding: 16,
         backgroundColor: "#fff",
     },
+
     loadingContainer: {
         flex: 1,
         justifyContent: "center",
@@ -232,7 +272,7 @@ export const image_marker_styles = StyleSheet.create({
         height: '8%',
         borderRadius: '100%', // Circular marker
         backgroundColor: "grey", // Default color for unverified markers
-        opacity: 0.7, // Semi-transparent
+        opacity: 0.9, // Semi-transparent
     },
     caption: {
         fontSize: 16,
@@ -282,25 +322,6 @@ export const image_marker_styles = StyleSheet.create({
         top: -8,
         right: -8,
     },
-    confirmationDialog: {
-        position: "absolute",
-        bottom: 100,
-        width: "80%",
-        alignSelf: "center",
-        backgroundColor: "#fff",
-        padding: 16,
-        borderRadius: 8,
-        elevation: 5,
-    },
-    confirmationText: {
-        fontSize: 16,
-        textAlign: "center",
-        marginBottom: 16,
-    },
-    confirmationButtons: {
-        flexDirection: "row",
-        justifyContent: "space-around",
-    },
     confirmButton: {
         flex: 1,
         marginRight: 8,
@@ -332,6 +353,53 @@ export const image_marker_styles = StyleSheet.create({
         paddingVertical: 8,
         borderRadius: 8,
     },
+    overlay: {
+        flex: 1,
+        backgroundColor: "rgba(0, 0, 0, 0.4)",
+        justifyContent: "center",
+        alignItems: "center",
+    },
+
+    confirmationDialog: {
+        backgroundColor: "#fff",
+        padding: 24,
+        borderRadius: 16,
+        width: "80%",
+        alignItems: "center",
+        shadowColor: "#000",
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 8,
+        elevation: 5,
+    },
+
+    confirmationTitle: {
+        fontSize: 20,
+        fontWeight: "bold",
+        marginBottom: 8,
+        textAlign: "center",
+        color: "#222",
+    },
+
+    confirmationText: {
+        fontSize: 16,
+        textAlign: "center",
+        color: "#444",
+        marginBottom: 20,
+    },
+
+    confirmationButtons: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        width: "100%",
+    },
+
+    button: {
+        flex: 1,
+        marginHorizontal: 8,
+        borderRadius: 8,
+    },
+
 
 });
 

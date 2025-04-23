@@ -59,7 +59,14 @@ def getFeed(session, email, limit: int = 20):
                 ],
                 "numLikes": len(post.likes),
                 "numComments": len(post.comments),
+                "user": (
+                    {
+                        "username": post.userRel.username,
+                        "profilePic": post.userRel.profilePicURL
+                    }
+                ),
                 "userHasLiked": int(userID) in {like.userID for like in post.likes},
+                "userHasSaved": int(userID) in {bookmark.userID for bookmark in post.bookmarks},
             }
             for post in posts_to_return
         ]
