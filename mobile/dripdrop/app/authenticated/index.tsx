@@ -16,11 +16,12 @@ import { Colors } from "@/constants/Colors";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
 import DraggableItemModal from "@/components/DraggableItemModal";
+import { PostGrid } from "./profile/_components/PostGrid";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
 const navbarHeight = 40; // TODO: change this to either dynamic or change it when the navbar is changed
-const headerHeight = 40;
+const headerHeight = 50;
 
 const Page = () => {
   const { user } = useUserContext();
@@ -478,7 +479,27 @@ const Page = () => {
             markersMap={markersMap}
             itemDetailsMap={itemDetailsMap}
             onAISuggestions={(aiSuggestions) => {
-              
+              setVisibleItemModal(null);
+              setActiveClothingItemID(0);
+              router.push({
+                pathname: "../authenticated/posts/viewpostsuggestions",
+                params: {
+                  suggestions: encodeURIComponent(JSON.stringify(aiSuggestions)),
+                  userID: user?.uuid,
+                },
+              });          
+              // <PostGrid
+              //   posts={aiSuggestions}
+              //   onPressPost={(post) => {
+              //     router.push({
+              //       pathname: "../authenticated/posts/viewposts",
+              //       params: {
+              //         postID: post.postID.toString(),
+              //         userID: user?.uuid, // Needed to fetch scoped posts
+              //       },
+              //     });
+              //   }}
+              // />
             }}
           />
         </View>

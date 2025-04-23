@@ -35,7 +35,8 @@ def getAiRecommendations(session, item_id):
             .join(target_item, target_item.tagID == matching_item.tagID)
             .filter(
                 target_item.clothingItemID == item_id,
-                matching_item.clothingItemID != item_id
+                matching_item.clothingItemID != item_id,
+                Post.status.ilike("public")
             )
             .group_by(Post.postID)
             .order_by(desc(func.count(matching_item.tagID)))
@@ -62,6 +63,10 @@ def getAiRecommendations(session, item_id):
                     ],
                     "numLikes": len(post.likes),
                     "numComments": len(post.comments),
+                    "user": {
+                        "username": post.userRel.username,
+                        "profilePic": post.userRel.profilePicURL,
+                    },
                 }
                 for post in recommended_posts
             ]

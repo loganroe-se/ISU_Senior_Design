@@ -11,9 +11,11 @@ export const feedStyle = StyleSheet.create({
     right: 0,
     backgroundColor: Colors.light.background,
     justifyContent: 'flex-start',
-    paddingTop: 5,
+    paddingTop: 6,
     paddingLeft: 15,
     zIndex: 1,
+    borderBottomWidth: 1,
+    borderColor: "black",
   },
   headerText: {
     color: Colors.light.primary,
