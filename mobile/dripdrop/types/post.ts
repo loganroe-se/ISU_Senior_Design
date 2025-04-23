@@ -20,7 +20,8 @@ export interface Post {
     username: string;
     profilePic: string;
   };
-  userHasLiked?: boolean
+  userHasLiked?: boolean;
+  userHasSaved?: boolean;
 }
 
 export interface Marker {
