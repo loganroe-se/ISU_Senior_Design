@@ -37,6 +37,7 @@ const Bookmarks = () => {
                             tab: subPage,
                             userID: post?.uuid, // Needed to fetch scoped posts
                             posts: encodeURIComponent(JSON.stringify(posts)),
+                            header: "Bookmarks",
                         },
                     });
                 }}
