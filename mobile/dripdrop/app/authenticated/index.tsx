@@ -477,6 +477,9 @@ const Page = () => {
             }}
             markersMap={markersMap}
             itemDetailsMap={itemDetailsMap}
+            onAISuggestions={(aiSuggestions) => {
+              
+            }}
           />
         </View>
       )}
