@@ -189,7 +189,7 @@ export default function Post() {
     try {
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         image,
-        [{ resize: { width: 800 } }],
+        [{ resize: { width: 300 } }],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
 
@@ -232,6 +232,22 @@ export default function Post() {
     Math.floor(Dimensions.get("window").width / (Dimensions.get("window").width / 4)),
     4
   );
+
+  const pickImageFromCameraRoll = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setImage(result.assets[0].uri);
+      setSelectedImageUri(result.assets[0].uri);
+      setImageAdjustmentVisible(true); // Open adjustment modal if needed
+    }
+  };
+
 
   return (
     <SafeAreaView style={post_styles.container}>
@@ -294,8 +310,18 @@ export default function Post() {
               </View>
             )}
           </Card>
+          <View style={{ flex: 1 }}>
+          {/* Bottom Half Android: Choose image from Camera Roll */}
+          {Platform.OS === 'android' && (
+            <TouchableOpacity onPress={pickImageFromCameraRoll} style={post_styles.androidImageUpload}>
+              <Ionicons name="images" size={20} color="#fff" style={post_styles.androidCameraIcon} />
+              <Text style={post_styles.androidTakePhotoText}>Choose from Camera Roll</Text>
+            </TouchableOpacity>
+          )}
 
-          {/* Bottom Half: Image Gallery */}
+         
+          {/* Bottom Half iOS: Image Gallery */}
+          {Platform.OS === 'ios' && (
           <FlatList
             data={photos}
             renderItem={({ item }) => (
@@ -315,6 +341,8 @@ export default function Post() {
               ) : null
             }
           />
+          )}
+          </View>
 
           {/* Caption Input */}
           <View style={post_styles.bottomContainer}>
