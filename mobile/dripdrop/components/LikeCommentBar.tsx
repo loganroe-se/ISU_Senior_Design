@@ -11,7 +11,6 @@ import Icon from "react-native-vector-icons/FontAwesome";
 interface LikeCommentBarProps {
     feedData: Post[];
     setFeedData: React.Dispatch<React.SetStateAction<Post[]>>;
-    userID: string;
     item: Post;
     setCurrentPostID: React.Dispatch<React.SetStateAction<number | null>>;
     setCommentModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -22,7 +21,6 @@ interface LikeCommentBarProps {
 const LikeCommentBar = ({ 
     feedData, 
     setFeedData, 
-    userID, 
     item, 
     setCurrentPostID, 
     setCommentModalVisible,
@@ -31,8 +29,6 @@ const LikeCommentBar = ({
 }: LikeCommentBarProps) => {
     // Handle a like
     const handleLike = (async (postID: number) => {
-        if (!userID) return;
-
         try {
             // Check if it has already been liked
             const hasLiked = feedData.some((post) => post.postID === postID && post.userHasLiked);
@@ -47,7 +43,7 @@ const LikeCommentBar = ({
                 );
 
                 // Unlike the post
-                await unlikePost(userID, postID);
+                await unlikePost(postID);
             } else {
                 // Update local state
                 setFeedData((prevFeedData) => 
@@ -57,7 +53,7 @@ const LikeCommentBar = ({
                 );
 
                 // Like the post
-                await likePost(userID, postID);
+                await likePost(postID);
             }
         } catch (error) {
             console.error('Error handling like: ', error);
@@ -82,8 +78,6 @@ const LikeCommentBar = ({
     };
     // Handle bookmarks
     const handleBookmark = (async (postID: number) => {
-        if (!userID) return;
-
         try {
             // Check if it has already been saved
             const hasSaved = feedData.some((post) => post.postID === postID && post.userHasSaved);

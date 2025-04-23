@@ -1,4 +1,4 @@
-import { Post, FeedPost, sendPost } from "@/types/post";
+import { Post, sendPost } from "@/types/post";
 import { apiRequest } from "./api";
 import { fetchUserById } from "./user";
 
@@ -66,4 +66,9 @@ export const searchPostsByTerm = async (searchTerm: string): Promise<Post[]> => 
     console.error("Error searching posts:", error);
     return [];
   }
+};
+
+// Get AI Recommendations
+export const getAIRecommendations = async (clothingItemID: number): Promise<Post[]> => {
+  return apiRequest<Post[]>("GET", `/posts/ai-recommendations/${clothingItemID}`);
 };

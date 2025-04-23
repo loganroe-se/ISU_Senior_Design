@@ -1,4 +1,4 @@
-from sqlalchemy_utils import session_handler
+from sqlalchemy_utils import session_handler, get_user_by_email
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, ClothingItemTag, Image, Item
 from sqlalchemy import select, func, desc
@@ -12,8 +12,10 @@ def handler(event, context):
 
         if not item_id:
             return create_response(400, 'Missing item ID')
+
+        email = event['requestContext']['authorizer']['claims']['email']
         
-        status_code, message = getAiRecommendations(item_id)
+        status_code, message = getAiRecommendations(email, item_id)
         return create_response(status_code, message)
     
     except Exception as e:
@@ -22,7 +24,10 @@ def handler(event, context):
     
 
 @session_handler
-def getAiRecommendations(session, item_id):
+def getAiRecommendations(session, email, item_id):
+    user = get_user_by_email(session, email)
+    userID = user.userID
+
     try:
         target_item = aliased(ClothingItemTag)
         matching_item = aliased(ClothingItemTag)
@@ -35,7 +40,8 @@ def getAiRecommendations(session, item_id):
             .join(target_item, target_item.tagID == matching_item.tagID)
             .filter(
                 target_item.clothingItemID == item_id,
-                matching_item.clothingItemID != item_id
+                matching_item.clothingItemID != item_id,
+                Post.status.ilike("public")
             )
             .group_by(Post.postID)
             .order_by(desc(func.count(matching_item.tagID)))
@@ -62,6 +68,12 @@ def getAiRecommendations(session, item_id):
                     ],
                     "numLikes": len(post.likes),
                     "numComments": len(post.comments),
+                    "user": {
+                        "username": post.userRel.username,
+                        "profilePic": post.userRel.profilePicURL,
+                    },
+                    "userHasLiked": int(userID) in {like.userID for like in post.likes},
+                    "userHasSaved": int(userID) in {bookmark.userID for bookmark in post.bookmarks},
                 }
                 for post in recommended_posts
             ]

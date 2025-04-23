@@ -20,7 +20,7 @@ import DraggableItemModal from "@/components/DraggableItemModal";
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
 const navbarHeight = 40; // TODO: change this to either dynamic or change it when the navbar is changed
-const headerHeight = 40;
+const headerHeight = 50;
 
 const Page = () => {
   const { user } = useUserContext();
@@ -402,7 +402,6 @@ const Page = () => {
                   <LikeCommentBar 
                     feedData={feedData}
                     setFeedData={setFeedData}
-                    userID={userID ? userID : ""}
                     item={item}
                     setCurrentPostID={setCurrentPostID}
                     setCommentModalVisible={setCommentModalVisible}
@@ -477,6 +476,17 @@ const Page = () => {
             }}
             markersMap={markersMap}
             itemDetailsMap={itemDetailsMap}
+            onAISuggestions={(aiSuggestions) => {
+              setVisibleItemModal(null);
+              setActiveClothingItemID(0);
+              router.push({
+                pathname: "../authenticated/posts/viewpostsuggestions",
+                params: {
+                  suggestions: encodeURIComponent(JSON.stringify(aiSuggestions)),
+                  userID: user?.uuid,
+                },
+              });
+            }}
           />
         </View>
       )}
