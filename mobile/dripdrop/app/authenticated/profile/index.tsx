@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { View, TouchableOpacity, Linking } from "react-native";
 import { Avatar, Text } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
-import { fetchUserPosts } from "@/api/post";
+import { fetchUserPosts, updatePost } from "@/api/post";
 import {
   fetchFollowerCount,
   fetchFollowingCount,
@@ -25,6 +25,7 @@ const UserProfile = () => {
   const { user, signOut } = useUserContext();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
+  const [profilePic, setProfilePic] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
@@ -79,7 +80,6 @@ const UserProfile = () => {
       setIsFollowing(followingCheck.is_following);
     }
   };
-  
 
   const actionPress = async () => {
     if (!user || !profileUser) return;
@@ -154,13 +154,14 @@ const UserProfile = () => {
       </View>
 
       <View style={profileStyle.profileContainer}>
-        <Avatar.Image
-          size={90}
-          source={{
-            uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png`,
-          }}
-          style={profileStyle.avatarContainer}
-        />
+        <View style={profileStyle.avatarContainer}>
+          {
+            <Avatar.Image
+              size={90}
+              source={{ uri: `https://cdn.dripdropco.com/${profileUser?.profilePic}?format=png` }}
+            />
+          }
+        </View>
         <View style={profileStyle.statsContainer}>
           {[
             ["Posts", posts.length],
@@ -193,10 +194,6 @@ const UserProfile = () => {
       {/* Bio Section */}
       <View style={profileStyle.bioSection}>
         <Text style={profileStyle.nameText}>{profileUser?.username}</Text>
-        <Text style={profileStyle.bioText}>
-          {profileUser?.bio ||
-            "NYC-based photographer 📸\nLover of light, coffee, and good vibes.\nLet's create something beautiful."}
-        </Text>
 
         {profileUser?.link && (
           <TouchableOpacity onPress={() => Linking.openURL(profileUser.link!)}>

@@ -32,6 +32,7 @@ export default function Navbar() {
             <NavItem name="home" pageName="" />
             <NavItem name="magnify" pageName="search" />
             <NavItem name="plus-circle" pageName="posts" />
+            <NavItem name="bookmark-multiple" pageName="bookmarks" />
             <NavItem name="account-circle" pageName="profile" />
         </SafeAreaView>
     );

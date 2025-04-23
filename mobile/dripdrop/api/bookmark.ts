@@ -1,3 +1,4 @@
+import { Post } from '@/types/post';
 import { apiRequest } from './api';
 
 // Create a bookmark
@@ -11,3 +12,6 @@ export const removeBookmark = async (postId: number): Promise<void> => {
 };
 
 // Get all bookmarks
+export const getBookmarks = async (): Promise<Post[] | null> => {
+    return apiRequest<Post[]>('GET', '/bookmark', {});
+};
