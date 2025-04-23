@@ -16,7 +16,6 @@ import { Colors } from "@/constants/Colors";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
 import DraggableItemModal from "@/components/DraggableItemModal";
-import { PostGrid } from "./profile/_components/PostGrid";
 
 const windowWidth = Dimensions.get('window').width * 0.95;
 const windowHeight = Dimensions.get('window').height;
@@ -487,19 +486,7 @@ const Page = () => {
                   suggestions: encodeURIComponent(JSON.stringify(aiSuggestions)),
                   userID: user?.uuid,
                 },
-              });          
-              // <PostGrid
-              //   posts={aiSuggestions}
-              //   onPressPost={(post) => {
-              //     router.push({
-              //       pathname: "../authenticated/posts/viewposts",
-              //       params: {
-              //         postID: post.postID.toString(),
-              //         userID: user?.uuid, // Needed to fetch scoped posts
-              //       },
-              //     });
-              //   }}
-              // />
+              });
             }}
           />
         </View>

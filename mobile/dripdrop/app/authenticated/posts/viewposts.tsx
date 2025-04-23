@@ -12,8 +12,8 @@ import { Colors } from "@/constants/Colors";
 const { height } = Dimensions.get("window");
 
 const ViewPosts = () => {
-  const { postID, tab, userID, posts, initialIndex, headerValue } = useLocalSearchParams();
-  const title = headerValue || "dripdrop";
+  const { postID, tab, userID, posts, initialIndex, header } = useLocalSearchParams();
+  const title = header || "dripdrop";
   const [postList, setPostList] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

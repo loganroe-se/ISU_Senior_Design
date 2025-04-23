@@ -237,6 +237,7 @@ const UserProfile = () => {
               postID: post.postID.toString(),
               tab: subPage,
               userID: profileUser?.uuid, // Needed to fetch scoped posts
+              header: subPage === "PUBLIC" ? "Posts" : subPage === "PRIVATE" ? "Drafts" : "Needs Review",
             },
           });
         }}

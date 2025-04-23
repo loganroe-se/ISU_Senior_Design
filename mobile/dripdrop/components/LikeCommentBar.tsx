@@ -31,8 +31,6 @@ const LikeCommentBar = ({
 }: LikeCommentBarProps) => {
     // Handle a like
     const handleLike = (async (postID: number) => {
-        if (!userID) return;
-
         try {
             // Check if it has already been liked
             const hasLiked = feedData.some((post) => post.postID === postID && post.userHasLiked);
@@ -47,7 +45,7 @@ const LikeCommentBar = ({
                 );
 
                 // Unlike the post
-                await unlikePost(userID, postID);
+                await unlikePost(postID);
             } else {
                 // Update local state
                 setFeedData((prevFeedData) => 
@@ -57,7 +55,7 @@ const LikeCommentBar = ({
                 );
 
                 // Like the post
-                await likePost(userID, postID);
+                await likePost(postID);
             }
         } catch (error) {
             console.error('Error handling like: ', error);
@@ -82,8 +80,6 @@ const LikeCommentBar = ({
     };
     // Handle bookmarks
     const handleBookmark = (async (postID: number) => {
-        if (!userID) return;
-
         try {
             // Check if it has already been saved
             const hasSaved = feedData.some((post) => post.postID === postID && post.userHasSaved);

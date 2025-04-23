@@ -49,9 +49,10 @@ export default function ViewPostSuggestions() {
                     router.push({
                         pathname: "./viewposts",
                         params: {
-                        postID: post.postID.toString(),
-                        posts: encodeURIComponent(JSON.stringify(posts)),
-                        userID,
+                            postID: post.postID.toString(),
+                            posts: encodeURIComponent(JSON.stringify(posts)),
+                            userID,
+                            header: "AI Suggestions",
                         },
                     });
                 }}

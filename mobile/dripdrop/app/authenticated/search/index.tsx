@@ -64,6 +64,7 @@ export default function SearchScreen() {
         posts: encodeURIComponent(JSON.stringify(posts)),
         postID: post.postID.toString(),
         initialIndex: index.toString(),
+        header: searchQuery,
       },
     });
   };

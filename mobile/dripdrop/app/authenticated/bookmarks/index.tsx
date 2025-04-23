@@ -36,6 +36,7 @@ const Bookmarks = () => {
                             postID: post.postID.toString(),
                             tab: subPage,
                             userID: post?.uuid, // Needed to fetch scoped posts
+                            posts: encodeURIComponent(JSON.stringify(posts)),
                         },
                     });
                 }}
