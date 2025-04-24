@@ -49,18 +49,28 @@ def output_fn(prediction_output):
     infer = {}
     for result in prediction_output:
         if "boxes" in result._keys and result.boxes is not None:
-            infer["boxes"] = result.boxes.cpu().numpy().tolist()
+            boxes_tensor = torch.cat([
+                result.boxes.xyxy,
+                result.boxes.conf.unsqueeze(1),
+                result.boxes.cls.unsqueeze(1)
+            ], dim=1)
+            infer["boxes"] = boxes_tensor.cpu().numpy().tolist()
+
         if "masks" in result._keys and result.masks is not None:
-            infer["masks"] = result.masks.cpu().numpy().tolist()
+            # Extract tensor from Masks object
+            masks_tensor = result.masks.data  # This is a tensor
+            infer["masks"] = masks_tensor.cpu().numpy().tolist()
+
         if "keypoints" in result._keys and result.keypoints is not None:
             infer["keypoints"] = result.keypoints.cpu().numpy().tolist()
+
         if "probs" in result._keys and result.probs is not None:
             infer["probs"] = {
                 "top5_indices": result.probs.top5,
                 "top5_scores": result.probs.top5conf.tolist(),
             }
-    return infer
 
+    return infer
 
 def segment_image(image_path):
     infer_start_time = time.time()
