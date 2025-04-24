@@ -32,6 +32,18 @@ def getAiRecommendations(session, email, item_id):
         target_item = aliased(ClothingItemTag)
         matching_item = aliased(ClothingItemTag)
 
+        original_post_id = (
+            session.query(Post.postID)
+            .join(Image, Post.postID == Image.postID)
+            .join(Item, Image.imageID == Item.imageID)
+            .filter(Item.clothingItemID == item_id)
+            .scalar()
+        )
+
+        if not original_post_id:
+            return 404, "Original post not found for the given item ID"
+
+
         recommended_posts = (
             session.query(Post)
             .join(Image, Post.postID == Image.postID)
@@ -41,7 +53,8 @@ def getAiRecommendations(session, email, item_id):
             .filter(
                 target_item.clothingItemID == item_id,
                 matching_item.clothingItemID != item_id,
-                Post.status.ilike("public")
+                Post.status.ilike("public"),
+                Post.postID != original_post_id
             )
             .group_by(Post.postID)
             .having(func.count(matching_item.tagID) >= 3)
