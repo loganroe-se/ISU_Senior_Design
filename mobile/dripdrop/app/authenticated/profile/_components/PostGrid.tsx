@@ -23,7 +23,7 @@ export const PostGrid: React.FC<Props> = ({ posts, onPressPost }) => {
           <TouchableOpacity
             style={[
               profileStyle.postContainer,
-              { width: itemWidth, height: 200 }, // ✅ Fixed height
+              { width: itemWidth, height: 200 },
             ]}
             onPress={() => onPressPost?.(item)}
           >

@@ -7,10 +7,14 @@ import Entypo from '@expo/vector-icons/Entypo';
 
 type ToolbarProps = {
     mode: "cursor" | "add" | "delete";
-    setMode: (mode: "cursor" | "add" | "delete" ) => void;
+    setMode: (mode: "cursor" | "add" | "delete") => void;
+    onRefresh: () => Promise<void>;
+    loading: boolean;
 };
 
-const Toolbar = ({ mode, setMode }: ToolbarProps) => {
+
+const Toolbar = ({ mode, setMode, onRefresh, loading }: ToolbarProps) => {
+
     return (
         <View style={styles.toolbar}>
             {/* Cursor Mode Button */}
@@ -35,6 +39,19 @@ const Toolbar = ({ mode, setMode }: ToolbarProps) => {
                 onPress={() => setMode("delete")}
             >
                 <Ionicons name="trash" size={24} color={mode === "delete" ? Colors.light.primary : "#000"} />
+            </TouchableOpacity>
+
+            {/* Refresh Button */}
+            <TouchableOpacity
+                style={styles.toolbarButton}
+                onPress={onRefresh}
+                disabled={loading}
+            >
+                {loading ? (
+                    <Ionicons name="reload-circle" size={24} color={Colors.light.primary} />
+                ) : (
+                    <Ionicons name="refresh" size={24} color="#000" />
+                )}
             </TouchableOpacity>
 
         </View>
