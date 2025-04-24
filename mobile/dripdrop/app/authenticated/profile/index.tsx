@@ -55,7 +55,7 @@ const UserProfile = () => {
 
   const getUserPosts = async (id: string) => {
     const p = await fetchUserPosts(id, subPage);
-    setPosts(p);
+    setPosts(p.reverse());
   };
 
   const updateFollows = async (id: string) => {
