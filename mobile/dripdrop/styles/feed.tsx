@@ -119,7 +119,7 @@ export const feedStyle = StyleSheet.create({
   },
   loadingProfileText: {
     fontSize: 14,
-    color: "#5271ff",
+    color: Colors.light.primary,
     marginTop: 10,
   },
   profilePicture: {

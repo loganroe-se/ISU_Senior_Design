@@ -322,7 +322,7 @@ const Page = () => {
       </View>
 
       {loading  ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={Colors.light.primary} />
       ) : error ? (
         <Text style={feedStyle.text}>{error}</Text>
       ) : (
@@ -493,7 +493,7 @@ const Page = () => {
       
       {loadingProfile && (
         <View style={feedStyle.loadingProfileContainer}>
-          <ActivityIndicator size="small" color="#5271ff" />
+          <ActivityIndicator size="small" color={Colors.light.primary} />
           <Text style={feedStyle.loadingProfileText}>Loading profile...</Text>
         </View>
       )}
