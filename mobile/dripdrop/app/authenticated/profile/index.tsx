@@ -31,15 +31,12 @@ const UserProfile = () => {
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
   const tab = Array.isArray(params.tab) ? params.tab[0] : params.tab;
   const [subPage, setSubPage] = useState(tab || "PUBLIC");
-
-
-  const [isTopLoading, setIsTopLoading] = useState(true);
+  const [loadingFollow, setLoadingFollow] = useState(false);
   const [isBottomLoading, setIsBottomLoading] = useState(true);
 
 
   useEffect(() => {
     const getUserData = async () => {
-      setIsTopLoading(true);
       const uid = id ?? user?.uuid;
       if (!uid) return;
 
@@ -47,7 +44,6 @@ const UserProfile = () => {
       if (profile) {
         setProfileUser(profile);
         updateFollows(uid);
-        setIsTopLoading(false); 
         getUserPosts(uid);
       }
     };
@@ -97,14 +93,21 @@ const UserProfile = () => {
     if (user.uuid === profileUser.uuid) {
       router.push("../authenticated/profile/edit");
     } else {
-      if (!isFollowing) {
-        await followUser(user.uuid, profileUser.uuid);
-      } else {
-        await unfollowUser(user.uuid, profileUser.uuid);
+      setLoadingFollow(true);
+      try {
+        if (!isFollowing) {
+          await followUser(user.uuid, profileUser.uuid);
+        } else {
+          await unfollowUser(user.uuid, profileUser.uuid);
+        }
+        await updateFollows(profileUser.uuid);
+      } catch (err) {
+        console.error(err);
       }
-      updateFollows(profileUser.uuid);
+      setLoadingFollow(false);
     }
   };
+
 
   const renderActionButton = () => {
     const isCurrentUser = user?.uuid === profileUser?.uuid;
@@ -135,10 +138,15 @@ const UserProfile = () => {
               ? profileStyle.followedActionButton
               : profileStyle.actionButton
           }
+          disabled={loadingFollow}
         >
-          <Text style={profileStyle.buttonLabel}>
-            {isFollowing ? "Following" : "Follow"}
-          </Text>
+          {loadingFollow ? (
+            <ActivityIndicator size="small" color={Colors.light.primary} />
+          ) : (
+            <Text style={profileStyle.buttonLabel}>
+              {isFollowing ? "Following" : "Follow"}
+            </Text>
+          )}
         </TouchableOpacity>
       );
     }
