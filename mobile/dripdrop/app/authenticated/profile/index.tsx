@@ -29,7 +29,9 @@ const UserProfile = () => {
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
-  const [subPage, setSubPage] = useState("PUBLIC");
+  const tab = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const [subPage, setSubPage] = useState(tab || "PUBLIC");
+
 
   const [isTopLoading, setIsTopLoading] = useState(true);
   const [isBottomLoading, setIsBottomLoading] = useState(true);

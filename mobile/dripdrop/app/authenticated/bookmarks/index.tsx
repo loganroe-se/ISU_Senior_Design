@@ -5,6 +5,7 @@ import { PostGrid } from "../profile/_components/PostGrid";
 import { router } from "expo-router";
 import { useUserContext } from "@/context/UserContext";
 import { View, Text, ActivityIndicator } from "react-native";
+import { Colors } from "@/constants/Colors";
 
 const Bookmarks = () => {
     const [posts, setPosts] = useState<Post[]>([]);
@@ -31,7 +32,7 @@ const Bookmarks = () => {
         <View>
             <Text style={{textAlign: "center", fontSize: 24, fontWeight: "bold", marginTop: 16, marginBottom: 32}}>Bookmarks</Text>
             {isLoading ? (
-                <ActivityIndicator size="large" style={{ marginTop: 50 }} />
+                <ActivityIndicator size="large" style={{ marginTop: 50 }} color={Colors.light.primary} />
             ) : (
                 <PostGrid
                     posts={posts}

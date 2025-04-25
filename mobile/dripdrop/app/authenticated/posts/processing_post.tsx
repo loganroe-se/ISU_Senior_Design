@@ -34,7 +34,7 @@ export default function ProcessingScreen() {
   return (
     <View style={processing_post_styles.container}>
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-        <Text style={processing_post_styles.title}>We are currently processing your draft</Text>
+        <Text style={processing_post_styles.title}>Our AI is working to  identify the clothing items in your post</Text>
         <Text style={processing_post_styles.subtitle}>
           Come back soon to finish the post and share it with the world!
         </Text>
@@ -56,13 +56,17 @@ export default function ProcessingScreen() {
       <View style={processing_post_styles.buttonContainer}>
         <Button
           mode="outlined"
-          onPress={() => router.replace("/authenticated/profile")}
+          onPress={() => router.replace({
+            pathname: "/authenticated/profile",
+            params: { tab: "PRIVATE" }
+          })}
           style={[processing_post_styles.button, { borderColor: Colors.light.primary }]}
           labelStyle={{ color: Colors.light.primary }}
           icon={() => <Ionicons name="exit-outline" size={20} color={Colors.light.primary} />}
         >
-          Exit and Come Back Later
+          Verify Clothing Item Information
         </Button>
+
         <Button
           mode="contained"
           onPress={handleNavigateToImageMarker}
