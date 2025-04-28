@@ -232,7 +232,7 @@ const UserProfile = () => {
 
       {user.uuid === profileUser?.uuid ? (
         <View style={profileStyle.subpageContainer}>
-          {["PUBLIC", "PRIVATE", "NEEDS_REVIEW"].map((tab) => (
+          {["PUBLIC", "PRIVATE"].map((tab) => (
             <TouchableOpacity key={tab} onPress={() => setSubPage(tab)}>
               <Text
                 style={
@@ -243,9 +243,7 @@ const UserProfile = () => {
               >
                 {tab === "PUBLIC"
                   ? "Posts"
-                  : tab === "PRIVATE"
-                    ? "Drafts"
-                    : "Review"}
+                  : "Drafts"}
               </Text>
             </TouchableOpacity>
           ))}
