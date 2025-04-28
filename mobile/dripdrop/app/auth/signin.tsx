@@ -65,7 +65,9 @@ export default function Login() {
         onChangeText={setPassword}
       />
 
-      <Button title="Sign In" onPress={handleSignIn} disabled={loading} />
+      <View style={styles_signin.signInText}>
+        <Button title="Sign In" onPress={handleSignIn} disabled={loading} />
+      </View>
 
       <TouchableOpacity onPress={onGoToSignUp}>
         <Text style={styles_signin.signUpText}>Don't have an account? Sign Up</Text>

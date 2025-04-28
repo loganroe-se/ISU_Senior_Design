@@ -1,4 +1,5 @@
 import { StyleSheet } from "react-native";
+import { Colors } from "@/constants/Colors";
 
 export const styles_signin = StyleSheet.create({
   container: {
@@ -15,7 +16,8 @@ export const styles_signin = StyleSheet.create({
   },
   input: {
     height: 40,
-    width: 300,
+    width: "80%",
+    maxWidth: 400,
     borderColor: "grey",
     borderWidth: 1,
     marginBottom: 15,
@@ -28,6 +30,12 @@ export const styles_signin = StyleSheet.create({
     width: 100,
     height: 100,
     marginBottom: 10,
+    alignSelf: "center",
+  },
+  signInText: {
+    width: "80%",
+    maxWidth: 400,
+    borderRadius: 5,
     alignSelf: "center",
   },
   signUpText: {
