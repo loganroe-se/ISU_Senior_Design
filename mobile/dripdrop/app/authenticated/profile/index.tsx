@@ -64,6 +64,19 @@ const UserProfile = () => {
 
   };
 
+  const handleNavigateToImageMarker = (post:Post) => {
+    let caption = post.caption;
+    let image = `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`;
+    let postId = post.postID;
+
+    // Navigate to the ImageMarker screen with the current caption and image data
+    router.push({
+      pathname: "/authenticated/posts/image_marker",
+      params: { caption, image, postId }, // Pass caption and image as parameters
+    });
+    console.log("Passed the following POSTID: " + postId)
+  };
+
   const updateFollows = async (id: string) => {
     if (!user) return;
   
@@ -120,12 +133,6 @@ const UserProfile = () => {
             style={profileStyle.followedActionButton}
           >
             <Text style={profileStyle.buttonLabel}>Edit Profile</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => console.log("Share profile")}
-            style={profileStyle.followedActionButton}
-          >
-            <Text style={profileStyle.buttonLabel}>Share Profile</Text>
           </TouchableOpacity>
         </View>
       );
@@ -254,15 +261,20 @@ const UserProfile = () => {
         <PostGrid
           posts={posts}
           onPressPost={(post) => {
-            router.push({
-              pathname: "../authenticated/posts/viewposts",
-              params: {
-                postID: post.postID.toString(),
-                tab: subPage,
-                userID: profileUser?.uuid,
-                header: subPage === "PUBLIC" ? "Posts" : subPage === "PRIVATE" ? "Drafts" : "Needs Review",
-              },
-            });
+            if(subPage === "PRIVATE") {
+              handleNavigateToImageMarker(post);
+            }
+            else {
+              router.push({
+                pathname: "../authenticated/posts/viewposts",
+                params: {
+                  postID: post.postID.toString(),
+                  tab: subPage,
+                  userID: profileUser?.uuid,
+                  header: subPage === "PUBLIC" ? "Posts" : subPage === "PRIVATE" ? "Drafts" : "Needs Review",
+                },
+              });
+            }
           }}
         />
       )}
