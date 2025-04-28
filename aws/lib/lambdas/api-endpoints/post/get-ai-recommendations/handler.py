@@ -1,4 +1,4 @@
-from sqlalchemy_utils import session_handler
+from sqlalchemy_utils import session_handler, get_user_by_email
 from utils import create_response, handle_exception
 from dripdrop_orm_objects import Post, ClothingItemTag, Image, Item
 from sqlalchemy import select, func, desc
@@ -12,8 +12,10 @@ def handler(event, context):
 
         if not item_id:
             return create_response(400, 'Missing item ID')
+
+        email = event['requestContext']['authorizer']['claims']['email']
         
-        status_code, message = getAiRecommendations(item_id)
+        status_code, message = getAiRecommendations(email, item_id)
         return create_response(status_code, message)
     
     except Exception as e:
@@ -22,10 +24,25 @@ def handler(event, context):
     
 
 @session_handler
-def getAiRecommendations(session, item_id):
+def getAiRecommendations(session, email, item_id):
+    user = get_user_by_email(session, email)
+    userID = user.userID
+
     try:
         target_item = aliased(ClothingItemTag)
         matching_item = aliased(ClothingItemTag)
+
+        original_post_id = (
+            session.query(Post.postID)
+            .join(Image, Post.postID == Image.postID)
+            .join(Item, Image.imageID == Item.imageID)
+            .filter(Item.clothingItemID == item_id)
+            .scalar()
+        )
+
+        if not original_post_id:
+            return 404, "Original post not found for the given item ID"
+
 
         recommended_posts = (
             session.query(Post)
@@ -35,9 +52,12 @@ def getAiRecommendations(session, item_id):
             .join(target_item, target_item.tagID == matching_item.tagID)
             .filter(
                 target_item.clothingItemID == item_id,
-                matching_item.clothingItemID != item_id
+                matching_item.clothingItemID != item_id,
+                Post.status.ilike("public"),
+                Post.postID != original_post_id
             )
             .group_by(Post.postID)
+            .having(func.count(matching_item.tagID) >= 3)
             .order_by(desc(func.count(matching_item.tagID)))
             .limit(5)  # or however many posts you want
             .all()
@@ -62,6 +82,12 @@ def getAiRecommendations(session, item_id):
                     ],
                     "numLikes": len(post.likes),
                     "numComments": len(post.comments),
+                    "user": {
+                        "username": post.userRel.username,
+                        "profilePic": post.userRel.profilePicURL,
+                    },
+                    "userHasLiked": int(userID) in {like.userID for like in post.likes},
+                    "userHasSaved": int(userID) in {bookmark.userID for bookmark in post.bookmarks},
                 }
                 for post in recommended_posts
             ]
@@ -75,33 +101,7 @@ def getAiRecommendations(session, item_id):
 
 
 
-
-# matching_items = (
-#     session.query(
-#         matching_item.clothingItemID
-#     )
-#     .join(
-#         target_item, target_item.tagID == matching_item.tagID
-#     )
-#     .filter(
-#         target_item.clothingItemID == item_id,
-#         matching_item.clothingItemID != item_id
-#     )
-#     .group_by(matching_item.clothingItemID)
-#     .order_by(func.count().desc())
-#     .limit(5)
-# )
-
-# item_ids = [item.clothingItemID for item in matching_items.all()]
-
-# recommended_posts = (
-#     session.query(Post)
-#     .join(Image, Post.postID == Image.postID)  # Join posts to images
-#     .join(Item, Image.imageID == Item.imageID)  # Join images to items
-#     .filter(Item.clothingItemID.in_(item_ids))  # Filter posts by the similar items
-# ).all()
-
-
+# SQL Query for reference:
 
 # SELECT 
 #     matchingItem.clothingItemID AS similar_item_id,

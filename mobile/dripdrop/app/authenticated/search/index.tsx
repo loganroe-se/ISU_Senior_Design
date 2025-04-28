@@ -16,6 +16,7 @@ import { searchPostsByTerm } from "@/api/post";
 import { User } from "@/types/user.interface";
 import { Post } from "@/types/post";
 import { fetchUserByUsername } from "@/api/following";
+import { Colors } from "@/constants/Colors";
 
 export default function SearchScreen() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -64,6 +65,7 @@ export default function SearchScreen() {
         posts: encodeURIComponent(JSON.stringify(posts)),
         postID: post.postID.toString(),
         initialIndex: index.toString(),
+        header: searchQuery,
       },
     });
   };
@@ -121,7 +123,7 @@ export default function SearchScreen() {
 
       {loading ? (
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#5271ff" />
+          <ActivityIndicator size="large" color={Colors.light.primary} />
         </View>
       ) : searchType === "accounts" ? (
         <ScrollView contentContainerStyle={styles.scrollContainer}>
@@ -141,7 +143,7 @@ export default function SearchScreen() {
 
       {loadingProfile && (
         <View style={styles.loadingProfileContainer}>
-          <ActivityIndicator size="small" color="#5271ff" />
+          <ActivityIndicator size="small" color={Colors.light.primary} />
           <Text style={styles.loadingProfileText}>Loading profile...</Text>
         </View>
       )}
@@ -178,7 +180,7 @@ const styles = StyleSheet.create({
     borderBottomColor: "transparent",
   },
   activeTab: {
-    borderBottomColor: "#5271ff",
+    borderBottomColor: Colors.light.primary,
   },
   tabText: {
     fontSize: 16,
@@ -246,7 +248,7 @@ const styles = StyleSheet.create({
   },
   loadingProfileText: {
     fontSize: 14,
-    color: "#5271ff",
+    color: Colors.light.primary,
     marginTop: 10,
   },
 });

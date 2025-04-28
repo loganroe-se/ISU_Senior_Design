@@ -1,16 +1,19 @@
 // app/authenticated/posts/viewposts.tsx
 
 import React, { useEffect, useRef, useState } from "react";
-import { View, FlatList, Text, ActivityIndicator, Dimensions } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import { View, FlatList, Text, ActivityIndicator, Dimensions, TouchableOpacity } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
 import { Post } from "@/types/post";
 import { fetchUserPosts } from "@/api/post";
 import { PostCard } from "./_components/PostCard";
+import { Ionicons } from "@expo/vector-icons";
+import { Colors } from "@/constants/Colors";
 
 const { height } = Dimensions.get("window");
 
 const ViewPosts = () => {
-  const { postID, tab, userID, posts, initialIndex } = useLocalSearchParams();
+  const { postID, tab, userID, posts, initialIndex, header } = useLocalSearchParams();
+  const title = header || "dripdrop";
   const [postList, setPostList] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,21 +87,45 @@ const ViewPosts = () => {
   }
 
   return (
-    <FlatList
-      ref={flatListRef}
-      data={postList}
-      keyExtractor={(item) => item.postID.toString()}
-      renderItem={({ item }) => <PostCard post={item} />}
-      pagingEnabled
-      snapToAlignment="start"
-      decelerationRate="fast"
-      getItemLayout={(_, index) => ({
-        length: height,
-        offset: height * index,
-        index,
-      })}
-      onScrollToIndexFailed={onScrollToIndexFailed}
-    />
+    <View style={{ flex: 1 }}>
+      {/* Header Row */}
+      <View style={{ borderBottomWidth: 1, borderColor: "black", backgroundColor: Colors.light.background }}>
+        <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 12, paddingVertical: 12 }}>
+          <TouchableOpacity
+            onPress={() => router.back()}
+            style={{ justifyContent: "center", alignItems: "center", paddingRight: 20 }}
+          >
+            <Ionicons name="arrow-back" size={20} color={Colors.light.primary} />
+          </TouchableOpacity>
+          <Text
+            style={{ 
+              color: Colors.light.primary, 
+              fontSize: 20, 
+              fontWeight: "bold", 
+              fontStyle: (title === "dripdrop") ? "italic" : "normal" 
+            }}
+          >
+            {title}
+          </Text>
+        </View>
+      </View>
+
+      <FlatList
+        ref={flatListRef}
+        data={postList.reverse()}
+        keyExtractor={(item) => item.postID.toString()}
+        renderItem={({ item }) => <PostCard post={item} />}
+        pagingEnabled
+        snapToAlignment="start"
+        decelerationRate="fast"
+        getItemLayout={(_, index) => ({
+          length: height,
+          offset: height * index,
+          index,
+        })}
+        onScrollToIndexFailed={onScrollToIndexFailed}
+      />
+    </View>
   );
 };
 

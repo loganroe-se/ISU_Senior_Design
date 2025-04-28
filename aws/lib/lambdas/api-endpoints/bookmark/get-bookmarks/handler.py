@@ -24,6 +24,7 @@ def getBookmarks(session, email):
         user = get_user_by_email(session, email)
         if not user:
             return 404, "User does not exist."
+        userID = user.userID
 
         # Query to fetch posts bookmarked by the user
         query = (
@@ -63,6 +64,8 @@ def getBookmarks(session, email):
                     "username": post.userRel.username,
                     "profilePic": post.userRel.profilePicURL,
                 },
+                "userHasLiked": int(userID) in {like.userID for like in post.likes},
+                "userHasSaved": int(userID) in {bookmark.userID for bookmark in post.bookmarks},
             }
             for post in bookmarks_result
         ]

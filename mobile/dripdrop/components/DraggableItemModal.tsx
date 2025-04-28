@@ -1,7 +1,11 @@
-import { Modal, Text, TouchableOpacity, PanResponder, Animated, StyleSheet, Linking } from "react-native";
-import React, { useRef, useEffect } from "react";
+import { Modal, Text, TouchableOpacity, PanResponder, Animated, StyleSheet, Linking, View } from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import { ActivityIndicator } from "react-native-paper";
 import { Marker } from "@/types/Marker";
+import { Post } from "@/types/post";
 import { Item } from "@/types/Item";
+import { Colors } from "@/constants/Colors";
+import { getAIRecommendations } from "@/api/post";
 import Icon from "react-native-vector-icons/FontAwesome";
 
 interface DraggableItemModalProps {
@@ -10,6 +14,7 @@ interface DraggableItemModalProps {
     onChangeIndex: (newClothingItemID: number) => void;
     markersMap: Record<number, Marker[]>;
     itemDetailsMap: Record<number, Item>;
+    onAISuggestions: (suggestedPosts: Post[]) => void;
 }
 
 const DraggableItemModal = ({
@@ -18,10 +23,14 @@ const DraggableItemModal = ({
     onChangeIndex,
     markersMap,
     itemDetailsMap,
+    onAISuggestions,
 }: DraggableItemModalProps) => {
     const translate = useRef(new Animated.ValueXY()).current;
     const lastModalRef = useRef<{ postID: number; clothingItemID: number } | null>(null);
     const lastOffset = useRef({ x: 0, y: 0 }).current;
+    const [loadingAIRecs, setLoadingAIRecs] = useState<boolean>(false);
+    const [aiSuggestions, setAISuggestions] = useState<Post[]>([]);
+    const [hasFetched, setHasFetched] = useState<boolean>(false);
 
     // Reset the position of the modal
     useEffect(() => {
@@ -37,6 +46,14 @@ const DraggableItemModal = ({
             lastModalRef.current = visibleItemModal;
         }
     }, [visibleItemModal]);
+
+    useEffect(() => {
+        if (visibleItemModal?.clothingItemID != null) {
+            setHasFetched(false);
+            setAISuggestions([]);
+        }
+    }, [visibleItemModal?.clothingItemID]);
+    
 
     // Set up a pan responder to allow dragging of the modal
     const panResponder = useRef(
@@ -73,6 +90,16 @@ const DraggableItemModal = ({
 
         if (newIndex >= 0 && newIndex < markersWithDetails.length) {
             onChangeIndex(markersWithDetails[newIndex].clothingItemID);
+        }
+    };
+
+    // Handle fetch
+    const handleFetchSuggestions = async () => {
+        const result = await getAIRecommendations(clothingItemID);
+        setHasFetched(true);
+        setAISuggestions(result);
+        if (result.length !== 0) {
+            onAISuggestions(result);
         }
     };
 
@@ -137,43 +164,78 @@ const DraggableItemModal = ({
                         />
                     )}
 
-                    {/* Item Details */}
-                    {item?.name && (
-                        <Text style={styles.itemName}>
-                            {item.name}
-                        </Text>
-                    )}
-                    {item?.brand && (
-                        <Text style={styles.itemBrand}>
-                            <Text style={styles.boldText}>Brand: </Text>{item.brand}
-                        </Text>
-                    )}
-                    {item?.category && (
-                        <Text style={styles.itemCategory}>
-                            <Text style={styles.boldText}>Category: </Text>{item.category}
-                        </Text>
-                    )}
-                    {item?.price !== 0 && item?.price && (
-                        <Text style={styles.itemPrice}>
-                            <Text style={styles.boldText}>Price: </Text>${item.price}
-                        </Text>
-                    )}
-                    {item?.itemURL && isValidURL(item.itemURL) && (
-                        <Text style={styles.itemURL}>
-                            <Text style={styles.boldText}>URL: </Text>
-                            <Text 
-                                style={{ textDecorationLine: "underline", color: "#0000EE" }}
-                                onPress={() => Linking.openURL(item.itemURL)}
-                            >
-                                {item.itemURL}
+                    <View style={{ flex: 1, justifyContent: "space-between" }}>
+                        <View>
+                            {/* Item Details */}
+                            {item?.name && (
+                                <Text style={styles.itemName}>
+                                    {item.name}
+                                </Text>
+                            )}
+                            {item?.brand && (
+                                <Text style={styles.itemBrand}>
+                                    <Text style={styles.boldText}>Brand: </Text>{item.brand}
+                                </Text>
+                            )}
+                            {item?.category && (
+                                <Text style={styles.itemCategory}>
+                                    <Text style={styles.boldText}>Category: </Text>{item.category}
+                                </Text>
+                            )}
+                            {item?.price !== 0 && item?.price && (
+                                <Text style={styles.itemPrice}>
+                                    <Text style={styles.boldText}>Price: </Text>${item.price}
+                                </Text>
+                            )}
+                            {item?.itemURL && isValidURL(item.itemURL) && (
+                                <Text style={styles.itemURL}>
+                                    <Text style={styles.boldText}>URL: </Text>
+                                    <Text 
+                                        style={{ textDecorationLine: "underline", color: "#0000EE" }}
+                                        onPress={() => Linking.openURL(item.itemURL)}
+                                    >
+                                        {item.itemURL}
+                                    </Text>
+                                </Text>
+                            )}
+                            {item?.size && (
+                                <Text style={styles.itemSize}>
+                                    <Text style={styles.boldText}>Size: </Text>{item.size}
+                                </Text>
+                            )}
+                        </View>
+
+                        {/* AI Suggestions */}
+                        {aiSuggestions.length === 0 && !loadingAIRecs && hasFetched ? (
+                            <Text style={{ fontSize: 16, color: "black", alignContent: "center", textAlign: "center" }}>
+                                There are no AI suggestions for this item at this time.
                             </Text>
-                        </Text>
-                    )}
-                    {item?.size && (
-                        <Text style={styles.itemSize}>
-                            <Text style={styles.boldText}>Size: </Text>{item.size}
-                        </Text>
-                    )}
+                        ) : (
+                            <TouchableOpacity
+                                style={styles.suggestionsBtn}
+                                onPress={async () => {
+                                    // Make the API call to get the recommendations
+                                    setLoadingAIRecs(true);
+                                    await handleFetchSuggestions();
+                                    setLoadingAIRecs(false);
+                                }}
+                                disabled={loadingAIRecs}
+                            >
+                                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                                    <Text style={styles.suggestionsText}>
+                                        Generate AI Suggestions{" "}
+                                    </Text>
+                                    {loadingAIRecs ? (
+                                        <View style={{ width: 16, height: 16, justifyContent: 'center', alignItems: 'center' }}>
+                                            <ActivityIndicator style={{ marginLeft: 4, transform: [{ scale: 0.6 }] }} size="small" color="#ffffff" />
+                                        </View>
+                                    ) : (
+                                        <Text style={styles.suggestionsText}>→</Text>
+                                    )}
+                                </View>
+                            </TouchableOpacity>
+                        )}
+                    </View>
                 </Animated.View>
             </TouchableOpacity>
         </Modal>
@@ -261,6 +323,21 @@ const styles = StyleSheet.create({
     itemSize: {
         fontSize: 16,
         marginBottom: 4,
+    },
+    suggestionsBtn: {
+        marginTop: 12,
+        marginBottom: 4,
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        backgroundColor: Colors.light.primary,
+        borderRadius: 10,
+        alignSelf: "center",
+    },
+    suggestionsText: {
+        color: "white",
+        fontSize: 14,
+        fontWeight: "600",
+        marginLeft: 4,
     }
 });
 

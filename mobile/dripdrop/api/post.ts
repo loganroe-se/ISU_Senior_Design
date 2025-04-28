@@ -1,4 +1,4 @@
-import { Post, FeedPost, sendPost } from "@/types/post";
+import { Post, sendPost } from "@/types/post";
 import { apiRequest } from "./api";
 import { fetchUserById } from "./user";
 
@@ -14,6 +14,18 @@ export const createPost = async (newPost: sendPost): Promise<sendPost> => {
     ...newPost,
     postID,
   };
+};
+
+export const updatePost = async (postData: Partial<Post>): Promise<Post> => {
+  if (!postData.uuid) {
+    throw new Error("Post ID is required to update post");
+  }
+
+  const body: Record<string, any> = {};
+  if (postData.caption) body.caption = postData.caption;
+  if (postData.status) body.status = postData.status;
+
+  return await apiRequest<Post, typeof body>("PUT", `/posts/${postData.postID}`, body);
 };
 
 // Fetch all posts
@@ -54,4 +66,9 @@ export const searchPostsByTerm = async (searchTerm: string): Promise<Post[]> => 
     console.error("Error searching posts:", error);
     return [];
   }
+};
+
+// Get AI Recommendations
+export const getAIRecommendations = async (clothingItemID: number): Promise<Post[]> => {
+  return apiRequest<Post[]>("GET", `/posts/ai-recommendations/${clothingItemID}`);
 };

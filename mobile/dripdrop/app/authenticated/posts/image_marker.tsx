@@ -179,6 +179,7 @@ const handleDeleteMarker = async (markerId: number) => {
     // Handle Post button press
     const handlePost = async () => {
         try {
+            setLoading(true)
             if (!postId || isNaN(Number(postId))) {
                 throw new Error("Invalid post ID");
             }
@@ -193,6 +194,9 @@ const handleDeleteMarker = async (markerId: number) => {
         } catch (error) {
             console.error("Error publishing post:", error);
             Alert.alert("Error", "Failed to publish the post. Please try again.");
+        }
+        finally{
+            setLoading(false);
         }
     };
 
@@ -242,7 +246,12 @@ const handleDeleteMarker = async (markerId: number) => {
             <Text style={image_marker_styles.title}>Preview Your Post</Text>
 
             {/* Toolbar */}
-            <Toolbar mode={mode} setMode={setMode} />
+            <Toolbar
+                mode={mode}
+                setMode={setMode}
+                onRefresh={loadMarkers}
+                loading={loading}
+            />
 
             {image && (
                 <View

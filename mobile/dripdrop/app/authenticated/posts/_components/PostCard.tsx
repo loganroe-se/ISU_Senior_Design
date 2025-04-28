@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -11,23 +11,57 @@ import {
   TextInput,
   ActivityIndicator,
   Platform,
+  Dimensions,
 } from "react-native";
 import { Post } from "@/types/post";
 import { Ionicons } from "@expo/vector-icons";
+import Icon from "react-native-vector-icons/FontAwesome";
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
 import { Comment } from "@/types/Comment";
 import { useUserContext } from "@/context/UserContext";
+import { Colors } from "@/constants/Colors";
+import { likePost, unlikePost } from "@/api/like";
+import { createBookmark, removeBookmark } from "@/api/bookmark";
+
+const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
 
 export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [liked, setLiked] = useState(post.userHasLiked || false);
+  const [numLikes, setNumLikes] = useState(post.numLikes);
+  const [saved, setSaved] = useState(post.userHasSaved || false);
   const { user } = useUserContext();
   const [input, setInput] = useState("");
   const [comments, setComments] = useState<Comment[]>([]);
+  const [numComments, setNumComments] = useState(post.numComments);
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [imageHeight, setImageHeight] = useState(400);
 
-  const toggleLike = () => setLiked(!liked);
+  useEffect(() => {
+    Image.getSize(`https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`, (width, height) => {
+      const ratio = windowWidth / width;
+      const calculatedHeight = height * ratio;
+      setImageHeight(calculatedHeight < windowHeight * 0.65 ? calculatedHeight : windowHeight * 0.65);
+    });
+  }, []);
+
+  const toggleLike = (async () => {
+    if (liked) {
+      unlikePost(post.postID);
+      setNumLikes(numLikes - 1);
+    } else {
+      likePost(post.postID);
+      setNumLikes(numLikes + 1);
+    }
+
+    setLiked(!liked);
+  });
+
+  const toggleBookmark = (async () => {
+    saved ? removeBookmark(post.postID) : createBookmark(post.postID);
+    setSaved(!saved);
+  });
 
   const openComments = async () => {
     setModalVisible(true);
@@ -55,6 +89,7 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         profilePic: user.profilePic!,
       },
     ]);
+    setNumComments(numComments + 1);
     setInput("");
     setSubmitting(true);
     try {
@@ -84,24 +119,35 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         source={{
           uri: `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`,
         }}
-        style={styles.image}
+        style={{ width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain', borderRadius: 8 }}
       />
 
       {/* Actions */}
       <View style={styles.actions}>
         <TouchableOpacity onPress={toggleLike}>
-          <Ionicons
-            name={liked ? "heart" : "heart-outline"}
-            size={28}
+          <Icon
+            name={liked ? "heart" : "heart-o"}
+            size={30}
             color={liked ? "red" : "black"}
+            style={{ marginRight: 10 }}
           />
         </TouchableOpacity>
+        <Text style={styles.iconCount}>{numLikes}</Text>
         <TouchableOpacity onPress={openComments}>
-          <Ionicons
-            name="chatbubble-outline"
-            size={26}
+          <Icon
+            name="comment-o"
+            size={30}
             color="black"
-            style={{ marginLeft: 10 }}
+            style={{ marginRight: 10 }}
+          />
+        </TouchableOpacity>
+        <Text style={styles.iconCount}>{numComments}</Text>
+        <TouchableOpacity onPress={toggleBookmark}>
+          <Icon
+            name={saved ? "bookmark" : "bookmark-o"}
+            size={30}
+            color={saved ? Colors.light.primary : Colors.light.contrast}
+            style={{ marginRight: 10 }}
           />
         </TouchableOpacity>
       </View>
@@ -264,9 +310,9 @@ const styles = StyleSheet.create({
   header: { flexDirection: "row", alignItems: "center", padding: 10 },
   avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
   username: { fontWeight: "bold" },
-  image: { width: "100%", height: 400 },
-  actions: { flexDirection: "row", padding: 10 },
-  caption: { paddingHorizontal: 10, marginTop: 5 },
+  actions: { flexDirection: "row", justifyContent: "flex-start", alignItems: "center", padding: 10 },
+  caption: { paddingHorizontal: 10 },
   viewComments: { paddingHorizontal: 10, color: "gray", marginTop: 4 },
   modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
+  iconCount: { fontSize: 12, color: Colors.light.contrast, marginRight: 20 },
 });

@@ -24,6 +24,7 @@ def handler(event, context):
 def searchPosts(session, search_string, email):
     try:
         user = get_user_by_email(session, email)
+        userID = user.userID
 
         # Get up to 20 posts matching the search string
         posts = session.execute(
@@ -31,13 +32,6 @@ def searchPosts(session, search_string, email):
             .filter(Post.caption.ilike(f"%{search_string}%"))
             .limit(20)
         ).scalars().all()
-
-        # Get the set of postIDs liked by the current user
-        liked_post_ids = set(
-            row[0] for row in session.execute(
-                select(Like.postID).filter(Like.userID == user.userID)
-            ).all()
-        )
 
         posts_list = [
             {
@@ -56,7 +50,8 @@ def searchPosts(session, search_string, email):
                 ],
                 "numLikes": len(post.likes),
                 "numComments": len(post.comments),
-                "hasLiked": post.postID in liked_post_ids,
+                "userHasLiked": int(userID) in {like.userID for like in post.likes},
+                "userHasSaved": int(userID) in {bookmark.userID for bookmark in post.bookmarks},
                 "user": {
                     "username": post.userRel.username,
                     "profilePic": post.userRel.profilePicURL,

@@ -1,6 +1,7 @@
 import { Alert, View, Text, StyleSheet } from "react-native"
 import React from "react";
 import { likePost, unlikePost } from "@/api/like";
+import { createBookmark, removeBookmark } from "@/api/bookmark";
 import { Comment } from "@/types/Comment";
 import { Post } from "@/types/post";
 import { Colors } from "@/constants/Colors"
@@ -10,7 +11,6 @@ import Icon from "react-native-vector-icons/FontAwesome";
 interface LikeCommentBarProps {
     feedData: Post[];
     setFeedData: React.Dispatch<React.SetStateAction<Post[]>>;
-    userID: string;
     item: Post;
     setCurrentPostID: React.Dispatch<React.SetStateAction<number | null>>;
     setCommentModalVisible: React.Dispatch<React.SetStateAction<boolean>>;
@@ -21,7 +21,6 @@ interface LikeCommentBarProps {
 const LikeCommentBar = ({ 
     feedData, 
     setFeedData, 
-    userID, 
     item, 
     setCurrentPostID, 
     setCommentModalVisible,
@@ -30,8 +29,6 @@ const LikeCommentBar = ({
 }: LikeCommentBarProps) => {
     // Handle a like
     const handleLike = (async (postID: number) => {
-        if (!userID) return;
-
         try {
             // Check if it has already been liked
             const hasLiked = feedData.some((post) => post.postID === postID && post.userHasLiked);
@@ -46,7 +43,7 @@ const LikeCommentBar = ({
                 );
 
                 // Unlike the post
-                await unlikePost(userID, postID);
+                await unlikePost(postID);
             } else {
                 // Update local state
                 setFeedData((prevFeedData) => 
@@ -56,7 +53,7 @@ const LikeCommentBar = ({
                 );
 
                 // Like the post
-                await likePost(userID, postID);
+                await likePost(postID);
             }
         } catch (error) {
             console.error('Error handling like: ', error);
@@ -79,6 +76,39 @@ const LikeCommentBar = ({
             setLoadingComments(false);
         }
     };
+    // Handle bookmarks
+    const handleBookmark = (async (postID: number) => {
+        try {
+            // Check if it has already been saved
+            const hasSaved = feedData.some((post) => post.postID === postID && post.userHasSaved);
+
+            // If the post is already saved, unsave it, else save it
+            if (hasSaved) {
+                // Update local state
+                setFeedData((prevFeedData) => 
+                    prevFeedData.map((post) =>
+                    post.postID === postID ? { ...post, userHasSaved: false } : post
+                    )
+                );
+
+                // Unsave the post
+                await removeBookmark(postID);
+            } else {
+                // Update local state
+                setFeedData((prevFeedData) => 
+                    prevFeedData.map((post) =>
+                    post.postID === postID ? { ...post, userHasSaved: true } : post
+                    )
+                );
+
+                // Save the post
+                await createBookmark(postID);
+            }
+        } catch (error) {
+            console.error('Error handling like: ', error);
+            Alert.alert('Error', 'Failed to update like status')
+        }
+    });
 
     return (
         <View style={styles.iconContainer}>
@@ -98,6 +128,13 @@ const LikeCommentBar = ({
                 style={styles.icon}
             />
             <Text style={styles.iconCount}>{item.numComments}</Text>
+            <Icon
+                name={ item.userHasSaved ? 'bookmark' : 'bookmark-o' }
+                size={30}
+                color={ item.userHasSaved ? Colors.light.primary : Colors.light.contrast }
+                onPress={() => handleBookmark(item.postID)}
+                style={styles.icon}
+            />
         </View>
     );
 };
