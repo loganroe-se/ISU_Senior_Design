@@ -29,7 +29,11 @@ def searchPosts(session, search_string, email):
         # Get up to 20 posts matching the search string
         posts = session.execute(
             select(Post)
-            .filter(Post.caption.ilike(f"%{search_string}%"))
+            .filter(
+                Post.caption.ilike(f"%{search_string}%"),
+                Post.status == "PUBLIC",
+                Post.userID != userID,
+            )
             .limit(20)
         ).scalars().all()
 
