@@ -12,6 +12,7 @@ import {
   Platform,
   PermissionsAndroid,
   Keyboard,
+  ActivityIndicator
 } from "react-native";
 import * as FileSystem from 'expo-file-system';
 
@@ -39,6 +40,8 @@ export default function Post() {
   const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
   const [adjustedImageUri, setAdjustedImageUri] = useState<string | null>(null);
   const [imageAdjustmentVisible, setImageAdjustmentVisible] = useState(false);
+  const [photosLoading, setPhotosLoading] = useState(false);
+
 
   const router = useRouter();
 
@@ -79,6 +82,7 @@ export default function Post() {
   // Fetch photos from the media library
   useEffect(() => {
     const fetchPhotos = async () => {
+      setPhotosLoading(true);
       let granted = true;
 
       if (Platform.OS === "android") {
@@ -106,6 +110,7 @@ export default function Post() {
       );
 
       setPhotos(assetsWithFileUris);
+      setPhotosLoading(false); 
     };
 
     fetchPhotos();
@@ -321,27 +326,34 @@ export default function Post() {
 
          
           {/* Bottom Half iOS: Image Gallery */}
-          {Platform.OS === 'ios' && (
-          <FlatList
-            data={photos}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => handleImageSelect(item)}>
-                <Image source={{ uri: item.uri }} style={post_styles.thumbnail} />
-              </TouchableOpacity>
-            )}
-            keyExtractor={(item) => item.id}
-            numColumns={numColumns}
-            onEndReached={loadMorePhotos}
-            onEndReachedThreshold={0.5}
-            ListFooterComponent={
-              loadingMore ? (
+            {Platform.OS === 'ios' && (
+              photosLoading ? (
                 <View style={post_styles.loadingContainer}>
-                  <Text>Loading...</Text>
+                  <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 10 }} />
                 </View>
-              ) : null
-            }
-          />
-          )}
+              ) : (
+                <FlatList
+                  data={photos}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity onPress={() => handleImageSelect(item)}>
+                      <Image source={{ uri: item.uri }} style={post_styles.thumbnail} />
+                    </TouchableOpacity>
+                  )}
+                  keyExtractor={(item) => item.id}
+                  numColumns={numColumns}
+                  onEndReached={loadMorePhotos}
+                  onEndReachedThreshold={0.5}
+                  ListFooterComponent={
+                    loadingMore ? (
+                      <View style={post_styles.loadingContainer}>
+                        <Text>Loading more photos...</Text>
+                      </View>
+                    ) : null
+                  }
+                />
+              )
+            )}
+
           </View>
 
           {/* Caption Input */}

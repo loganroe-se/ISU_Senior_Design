@@ -112,7 +112,7 @@ const ViewPosts = () => {
 
       <FlatList
         ref={flatListRef}
-        data={postList}
+        data={postList.reverse()}
         keyExtractor={(item) => item.postID.toString()}
         renderItem={({ item }) => <PostCard post={item} />}
         pagingEnabled

@@ -1,12 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { View, TouchableOpacity, Linking } from "react-native";
+import { View, TouchableOpacity, Linking, ActivityIndicator } from "react-native";
 import { Avatar, Text } from "react-native-paper";
 import { useUserContext } from "@/context/UserContext";
 import { fetchUserPosts, updatePost } from "@/api/post";
 import {
   fetchFollowerCount,
   fetchFollowingCount,
-  fetchUserByUsername,
   followUser,
   unfollowUser,
 } from "@/api/following";
@@ -17,6 +16,7 @@ import { router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { profileStyle } from "./_components/profileStyle";
 import { PostGrid } from "./_components/PostGrid";
+import { Colors } from "@/constants/Colors";
 
 const UserProfile = () => {
   const params = useLocalSearchParams();
@@ -25,12 +25,15 @@ const UserProfile = () => {
   const { user, signOut } = useUserContext();
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
-  const [profilePic, setProfilePic] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
-  const [subPage, setSubPage] = useState("PUBLIC");
+  const tab = Array.isArray(params.tab) ? params.tab[0] : params.tab;
+  const [subPage, setSubPage] = useState(tab || "PUBLIC");
+  const [loadingFollow, setLoadingFollow] = useState(false);
+  const [isBottomLoading, setIsBottomLoading] = useState(true);
+
 
   useEffect(() => {
     const getUserData = async () => {
@@ -54,8 +57,11 @@ const UserProfile = () => {
   }, [subPage]);
 
   const getUserPosts = async (id: string) => {
+    setIsBottomLoading(true);
     const p = await fetchUserPosts(id, subPage);
-    setPosts(p);
+    setPosts(p.reverse());
+    setIsBottomLoading(false);
+
   };
 
   const updateFollows = async (id: string) => {
@@ -87,14 +93,21 @@ const UserProfile = () => {
     if (user.uuid === profileUser.uuid) {
       router.push("../authenticated/profile/edit");
     } else {
-      if (!isFollowing) {
-        await followUser(user.uuid, profileUser.uuid);
-      } else {
-        await unfollowUser(user.uuid, profileUser.uuid);
+      setLoadingFollow(true);
+      try {
+        if (!isFollowing) {
+          await followUser(user.uuid, profileUser.uuid);
+        } else {
+          await unfollowUser(user.uuid, profileUser.uuid);
+        }
+        await updateFollows(profileUser.uuid);
+      } catch (err) {
+        console.error(err);
       }
-      updateFollows(profileUser.uuid);
+      setLoadingFollow(false);
     }
   };
+
 
   const renderActionButton = () => {
     const isCurrentUser = user?.uuid === profileUser?.uuid;
@@ -125,10 +138,15 @@ const UserProfile = () => {
               ? profileStyle.followedActionButton
               : profileStyle.actionButton
           }
+          disabled={loadingFollow}
         >
-          <Text style={profileStyle.buttonLabel}>
-            {isFollowing ? "Following" : "Follow"}
-          </Text>
+          {loadingFollow ? (
+            <ActivityIndicator size="small" color={Colors.light.primary} />
+          ) : (
+            <Text style={profileStyle.buttonLabel}>
+              {isFollowing ? "Following" : "Follow"}
+            </Text>
+          )}
         </TouchableOpacity>
       );
     }
@@ -191,6 +209,7 @@ const UserProfile = () => {
         </View>
       </View>
 
+
       {/* Bio Section */}
       <View style={profileStyle.bioSection}>
         <Text style={profileStyle.nameText}>{profileUser?.username}</Text>
@@ -228,21 +247,25 @@ const UserProfile = () => {
         <View style={profileStyle.postDivider} />
       )}
 
-      <PostGrid
-        posts={posts}
-        onPressPost={(post) => {
-          router.push({
-            pathname: "../authenticated/posts/viewposts",
-            params: {
-              postID: post.postID.toString(),
-              tab: subPage,
-              userID: profileUser?.uuid, // Needed to fetch scoped posts
-              header: subPage === "PUBLIC" ? "Posts" : subPage === "PRIVATE" ? "Drafts" : "Needs Review",
-            },
-          });
-        }}
-      />
 
+      {isBottomLoading ? (
+        <ActivityIndicator size="large" style={{ marginVertical: 30 }} color={Colors.light.primary} />
+      ) : (
+        <PostGrid
+          posts={posts}
+          onPressPost={(post) => {
+            router.push({
+              pathname: "../authenticated/posts/viewposts",
+              params: {
+                postID: post.postID.toString(),
+                tab: subPage,
+                userID: profileUser?.uuid,
+                header: subPage === "PUBLIC" ? "Posts" : subPage === "PRIVATE" ? "Drafts" : "Needs Review",
+              },
+            });
+          }}
+        />
+      )}
     </View>
   );
 };
