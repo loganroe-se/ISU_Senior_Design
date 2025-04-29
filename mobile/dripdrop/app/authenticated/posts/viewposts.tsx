@@ -174,8 +174,6 @@ const ViewPosts = () => {
         data={postList.reverse()}
         keyExtractor={(item) => item.postID.toString()}
         renderItem={({ item }) => <PostCard post={item} itemDetailsMap={itemDetailsMap} markersMap={markersMap} />}
-        pagingEnabled
-        snapToAlignment="start"
         decelerationRate="fast"
         getItemLayout={(_, index) => ({
           length: height * 0.82,
