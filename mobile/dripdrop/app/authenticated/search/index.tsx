@@ -38,7 +38,7 @@ export default function SearchScreen() {
           setUsers(fetchedUsers ?? []);
         } else {
           const fetchedPosts = await searchPostsByTerm(searchQuery);
-          setPosts(Array.isArray(fetchedPosts) ? fetchedPosts : []);
+          setPosts(Array.isArray(fetchedPosts) ? [...fetchedPosts].reverse() : []);
         }
         setLoading(false);
       };
