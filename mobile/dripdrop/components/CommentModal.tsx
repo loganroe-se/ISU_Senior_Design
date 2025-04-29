@@ -115,7 +115,7 @@ const CommentModal = ({
                 <PanGestureHandler
                   onGestureEvent={(event) => {
                       if (event.nativeEvent.translationY > 50) {
-                      setCommentModalVisible(false);
+                        setCommentModalVisible(false);
                       }
                   }}
                 >
