@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import * as FileSystem from 'expo-file-system';
 
-import {  TextInput, Card } from "react-native-paper";
+import { TextInput, Card } from "react-native-paper";
 import { useRouter } from "expo-router";
 import * as ImageManipulator from "expo-image-manipulator";
 import { Ionicons } from "@expo/vector-icons";
@@ -41,7 +41,6 @@ export default function Post() {
   const [adjustedImageUri, setAdjustedImageUri] = useState<string | null>(null);
   const [imageAdjustmentVisible, setImageAdjustmentVisible] = useState(false);
   const [photosLoading, setPhotosLoading] = useState(false);
-
 
   const router = useRouter();
 
@@ -79,6 +78,7 @@ export default function Post() {
     }
     return true; // iOS handles this differently
   };
+
   // Fetch photos from the media library
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -110,12 +110,11 @@ export default function Post() {
       );
 
       setPhotos(assetsWithFileUris);
-      setPhotosLoading(false); 
+      setPhotosLoading(false);
     };
 
     fetchPhotos();
   }, []);
-
 
   // Load more photos from the media library
   const loadMorePhotos = async () => {
@@ -148,22 +147,22 @@ export default function Post() {
 
   // Handle taking a photo with the camera
   const takePhoto = async () => {
-    if (cameraPermission === null) {
-      alert("Camera permission is still being requested.");
-      return;
-    }
-    if (!cameraPermission) {
-      alert("Camera permission is required to take photos.");
+    // Request camera permission
+    const permissionResult = await ImagePicker.requestCameraPermissionsAsync();
+    if (!permissionResult.granted) {
+      alert('Permission to access the camera is required!');
       return;
     }
 
-    const result = await ImagePicker.launchCameraAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+    // Options for cropping and quality
+    const options: ImagePicker.ImagePickerOptions = {
+      allowsEditing: false,   // Allow editing (crop)
+      quality: 1,            // High quality
+    };
 
+    // Launch the camera
+    const result = await ImagePicker.launchCameraAsync(options);
+    
     if (!result.canceled) {
       setImage(result.assets[0].uri);
     }
@@ -202,13 +201,11 @@ export default function Post() {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-
       const newPost: sendPost = {
         uuid: id,
         caption,
         images: [base64Image]
       };
-
 
       const response = await createPost(newPost);
       const postId = response.postID;
@@ -238,21 +235,42 @@ export default function Post() {
     4
   );
 
+  // Handle selecting an image from the camera roll
   const pickImageFromCameraRoll = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
-      aspect: [1, 1],
       quality: 1,
     });
 
     if (!result.canceled) {
-      setImage(result.assets[0].uri);
-      setSelectedImageUri(result.assets[0].uri);
+      // Get the selected image URI
+      const selectedImageUri = result.assets[0].uri;
+
+      // Get the original image dimensions
+      const { width, height } = await ImageManipulator.manipulateAsync(selectedImageUri, [], {
+        format: ImageManipulator.SaveFormat.PNG,
+      });
+
+      // Calculate the target dimensions for a 4:3 aspect ratio
+      const targetWidth = width;
+      const targetHeight = Math.floor(targetWidth * 3 / 4); // 4:3 ratio
+
+      // Resize or crop the image to fit the 4:3 aspect ratio
+      const resizedImage = await ImageManipulator.manipulateAsync(
+        selectedImageUri,
+        [
+          { resize: { width: targetWidth, height: targetHeight } },
+        ],
+        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+      );
+
+      // Set the resized image
+      setImage(resizedImage.uri);
+      setSelectedImageUri(resizedImage.uri);
       setImageAdjustmentVisible(true); // Open adjustment modal if needed
     }
   };
-
 
   return (
     <SafeAreaView style={post_styles.container}>
@@ -270,17 +288,10 @@ export default function Post() {
             <TouchableOpacity
               onPress={handleContinue}
               disabled={loading || !image || caption.trim() === ""}
-              style={[
-                post_styles.continueButton,
-                (loading || !image || caption.trim() === "") && post_styles.disabledButton,
-              ]}
+              style={[post_styles.continueButton, (loading || !image || caption.trim() === "") && post_styles.disabledButton]}
             >
               <Text
-                style={[
-                  post_styles.continueText,
-                  loading && post_styles.loadingText,
-                  (loading || !image || caption.trim() === "") && post_styles.disabledText
-                ]}
+                style={[post_styles.continueText, loading && post_styles.loadingText, (loading || !image || caption.trim() === "") && post_styles.disabledText]}
               >
                 {loading ? "Loading..." : "Continue"}
               </Text>
@@ -315,7 +326,7 @@ export default function Post() {
               </View>
             )}
           </Card>
-          <View style={{ flex: 1 }}>
+
           {/* Bottom Half Android: Choose image from Camera Roll */}
           {Platform.OS === 'android' && (
             <TouchableOpacity onPress={pickImageFromCameraRoll} style={post_styles.androidImageUpload}>
@@ -324,38 +335,34 @@ export default function Post() {
             </TouchableOpacity>
           )}
 
-         
           {/* Bottom Half iOS: Image Gallery */}
-            {Platform.OS === 'ios' && (
-              photosLoading ? (
-                <View style={post_styles.loadingContainer}>
-                  <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 10 }} />
-                </View>
-              ) : (
-                <FlatList
-                  data={photos}
-                  renderItem={({ item }) => (
-                    <TouchableOpacity onPress={() => handleImageSelect(item)}>
-                      <Image source={{ uri: item.uri }} style={post_styles.thumbnail} />
-                    </TouchableOpacity>
-                  )}
-                  keyExtractor={(item) => item.id}
-                  numColumns={numColumns}
-                  onEndReached={loadMorePhotos}
-                  onEndReachedThreshold={0.5}
-                  ListFooterComponent={
-                    loadingMore ? (
-                      <View style={post_styles.loadingContainer}>
-                        <Text>Loading more photos...</Text>
-                      </View>
-                    ) : null
-                  }
-                />
-              )
-            )}
-
-          </View>
-
+          {Platform.OS === 'ios' && (
+            photosLoading ? (
+              <View style={post_styles.loadingContainer}>
+                <ActivityIndicator size="large" color={Colors.light.primary} style={{ marginTop: 10 }} />
+              </View>
+            ) : (
+              <FlatList
+                data={photos}
+                renderItem={({ item }) => (
+                  <TouchableOpacity onPress={() => handleImageSelect(item)}>
+                    <Image source={{ uri: item.uri }} style={post_styles.thumbnail} />
+                  </TouchableOpacity>
+                )}
+                keyExtractor={(item) => item.id}
+                numColumns={numColumns}
+                onEndReached={loadMorePhotos}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={
+                  loadingMore ? (
+                    <View style={post_styles.loadingContainer}>
+                      <Text>Loading more photos...</Text>
+                    </View>
+                  ) : null
+                }
+              />
+            )
+          )}
           {/* Caption Input */}
           <View style={post_styles.bottomContainer}>
             <TextInput
