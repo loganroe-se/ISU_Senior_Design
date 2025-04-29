@@ -176,8 +176,8 @@ const ViewPosts = () => {
         renderItem={({ item }) => <PostCard post={item} itemDetailsMap={itemDetailsMap} markersMap={markersMap} />}
         decelerationRate="fast"
         getItemLayout={(_, index) => ({
-          length: height * 0.82,
-          offset: height * 0.82 * index,
+          length: height * 0.80,
+          offset: height * 0.80 * index,
           index,
         })}
         onScrollToIndexFailed={onScrollToIndexFailed}
