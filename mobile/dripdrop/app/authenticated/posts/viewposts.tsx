@@ -8,6 +8,9 @@ import { fetchUserPosts } from "@/api/post";
 import { PostCard } from "./_components/PostCard";
 import { Ionicons } from "@expo/vector-icons";
 import { Colors } from "@/constants/Colors";
+import { Marker } from "@/types/Marker";
+import { fetchMarkers, getItemDetails } from "@/api/items";
+import { Item } from "@/types/Item";
 
 const { height } = Dimensions.get("window");
 
@@ -18,6 +21,8 @@ const ViewPosts = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const flatListRef = useRef<FlatList<Post>>(null);
+  const [itemDetailsMap, setItemDetailsMap] = useState<Record<number, Item>>({});
+  const [markersMap, setMarkersMap] = useState<Record<number, Marker[]>>({});
 
   useEffect(() => {
     const init = async () => {
@@ -55,6 +60,52 @@ const ViewPosts = () => {
       flatListRef.current?.scrollToIndex({ index, animated: false });
     }
   }, [loading, postList, postID, initialIndex]);
+  
+  // Update markers when feed data is changed
+  useEffect(() => {
+    const loadMarkers = async () => {
+      const newMarkersMap: Record<number, Marker[]> = {};
+      const allItemIDs = new Set<number>();
+
+      await Promise.all(postList.map(async (post) => {
+        try {
+          const markers = await fetchMarkers(post.postID);
+          if (markers.length > 0) {
+            newMarkersMap[post.postID] = markers;
+          }
+
+          markers.forEach(marker => allItemIDs.add(marker.clothingItemID));
+        } catch (error) {
+          console.error("Failed to fetch markers for post ", post.postID);
+        }
+      }));
+      
+      setMarkersMap(newMarkersMap);
+
+      // Fetch item details for all unique IDs that aren't already in the map
+      const idsToFetch = Array.from(allItemIDs).filter(id => !itemDetailsMap[id]);
+  
+      if (idsToFetch.length > 0) {
+        try {
+          const fetched = await getItemDetails(idsToFetch);
+    
+          if (fetched) {
+            const newMap = { ...itemDetailsMap };
+            if (Array.isArray(fetched)) {
+              fetched.forEach(item => {
+                newMap[item.clothingItemID] = item;
+              });
+            }
+            setItemDetailsMap(newMap);
+          }
+        } catch (error) {
+          console.error("Failed to fetch item details: ", error);
+        }
+      }
+    };
+    
+    if (postList.length > 0) loadMarkers();
+  }, [postList]);
 
   const onScrollToIndexFailed = (info: {
     index: number;
@@ -114,7 +165,7 @@ const ViewPosts = () => {
         ref={flatListRef}
         data={postList.reverse()}
         keyExtractor={(item) => item.postID.toString()}
-        renderItem={({ item }) => <PostCard post={item} />}
+        renderItem={({ item }) => <PostCard post={item} itemDetailsMap={itemDetailsMap} markersMap={markersMap} />}
         pagingEnabled
         snapToAlignment="start"
         decelerationRate="fast"
