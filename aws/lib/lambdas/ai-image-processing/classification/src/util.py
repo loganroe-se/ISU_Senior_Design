@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import json, cv2, logging, time
 import torch
@@ -12,8 +13,11 @@ MODEL_SIZE = (640, 640)
 ATTRIBUTES_PATH = "attributes.json"
 BATCH_SIZE = 10  # Adjustable batch size
 
+# Load model based on environment variable
+model_name = os.getenv('MODEL_NAME')
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-model = YOLO("slight-improved-classify.pt").to(device)
+logger.info(f"Loading model: {model_name} onto device: {device}")
+model = YOLO(model_name).to(device)
 
 # Load attribute map once
 with open(ATTRIBUTES_PATH, "r") as f:
@@ -27,10 +31,23 @@ def output_fn(prediction_output):
     for result in prediction_output:
         entry = {}
         if 'probs' in result._keys and result.probs is not None:
-            entry['top5_indices'] = result.probs.top5
-            entry['top5_scores'] = result.probs.top5conf.tolist()
+            top5_indices = result.probs.top5
+            top5_scores = result.probs.top5conf.tolist()
+
+            # Filter based on confidence threshold
+            filtered_indices = []
+            filtered_scores = []
+            for idx, score in zip(top5_indices, top5_scores):
+                if score >= 0.4:
+                    filtered_indices.append(idx)
+                    filtered_scores.append(score)
+
+            entry['top5_indices'] = filtered_indices
+            entry['top5_scores'] = filtered_scores
+
         parsed.append(entry)
     return parsed
+
 
 def chunked(iterable, size):
     """Yield successive chunks of a given size."""

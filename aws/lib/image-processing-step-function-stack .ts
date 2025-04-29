@@ -2,7 +2,6 @@ import * as cdk from "aws-cdk-lib";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as sfn from "aws-cdk-lib/aws-stepfunctions";
 import * as tasks from "aws-cdk-lib/aws-stepfunctions-tasks";
-import * as iam from "aws-cdk-lib/aws-iam";
 import * as sqs from "aws-cdk-lib/aws-sqs";
 import * as event_sources from "aws-cdk-lib/aws-lambda-event-sources";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
@@ -24,12 +23,11 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
       }
     );
 
-      // 🟢 S3 Bucket for Storing Segmentation Results
-      const imageProcessingBucket = new s3.Bucket(this, "ImageProcessingBucket", {
-        bucketName: "ai-image-processing-results",
-        removalPolicy: cdk.RemovalPolicy.RETAIN, // Change to DESTROY if you want auto-delete
-      });
-    
+    // 🟢 S3 Bucket for Storing Segmentation Results
+    const imageProcessingBucket = new s3.Bucket(this, "ImageProcessingBucket", {
+      bucketName: "ai-image-processing-results",
+      removalPolicy: cdk.RemovalPolicy.RETAIN, // Change to DESTROY if you want auto-delete
+    });
 
     // Queue for incoming image processing requests
     const imageProcessingQueue = new sqs.Queue(this, "ImageProcessingQueue", {
@@ -62,9 +60,9 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
     );
 
     // Classification Lambda Function (Docker-based)
-    const classifyLambda = new lambda.DockerImageFunction(
+    const classifyLambda1 = new lambda.DockerImageFunction(
       this,
-      "ClassifyLambda",
+      "ClassifyLambda1",
       {
         code: lambda.DockerImageCode.fromImageAsset(
           "lib/lambdas/ai-image-processing/classification"
@@ -72,38 +70,102 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
         memorySize: 1024,
         architecture: lambda.Architecture.X86_64,
         timeout: cdk.Duration.seconds(900),
+        environment: {
+          MODEL_NAME: "models/classify1.pt",
+        },
       }
     );
 
-    // Grant permissions for SageMaker inference and listing endpoints
-    segmentLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["sagemaker:InvokeEndpoint", "sagemaker:ListEndpoints"],
-        resources: ["*"], // Allows listing all endpoints
-      })
+    const classifyLambda2 = new lambda.DockerImageFunction(
+      this,
+      "ClassifyLambda2",
+      {
+        code: lambda.DockerImageCode.fromImageAsset(
+          "lib/lambdas/ai-image-processing/classification"
+        ),
+        memorySize: 1024,
+        architecture: lambda.Architecture.X86_64,
+        timeout: cdk.Duration.seconds(900),
+        environment: {
+          MODEL_NAME: "models/classify2.pt",
+        },
+      }
     );
 
-    classifyLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["sagemaker:InvokeEndpoint", "sagemaker:ListEndpoints"],
-        resources: ["*"], // Allows listing all endpoints
-      })
+    const classifyLambda3 = new lambda.DockerImageFunction(
+      this,
+      "ClassifyLambda3",
+      {
+        code: lambda.DockerImageCode.fromImageAsset(
+          "lib/lambdas/ai-image-processing/classification"
+        ),
+        memorySize: 1024,
+        architecture: lambda.Architecture.X86_64,
+        timeout: cdk.Duration.seconds(900),
+        environment: {
+          MODEL_NAME: "models/classify3.pt",
+        },
+      }
+    );
+
+    const classifyLambda4 = new lambda.DockerImageFunction(
+      this,
+      "ClassifyLambda4",
+      {
+        code: lambda.DockerImageCode.fromImageAsset(
+          "lib/lambdas/ai-image-processing/classification"
+        ),
+        memorySize: 1024,
+        architecture: lambda.Architecture.X86_64,
+        timeout: cdk.Duration.seconds(900),
+        environment: {
+          MODEL_NAME: "models/classify4.pt",
+        },
+      }
+    );
+
+    const classifyLambda5 = new lambda.DockerImageFunction(
+      this,
+      "ClassifyLambda5",
+      {
+        code: lambda.DockerImageCode.fromImageAsset(
+          "lib/lambdas/ai-image-processing/classification"
+        ),
+        memorySize: 1024,
+        architecture: lambda.Architecture.X86_64,
+        timeout: cdk.Duration.seconds(900),
+        environment: {
+          MODEL_NAME: "models/classify5.pt",
+        },
+      }
     );
 
     // Grant permissions to Lambdas
     imageProcessingTable.grantWriteData(segmentLambda); // Allow segmentation Lambda to write
-    imageProcessingTable.grantReadData(classifyLambda); // Allow classification Lambda to read
 
-     // Grant Permissions for s3 bucket
-     imageProcessingBucket.grantPut(segmentLambda); // Segmentation Lambda can upload files to S3
-     imageProcessingBucket.grantRead(segmentLambda); // Classification Lambda can read from S3
-     imageProcessingTable.grantWriteData(segmentLambda); // Segmentation Lambda can write to DynamoDB
-     imageProcessingTable.grantReadData(segmentLambda); // Classification Lambda can read from DynamoDB
+    // Grant Permissions for s3 bucket
+    imageProcessingBucket.grantPut(segmentLambda); // Segmentation Lambda can upload files to S3
+    imageProcessingBucket.grantRead(segmentLambda); // Classification Lambda can read from S3
+    imageProcessingTable.grantWriteData(segmentLambda); // Segmentation Lambda can write to DynamoDB
+    imageProcessingTable.grantReadData(segmentLambda); // Classification Lambda can read from DynamoDB
 
-     imageProcessingBucket.grantPut(classifyLambda); // Segmentation Lambda can upload files to S3
-     imageProcessingBucket.grantRead(classifyLambda); // Classification Lambda can read from S3
-     imageProcessingTable.grantWriteData(classifyLambda); // Segmentation Lambda can write to DynamoDB
-     imageProcessingTable.grantReadData(classifyLambda); // Classification Lambda can read from DynamoDB
+    imageProcessingTable.grantReadData(classifyLambda1);
+    imageProcessingTable.grantReadData(classifyLambda2);
+    imageProcessingTable.grantReadData(classifyLambda3);
+    imageProcessingTable.grantReadData(classifyLambda4);
+    imageProcessingTable.grantReadData(classifyLambda5);
+
+    imageProcessingBucket.grantRead(classifyLambda1);
+    imageProcessingBucket.grantRead(classifyLambda2);
+    imageProcessingBucket.grantRead(classifyLambda3);
+    imageProcessingBucket.grantRead(classifyLambda4);
+    imageProcessingBucket.grantRead(classifyLambda5);
+
+    imageProcessingBucket.grantPut(classifyLambda1);
+    imageProcessingBucket.grantPut(classifyLambda2);
+    imageProcessingBucket.grantPut(classifyLambda3);
+    imageProcessingBucket.grantPut(classifyLambda4);
+    imageProcessingBucket.grantPut(classifyLambda5);
 
     // Step Function Tasks
     const segmentTask = new tasks.LambdaInvoke(this, "Segment Image", {
@@ -111,15 +173,72 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
       outputPath: "$.Payload",
     });
 
-    const classifyTask = new tasks.LambdaInvoke(
+    const classifyTask1 = new tasks.LambdaInvoke(
       this,
-      "Classify Segmented Items",
+      "Classify Segmented Items 1",
       {
-        lambdaFunction: classifyLambda,
+        lambdaFunction: classifyLambda1,
         inputPath: "$",
         outputPath: "$.Payload",
       }
     );
+
+    const classifyTask2 = new tasks.LambdaInvoke(
+      this,
+      "Classify Segmented Items 2",
+      {
+        lambdaFunction: classifyLambda2,
+        inputPath: "$",
+        outputPath: "$.Payload",
+      }
+    );
+
+    const classifyTask3 = new tasks.LambdaInvoke(
+      this,
+      "Classify Segmented Items 3",
+      {
+        lambdaFunction: classifyLambda1,
+        inputPath: "$",
+        outputPath: "$.Payload",
+      }
+    );
+
+    const classifyTask4 = new tasks.LambdaInvoke(
+      this,
+      "Classify Segmented Items 4",
+      {
+        lambdaFunction: classifyLambda2,
+        inputPath: "$",
+        outputPath: "$.Payload",
+      }
+    );
+
+    const classifyTask5 = new tasks.LambdaInvoke(
+      this,
+      "Classify Segmented Items 5",
+      {
+        lambdaFunction: classifyLambda1,
+        inputPath: "$",
+        outputPath: "$.Payload",
+      }
+    );
+
+    const mergeClassificationsLambda = new lambda.Function(
+      this,
+      "MergeClassificationsLambda",
+      {
+        runtime: lambda.Runtime.PYTHON_3_12,
+        handler: "merge.handler",
+        code: lambda.Code.fromAsset("lib/lambdas/ai-image-processing/merge"),
+      }
+    );
+
+    const mergeResultsTask = new tasks.LambdaInvoke(this, "Merge Classification Results", {
+      lambdaFunction: mergeClassificationsLambda,
+      inputPath: "$",
+      outputPath: "$.Payload",
+    });
+    
 
     // Task to send classified data to SQS queue
     const sendToSqsTask = new tasks.SqsSendMessage(this, "Send to SQS", {
@@ -128,8 +247,22 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
     });
 
     // Step Function Definition
-    segmentTask.next(classifyTask);
-    classifyTask.next(sendToSqsTask);
+    const classificationParallel = new sfn.Parallel(
+      this,
+      "Run Multiple Classifications"
+    );
+
+    classificationParallel.branch(classifyTask1);
+    classificationParallel.branch(classifyTask2);
+    classificationParallel.branch(classifyTask3);
+    classificationParallel.branch(classifyTask4);
+    classificationParallel.branch(classifyTask5);
+
+    segmentTask
+      .next(classificationParallel)
+      .next(mergeResultsTask)
+      .next(sendToSqsTask);
+
     const workflow = new sfn.StateMachine(this, "ImageProcessingStateMachine", {
       definitionBody: sfn.DefinitionBody.fromChainable(segmentTask),
       timeout: cdk.Duration.minutes(10),
@@ -157,39 +290,24 @@ export class ImageProcessingStepFunctionStack extends cdk.Stack {
     // Grant Step Function permissions to send messages to SQS
     classificationResultsQueue.grantSendMessages(workflow);
 
-    // Grant permissions for SageMaker inference
-    segmentLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["sagemaker:InvokeEndpoint"],
-        resources: ["arn:aws:sagemaker:region:626635444817:endpoint/*"],
-      })
-    );
-
-    classifyLambda.addToRolePolicy(
-      new iam.PolicyStatement({
-        actions: ["sagemaker:InvokeEndpoint"],
-        resources: ["arn:aws:sagemaker:region:626635444817:endpoint/*"],
-      })
-    );
-
-    new CfnOutput(this, 'ImageProcessingQueueArn', {
+    new CfnOutput(this, "ImageProcessingQueueArn", {
       value: imageProcessingQueue.queueArn,
-      exportName: 'ImageProcessingQueueArn',
-    });
-    
-    new CfnOutput(this, 'ImageProcessingQueueUrl', {
-      value: imageProcessingQueue.queueUrl,
-      exportName: 'ImageProcessingQueueUrl',
+      exportName: "ImageProcessingQueueArn",
     });
 
-    new cdk.CfnOutput(this, 'ClassificationResultsQueueArn', {
-      value: classificationResultsQueue.queueArn,
-      exportName: 'ClassificationResultsQueueArn',
+    new CfnOutput(this, "ImageProcessingQueueUrl", {
+      value: imageProcessingQueue.queueUrl,
+      exportName: "ImageProcessingQueueUrl",
     });
-    
-    new cdk.CfnOutput(this, 'ClassificationResultsQueueUrl', {
+
+    new cdk.CfnOutput(this, "ClassificationResultsQueueArn", {
+      value: classificationResultsQueue.queueArn,
+      exportName: "ClassificationResultsQueueArn",
+    });
+
+    new cdk.CfnOutput(this, "ClassificationResultsQueueUrl", {
       value: classificationResultsQueue.queueUrl,
-      exportName: 'ClassificationResultsQueueUrl',
+      exportName: "ClassificationResultsQueueUrl",
     });
   }
 }

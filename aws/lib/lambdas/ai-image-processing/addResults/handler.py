@@ -10,19 +10,16 @@ def handler(event, context):
     for record in event['Records']:
         try:
             print("Adding Classification Results to DB")
-            # Step 1: Parse the outer SQS body
-            outer_body = json.loads(record['body'])
+            # Parse SQS record body
+            body = json.loads(record['body'])
 
-            # Step 2: Parse the inner JSON in the "body" field
-            inner_body = json.loads(outer_body['body'])
-
-            image_path = inner_body.get('image_path')
-            clothing_items = inner_body.get('clothing_items', [])
+            image_path = body.get('image_path')
+            clothing_items = body.get('clothing_items', [])
 
             if not image_path:
                 print("Not valid image_path")
-                raise Exception("Expected image_path, found: ", image_path)
-          
+                raise Exception(f"Expected image_path, found: {image_path}")
+
             print("Clothing items: ", clothing_items)
 
             items = {}
@@ -31,18 +28,15 @@ def handler(event, context):
                 items[item['item']] = {
                     'x_coordinate': (coords.get('xmin', 0) + coords.get('xmax', 0)) / 2,
                     'y_coordinate': (coords.get('ymin', 0) + coords.get('ymax', 0)) / 2,
-                    'attributes': item.get('attributes', {}),
+                    'attributes': item.get('attributes', []),  # ← safer: default to empty list
                 }
 
             status_code, message = update_database(image_path, items)
 
-            # Optional: log or handle per-record result
             print(f"Processed image {image_path}: {status_code} - {message}")
 
         except Exception as e:
             return create_response(500, f"Error updating user: {str(e)}")
-
-            # Optionally handle the failure (e.g., DLQ fallback)
 
     return {
         "statusCode": 200,
@@ -61,6 +55,16 @@ def update_database(session, image_path, items):
         print("Updating database")
         image =  session.execute(select(Image).where(Image.imageURL == image_path)).scalars().first()
 
+        # Get the Post associated with this image
+        post = image.postRel  # thanks to the relationship defined in ORM
+
+        if post:
+            post.status = "NEEDS_REVIEW"
+            print(f"Updated post {post.postID} status to 'Needs Review'")
+        else:
+            print(f"No post found for image: {image.imageURL}")
+
+
         if not image:
             return 404, f'Image with imageID: {image_path} does not exist'
         
@@ -75,6 +79,7 @@ def update_database(session, image_path, items):
 
             new_clothing_item = ClothingItem()
             session.add(new_clothing_item)
+            session.flush()
 
             for tag in item['attributes']:
                 new_tag = get_or_create_tag(session, tag)
