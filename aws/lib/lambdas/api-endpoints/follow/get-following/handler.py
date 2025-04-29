@@ -24,7 +24,7 @@ def handler(event, context):
                 return create_response(401, "Missing or invalid authorization")
 
         # Call logic
-        status_code, message = get_followers(uuid, count_only, check_follow, email)
+        status_code, message = get_following(uuid, count_only, check_follow, email)
         return create_response(status_code, message)
 
     except Exception as e:
@@ -32,7 +32,7 @@ def handler(event, context):
 
 
 @session_handler
-def get_followers(session, uuid, count_only=False, check_follow=False, email=None):
+def get_following(session, uuid, count_only=False, check_follow=False, email=None):
     try:
         target_user = session.query(User).filter(User.uuid == uuid).one_or_none()
         if not target_user:
@@ -57,20 +57,20 @@ def get_followers(session, uuid, count_only=False, check_follow=False, email=Non
         if count_only:
             count = session.execute(
                 select(func.count()).select_from(Follow).where(
-                    Follow.followedId == target_user.userID
+                    Follow.followerId == target_user.userID
                 )
             ).scalar()
             return 200, { "following_count": count }
 
-        followers = [
+        following = [
             {
-                "uuid": follow.follower.uuid,
-                "username": follow.follower.username,
-                "profilePic": follow.follower.profilePicURL
+                "uuid": follow.followed.uuid,
+                "username": follow.followed.username,
+                "profilePic": follow.followed.profilePicURL
             }
-            for follow in target_user.followers
+            for follow in target_user.following
         ]
-        return 200, followers
+        return 200, following
 
     except Exception as e:
         return handle_exception(e, "Error accessing database")
