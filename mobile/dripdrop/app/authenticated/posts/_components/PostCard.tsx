@@ -23,7 +23,10 @@ import { useUserContext } from "@/context/UserContext";
 import { Colors } from "@/constants/Colors";
 import { likePost, unlikePost } from "@/api/like";
 import { createBookmark, removeBookmark } from "@/api/bookmark";
-import { GestureHandlerRootView, PanGestureHandler } from "react-native-gesture-handler";
+import {
+  GestureHandlerRootView,
+  PanGestureHandler,
+} from "react-native-gesture-handler";
 import { fetchUserByUsername } from "@/api/following";
 import { Marker } from "@/types/Marker";
 import { router } from "expo-router";
@@ -31,12 +34,13 @@ import DraggableItemModal from "@/components/DraggableItemModal";
 import { Item } from "@/types/Item";
 import { format, parseISO } from "date-fns";
 
-const windowWidth = Dimensions.get('window').width * 0.95;
-const windowHeight = Dimensions.get('window').height;
+const windowWidth = Dimensions.get("window").width * 0.95;
+const IMAGE_ASPECT_RATIO = 4 / 3; // Aspect ratio of 4:3
 
-export const PostCard: React.FC<{ post: Post, 
-  itemDetailsMap: Record<number, Item>, 
-  markersMap: Record<number, Marker[]> 
+export const PostCard: React.FC<{
+  post: Post;
+  itemDetailsMap: Record<number, Item>;
+  markersMap: Record<number, Marker[]>;
 }> = ({ post, itemDetailsMap, markersMap }) => {
   const [liked, setLiked] = useState(post.userHasLiked || false);
   const [numLikes, setNumLikes] = useState(post.numLikes);
@@ -50,19 +54,21 @@ export const PostCard: React.FC<{ post: Post,
   const [submitting, setSubmitting] = useState(false);
   const [imageHeight, setImageHeight] = useState(400);
   const [loadingProfile, setLoadingProfile] = useState(false);
-  const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
-  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; clothingItemID: number } | null>(null);
+  const [areMarkersVisible, setAreMarkersVisible] = useState<{
+    [postID: number]: boolean;
+  }>({});
+  const [visibleItemModal, setVisibleItemModal] = useState<{
+    postID: number;
+    clothingItemID: number;
+  } | null>(null);
   const [activeClothingItemID, setActiveClothingItemID] = useState<number>(0);
 
+  // Ensure the image maintains a 4:3 aspect ratio
   useEffect(() => {
-    Image.getSize(`https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`, (width, height) => {
-      const ratio = windowWidth / width;
-      const calculatedHeight = height * ratio;
-      setImageHeight(calculatedHeight < windowHeight * 0.65 ? calculatedHeight : windowHeight * 0.65);
-    });
-  }, []);
+    setImageHeight(windowWidth * IMAGE_ASPECT_RATIO);
+  }, [windowWidth]);
 
-  const toggleLike = (async () => {
+  const toggleLike = async () => {
     if (liked) {
       unlikePost(post.postID);
       setNumLikes(numLikes - 1);
@@ -72,12 +78,12 @@ export const PostCard: React.FC<{ post: Post,
     }
 
     setLiked(!liked);
-  });
+  };
 
-  const toggleBookmark = (async () => {
+  const toggleBookmark = async () => {
     saved ? removeBookmark(post.postID) : createBookmark(post.postID);
     setSaved(!saved);
-  });
+  };
 
   const openComments = async () => {
     setModalVisible(true);
@@ -119,7 +125,7 @@ export const PostCard: React.FC<{ post: Post,
 
   // Toggle markers on/off for a given post
   const toggleMarkers = (postID: number) => {
-    setAreMarkersVisible(prev => ({
+    setAreMarkersVisible((prev) => ({
       ...prev,
       [postID]: !prev[postID],
     }));
@@ -132,7 +138,7 @@ export const PostCard: React.FC<{ post: Post,
       setActiveClothingItemID(clothingItemID);
     }
   };
-  
+
   // Render the date
   const renderDate = (createdDate: string) => {
     const postDate = parseISO(createdDate);
@@ -152,7 +158,7 @@ export const PostCard: React.FC<{ post: Post,
       return format(postDate, "MMMM d, yyyy");
     }
   };
-  
+
   // Handle navigating to a user's profile page
   const handleProfileNavigation = async (username: string) => {
     setLoadingProfile(true);
@@ -166,7 +172,10 @@ export const PostCard: React.FC<{ post: Post,
   return (
     <View style={styles.card}>
       {/* Header */}
-      <TouchableOpacity onPress={() => handleProfileNavigation(post.user.username)} style={styles.header}>
+      <TouchableOpacity
+        onPress={() => handleProfileNavigation(post.user.username)}
+        style={styles.header}
+      >
         <Image
           source={{
             uri: `https://cdn.dripdropco.com/${post.user.profilePic}?format=png`,
@@ -177,18 +186,18 @@ export const PostCard: React.FC<{ post: Post,
       </TouchableOpacity>
 
       {/* Image */}
-      <View style={{ position: 'relative' }}>
+      <View style={{ position: "relative" }}>
         <Image
           source={{
             uri: `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`,
           }}
-          style={{ width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain', borderRadius: 8, marginLeft: "2.5%" }}
+          style={styles.image}
         />
-        
+
         {/* Toggle Markers Button */}
         {markersMap[post.postID] && (
           <View style={styles.markerToggleContainer}>
-            <Switch 
+            <Switch
               value={!!areMarkersVisible[post.postID]}
               onValueChange={() => toggleMarkers(post.postID)}
               trackColor={{ false: "black", true: "blue" }}
@@ -197,23 +206,38 @@ export const PostCard: React.FC<{ post: Post,
         )}
 
         {/* Display the markers on each post */}
-        {areMarkersVisible[post.postID] && markersMap[post.postID]?.filter(marker => itemDetailsMap[marker.clothingItemID]).map((marker) => {
-          const scaleX = windowWidth;
-          const scaleY = imageHeight || 1;
-          
-          const x = marker.xCoord * scaleX;
-          const y = marker.yCoord * scaleY;
+        {areMarkersVisible[post.postID] &&
+          markersMap[post.postID]
+            ?.filter((marker) => itemDetailsMap[marker.clothingItemID])
+            .map((marker) => {
+              const scaleX = windowWidth;
+              const scaleY = imageHeight || 1;
 
-          return (
-            <TouchableOpacity
-              key={`${post.postID}-${marker.clothingItemID}`}
-              onPress={() => {showItemDetails(post.postID, marker.clothingItemID)}}
-              style={[styles.marker, {left: x, top: y, backgroundColor: marker.clothingItemID === activeClothingItemID ? Colors.light.primary : "rgba(255, 255, 255, 0.8)"}]}
-            >
-              <Text style={{ fontSize: 16 }}>•</Text>
-            </TouchableOpacity>
-          );
-        })}
+              const x = marker.xCoord * scaleX;
+              const y = marker.yCoord * scaleY;
+
+              return (
+                <TouchableOpacity
+                  key={`${post.postID}-${marker.clothingItemID}`}
+                  onPress={() => {
+                    showItemDetails(post.postID, marker.clothingItemID);
+                  }}
+                  style={[
+                    styles.marker,
+                    {
+                      left: x,
+                      top: y,
+                      backgroundColor:
+                        marker.clothingItemID === activeClothingItemID
+                          ? Colors.light.primary
+                          : "rgba(255, 255, 255, 0.8)",
+                    },
+                  ]}
+                >
+                  <Text style={{ fontSize: 16 }}>•</Text>
+                </TouchableOpacity>
+              );
+            })}
       </View>
 
       {/* Actions */}
@@ -248,7 +272,12 @@ export const PostCard: React.FC<{ post: Post,
 
       {/* Caption */}
       <Text style={styles.caption}>
-        <Text style={styles.username} onPress={() => handleProfileNavigation(post.user.username)}>{post.user.username} </Text>
+        <Text
+          style={styles.username}
+          onPress={() => handleProfileNavigation(post.user.username)}
+        >
+          {post.user.username}{" "}
+        </Text>
         {post.caption}
       </Text>
 
@@ -258,7 +287,7 @@ export const PostCard: React.FC<{ post: Post,
           View all {post.numComments} comments
         </Text>
       </TouchableOpacity>
-        
+
       {/* Display the post date */}
       <Text style={styles.date}>{renderDate(post.createdDate)}</Text>
 
@@ -274,13 +303,13 @@ export const PostCard: React.FC<{ post: Post,
                 {/* Header - Swipe down indicator */}
                 <PanGestureHandler
                   onGestureEvent={(event) => {
-                      if (event.nativeEvent.translationY > 50) {
-                        setModalVisible(false);
-                      }
+                    if (event.nativeEvent.translationY > 50) {
+                      setModalVisible(false);
+                    }
                   }}
                 >
                   <View style={styles.modalHeader}>
-                    <View style={styles.swipeIndicator}/>
+                    <View style={styles.swipeIndicator} />
                     <Text style={styles.commentsText}>Comments</Text>
                   </View>
                 </PanGestureHandler>
@@ -298,7 +327,9 @@ export const PostCard: React.FC<{ post: Post,
                     contentContainerStyle={{ paddingBottom: 20 }}
                     renderItem={({ item }) => (
                       <View style={styles.commentItem}>
-                        <TouchableOpacity onPress={() => handleProfileNavigation(item.username)}>
+                        <TouchableOpacity
+                          onPress={() => handleProfileNavigation(item.username)}
+                        >
                           <Image
                             source={{
                               uri: `https://cdn.dripdropco.com/${item.profilePic}?format=png`,
@@ -307,7 +338,12 @@ export const PostCard: React.FC<{ post: Post,
                           />
                         </TouchableOpacity>
                         <View>
-                          <Text style={styles.commentUser} onPress={() => handleProfileNavigation(item.username) }>
+                          <Text
+                            style={styles.commentUser}
+                            onPress={() =>
+                              handleProfileNavigation(item.username)
+                            }
+                          >
                             {item.username}
                           </Text>
                           <Text style={styles.commentText}>{item.content}</Text>
@@ -316,7 +352,9 @@ export const PostCard: React.FC<{ post: Post,
                     )}
                   />
                 ) : (
-                  <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
+                  <Text style={styles.noCommentsText}>
+                    No comments yet. Be the first!
+                  </Text>
                 )}
               </View>
 
@@ -350,14 +388,19 @@ export const PostCard: React.FC<{ post: Post,
       </Modal>
 
       {/* Draggable Item Modal */}
-      <DraggableItemModal 
+      <DraggableItemModal
         visibleItemModal={visibleItemModal}
-        onClose={() => {setVisibleItemModal(null); setActiveClothingItemID(0)}}
+        onClose={() => {
+          setVisibleItemModal(null);
+          setActiveClothingItemID(0);
+        }}
         onChangeIndex={(newClothingItemID) => {
-          setActiveClothingItemID(newClothingItemID)
-          setVisibleItemModal((prev) => 
-            prev ? { postID: prev.postID, clothingItemID: newClothingItemID } : null
-          )
+          setActiveClothingItemID(newClothingItemID);
+          setVisibleItemModal((prev) =>
+            prev
+              ? { postID: prev.postID, clothingItemID: newClothingItemID }
+              : null
+          );
         }}
         markersMap={markersMap}
         itemDetailsMap={itemDetailsMap}
@@ -373,7 +416,7 @@ export const PostCard: React.FC<{ post: Post,
           });
         }}
       />
-            
+
       {loadingProfile && (
         <View style={styles.loadingProfileContainer}>
           <ActivityIndicator size="small" color={Colors.light.primary} />
@@ -442,15 +485,15 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   noCommentsText: {
-    textAlign: 'center',
-    color: 'gray',
-    fontStyle: 'italic',
+    textAlign: "center",
+    color: "gray",
+    fontStyle: "italic",
     fontSize: 16,
   },
   modalHeader: {
-    flexDirection: 'column',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 10,
   },
   swipeIndicator: {
@@ -462,7 +505,7 @@ const styles = StyleSheet.create({
   commentsText: {
     marginVertical: 10,
     fontSize: 16,
-    textAlign: 'center',
+    textAlign: "center",
   },
   markerToggleContainer: {
     position: "absolute",
@@ -472,15 +515,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   marker: {
-    position: 'absolute',
+    position: "absolute",
     width: 24,
     height: 24,
     borderRadius: "100%",
     borderWidth: 2,
     borderColor: "black",
     zIndex: 5,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingProfileContainer: {
     position: "absolute",
@@ -501,13 +544,34 @@ const styles = StyleSheet.create({
   commentUser: { fontWeight: "bold" },
   commentText: { flexShrink: 1 },
   card: { paddingBottom: 20, backgroundColor: "#fff" },
-  header: { flexDirection: "row", alignItems: "center", paddingVertical: 6, paddingLeft: 12 },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingLeft: 12,
+  },
   avatar: { width: 35, height: 35, borderRadius: 20, marginRight: 10 },
   username: { fontWeight: "bold" },
-  actions: { flexDirection: "row", justifyContent: "flex-start", alignItems: "center", padding: 10 },
+  actions: {
+    flexDirection: "row",
+    justifyContent: "flex-start",
+    alignItems: "center",
+    padding: 10,
+  },
   caption: { paddingHorizontal: 10 },
   viewComments: { paddingHorizontal: 10, color: "gray", marginTop: 4 },
   modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
   iconCount: { fontSize: 12, color: Colors.light.contrast, marginRight: 20 },
-  date: { paddingHorizontal: 10, fontSize: 14, color: 'gray', marginTop: 4 },
+  date: { paddingHorizontal: 10, fontSize: 14, color: "gray", marginTop: 4 },
+  postImage: {
+    width: windowWidth,
+    borderRadius: 8,
+  },
+  image: {
+    width: windowWidth,
+    height: windowWidth * IMAGE_ASPECT_RATIO,
+    resizeMode: "cover", // Ensures the image fills the container
+    borderRadius: 8,
+    marginLeft: "2.5%",
+  },
 });
