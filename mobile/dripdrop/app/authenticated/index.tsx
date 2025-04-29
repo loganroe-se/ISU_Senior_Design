@@ -13,6 +13,7 @@ import { Marker } from "@/types/Marker";
 import { fetchMarkers, getItemDetails } from "@/api/items";
 import { Item } from "@/types/Item";
 import { Colors } from "@/constants/Colors";
+import { differenceInDays, format, parseISO } from "date-fns";
 import LikeCommentBar from "@/components/LikeCommentBar";
 import CommentModal from "@/components/CommentModal";
 import DraggableItemModal from "@/components/DraggableItemModal";
@@ -293,6 +294,26 @@ const Page = () => {
     }
   };
 
+  // Render the date
+  const renderDate = (createdDate: string) => {
+    const postDate = parseISO(createdDate);
+    const now = new Date();
+    const minuteDiff = now.getTime() - postDate.getTime();
+    const dayDiff = Math.floor(minuteDiff / (1000 * 60 * 60 * 24));
+
+    if (dayDiff < 1) {
+      return "Today";
+    } else if (dayDiff === 1) {
+      return "Yesterday";
+    } else if (dayDiff <= 7) {
+      return `${dayDiff} day${dayDiff > 1 ? "s" : ""} ago`;
+    } else if (dayDiff <= 365) {
+      return format(postDate, "MMMM d");
+    } else {
+      return format(postDate, "MMMM d, yyyy");
+    }
+  };
+
   // Reset feed
   const resetFeed = async () => {
     if (!userID) return;
@@ -422,7 +443,7 @@ const Page = () => {
                   )}
   
                   {/* Display the post date */}
-                  <Text style={feedStyle.date}>{item.createdDate}</Text>
+                  <Text style={feedStyle.date}>{renderDate(item.createdDate)}</Text>
                 </View>
               );
             }}

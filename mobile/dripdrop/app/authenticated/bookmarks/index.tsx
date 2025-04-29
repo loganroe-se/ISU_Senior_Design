@@ -3,7 +3,6 @@ import { useState, useEffect } from "react";
 import { Post } from "@/types/post";
 import { PostGrid } from "../profile/_components/PostGrid";
 import { router } from "expo-router";
-import { useUserContext } from "@/context/UserContext";
 import { View, Text, ActivityIndicator } from "react-native";
 import { Colors } from "@/constants/Colors";
 
