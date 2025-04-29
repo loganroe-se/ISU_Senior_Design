@@ -43,18 +43,27 @@ const ViewPosts = () => {
   }, [posts, userID, tab]);
 
   useEffect(() => {
-    if (!loading && postList.length && postID) {
-      const index = postList.findIndex((p) => p.postID.toString() === postID);
-      if (index >= 0) {
+    if (!loading && postList.length) {
+      let index = -1;
+      
+      // Check postID first, if available
+      if (postID) {
+        index = postList.findIndex((p) => p.postID.toString() === postID);
+      } else if (initialIndex) {
+        // Fallback to initialIndex if no postID
+        index = parseInt(initialIndex as string, 10);
+      }
+  
+      // Proceed if index is found and it's within bounds
+      if (index >= 0 && index < postList.length) {
         setTimeout(() => {
+          // Check if the content is rendered before attempting to scroll
           flatListRef.current?.scrollToIndex({ index, animated: false });
         }, 100);
       }
-    } else if (!loading && initialIndex && postList.length) {
-      const index = parseInt(initialIndex as string, 10);
-      flatListRef.current?.scrollToIndex({ index, animated: false });
     }
   }, [loading, postList, postID, initialIndex]);
+  
 
   const onScrollToIndexFailed = (info: {
     index: number;
@@ -115,12 +124,10 @@ const ViewPosts = () => {
         data={postList.reverse()}
         keyExtractor={(item) => item.postID.toString()}
         renderItem={({ item }) => <PostCard post={item} />}
-        pagingEnabled
-        snapToAlignment="start"
         decelerationRate="fast"
         getItemLayout={(_, index) => ({
-          length: height,
-          offset: height * index,
+          length: height * 0.82,
+          offset: height * 0.82 * index,
           index,
         })}
         onScrollToIndexFailed={onScrollToIndexFailed}

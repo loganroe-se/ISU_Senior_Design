@@ -23,7 +23,8 @@ import { Colors } from "@/constants/Colors";
 import { likePost, unlikePost } from "@/api/like";
 import { createBookmark, removeBookmark } from "@/api/bookmark";
 
-const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+const { width: windowWidth } = Dimensions.get('window');
+const IMAGE_ASPECT_RATIO = 4 / 3; // Aspect ratio of 4:3
 
 export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [liked, setLiked] = useState(post.userHasLiked || false);
@@ -36,15 +37,12 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loadingComments, setLoadingComments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [imageHeight, setImageHeight] = useState(400);
+  const [imageHeight, setImageHeight] = useState<number>(windowWidth * IMAGE_ASPECT_RATIO);
 
+  // Ensure the image maintains a 4:3 aspect ratio
   useEffect(() => {
-    Image.getSize(`https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`, (width, height) => {
-      const ratio = windowWidth / width;
-      const calculatedHeight = height * ratio;
-      setImageHeight(calculatedHeight < windowHeight * 0.65 ? calculatedHeight : windowHeight * 0.65);
-    });
-  }, []);
+    setImageHeight(windowWidth * IMAGE_ASPECT_RATIO);
+  }, [windowWidth]);
 
   const toggleLike = (async () => {
     if (liked) {
@@ -114,12 +112,13 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
         <Text style={styles.username}>{post.user.username}</Text>
       </View>
 
-      {/* Image */}
+      {/* Main Image */}
       <Image
         source={{
           uri: `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`,
         }}
-        style={{ width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain', borderRadius: 8 }}
+        style={[styles.postImage, { height: imageHeight }]}
+        resizeMode="cover" // This ensures the image fills the space without distorting its aspect ratio
       />
 
       {/* Actions */}
@@ -315,4 +314,8 @@ const styles = StyleSheet.create({
   viewComments: { paddingHorizontal: 10, color: "gray", marginTop: 4 },
   modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
   iconCount: { fontSize: 12, color: Colors.light.contrast, marginRight: 20 },
+  postImage: {
+    width: windowWidth,
+    borderRadius: 8,
+  },
 });
