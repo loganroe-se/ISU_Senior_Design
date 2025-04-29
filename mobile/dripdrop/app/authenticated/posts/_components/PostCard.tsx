@@ -12,6 +12,7 @@ import {
   ActivityIndicator,
   Platform,
   Dimensions,
+  Switch,
 } from "react-native";
 import { Post } from "@/types/post";
 import { Ionicons } from "@expo/vector-icons";
@@ -22,10 +23,21 @@ import { useUserContext } from "@/context/UserContext";
 import { Colors } from "@/constants/Colors";
 import { likePost, unlikePost } from "@/api/like";
 import { createBookmark, removeBookmark } from "@/api/bookmark";
+import { GestureHandlerRootView, PanGestureHandler } from "react-native-gesture-handler";
+import { fetchUserByUsername } from "@/api/following";
+import { Marker } from "@/types/Marker";
+import { router } from "expo-router";
+import DraggableItemModal from "@/components/DraggableItemModal";
+import { Item } from "@/types/Item";
+import { format, parseISO } from "date-fns";
 
-const { width: windowWidth, height: windowHeight } = Dimensions.get('window');
+const windowWidth = Dimensions.get('window').width * 0.95;
+const windowHeight = Dimensions.get('window').height;
 
-export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
+export const PostCard: React.FC<{ post: Post, 
+  itemDetailsMap: Record<number, Item>, 
+  markersMap: Record<number, Marker[]> 
+}> = ({ post, itemDetailsMap, markersMap }) => {
   const [liked, setLiked] = useState(post.userHasLiked || false);
   const [numLikes, setNumLikes] = useState(post.numLikes);
   const [saved, setSaved] = useState(post.userHasSaved || false);
@@ -37,6 +49,10 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
   const [loadingComments, setLoadingComments] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [imageHeight, setImageHeight] = useState(400);
+  const [loadingProfile, setLoadingProfile] = useState(false);
+  const [areMarkersVisible, setAreMarkersVisible] = useState<{ [postID: number]: boolean }>({});
+  const [visibleItemModal, setVisibleItemModal] = useState<{ postID: number; clothingItemID: number } | null>(null);
+  const [activeClothingItemID, setActiveClothingItemID] = useState<number>(0);
 
   useEffect(() => {
     Image.getSize(`https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`, (width, height) => {
@@ -101,10 +117,56 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
     }
   };
 
+  // Toggle markers on/off for a given post
+  const toggleMarkers = (postID: number) => {
+    setAreMarkersVisible(prev => ({
+      ...prev,
+      [postID]: !prev[postID],
+    }));
+  };
+
+  // Show the clothing item details
+  const showItemDetails = async (postID: number, clothingItemID: number) => {
+    if (itemDetailsMap[clothingItemID]) {
+      setVisibleItemModal({ postID, clothingItemID });
+      setActiveClothingItemID(clothingItemID);
+    }
+  };
+  
+  // Render the date
+  const renderDate = (createdDate: string) => {
+    const postDate = parseISO(createdDate);
+    const now = new Date();
+    const minuteDiff = now.getTime() - postDate.getTime();
+    const dayDiff = Math.floor(minuteDiff / (1000 * 60 * 60 * 24));
+
+    if (dayDiff < 1) {
+      return "Today";
+    } else if (dayDiff === 1) {
+      return "Yesterday";
+    } else if (dayDiff <= 7) {
+      return `${dayDiff} day${dayDiff > 1 ? "s" : ""} ago`;
+    } else if (dayDiff <= 365) {
+      return format(postDate, "MMMM d");
+    } else {
+      return format(postDate, "MMMM d, yyyy");
+    }
+  };
+  
+  // Handle navigating to a user's profile page
+  const handleProfileNavigation = async (username: string) => {
+    setLoadingProfile(true);
+    const user = await fetchUserByUsername(username);
+    if (user) {
+      router.replace(`/authenticated/profile?id=${user.uuid}`);
+    }
+    setLoadingProfile(false);
+  };
+
   return (
     <View style={styles.card}>
       {/* Header */}
-      <View style={styles.header}>
+      <TouchableOpacity onPress={() => handleProfileNavigation(post.user.username)} style={styles.header}>
         <Image
           source={{
             uri: `https://cdn.dripdropco.com/${post.user.profilePic}?format=png`,
@@ -112,15 +174,47 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           style={styles.avatar}
         />
         <Text style={styles.username}>{post.user.username}</Text>
-      </View>
+      </TouchableOpacity>
 
       {/* Image */}
-      <Image
-        source={{
-          uri: `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`,
-        }}
-        style={{ width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain', borderRadius: 8 }}
-      />
+      <View style={{ position: 'relative' }}>
+        <Image
+          source={{
+            uri: `https://cdn.dripdropco.com/${post.images[0].imageURL}?format=png`,
+          }}
+          style={{ width: windowWidth, height: imageHeight || undefined, resizeMode: 'contain', borderRadius: 8, marginLeft: "2.5%" }}
+        />
+        
+        {/* Toggle Markers Button */}
+        {markersMap[post.postID] && (
+          <View style={styles.markerToggleContainer}>
+            <Switch 
+              value={!!areMarkersVisible[post.postID]}
+              onValueChange={() => toggleMarkers(post.postID)}
+              trackColor={{ false: "black", true: "blue" }}
+            />
+          </View>
+        )}
+
+        {/* Display the markers on each post */}
+        {areMarkersVisible[post.postID] && markersMap[post.postID]?.filter(marker => itemDetailsMap[marker.clothingItemID]).map((marker) => {
+          const scaleX = windowWidth;
+          const scaleY = imageHeight || 1;
+          
+          const x = marker.xCoord * scaleX;
+          const y = marker.yCoord * scaleY;
+
+          return (
+            <TouchableOpacity
+              key={`${post.postID}-${marker.clothingItemID}`}
+              onPress={() => {showItemDetails(post.postID, marker.clothingItemID)}}
+              style={[styles.marker, {left: x, top: y, backgroundColor: marker.clothingItemID === activeClothingItemID ? Colors.light.primary : "rgba(255, 255, 255, 0.8)"}]}
+            >
+              <Text style={{ fontSize: 16 }}>•</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
       {/* Actions */}
       <View style={styles.actions}>
@@ -154,7 +248,7 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
 
       {/* Caption */}
       <Text style={styles.caption}>
-        <Text style={styles.username}>{post.user.username} </Text>
+        <Text style={styles.username} onPress={() => handleProfileNavigation(post.user.username)}>{post.user.username} </Text>
         {post.caption}
       </Text>
 
@@ -164,6 +258,9 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           View all {post.numComments} comments
         </Text>
       </TouchableOpacity>
+        
+      {/* Display the post date */}
+      <Text style={styles.date}>{renderDate(post.createdDate)}</Text>
 
       {/* Comments Modal */}
       <Modal visible={modalVisible} animationType="slide" transparent>
@@ -171,17 +268,29 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : undefined}
         >
-          <View style={styles.modalOverlay}>
+          <GestureHandlerRootView style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Comments</Text>
+                {/* Header - Swipe down indicator */}
+                <PanGestureHandler
+                  onGestureEvent={(event) => {
+                      if (event.nativeEvent.translationY > 50) {
+                        setModalVisible(false);
+                      }
+                  }}
+                >
+                  <View style={styles.modalHeader}>
+                    <View style={styles.swipeIndicator}/>
+                    <Text style={styles.commentsText}>Comments</Text>
+                  </View>
+                </PanGestureHandler>
                 {loadingComments ? (
                   <ActivityIndicator
                     size="large"
                     color="#999"
                     style={{ marginTop: 20 }}
                   />
-                ) : (
+                ) : comments.length > 0 ? (
                   <FlatList
                     data={comments}
                     keyExtractor={(item) => item.commentID.toString()}
@@ -189,14 +298,16 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                     contentContainerStyle={{ paddingBottom: 20 }}
                     renderItem={({ item }) => (
                       <View style={styles.commentItem}>
-                        <Image
-                          source={{
-                            uri: `https://cdn.dripdropco.com/${item.profilePic}?format=png`,
-                          }}
-                          style={styles.commentAvatar}
-                        />
+                        <TouchableOpacity onPress={() => handleProfileNavigation(item.username)}>
+                          <Image
+                            source={{
+                              uri: `https://cdn.dripdropco.com/${item.profilePic}?format=png`,
+                            }}
+                            style={styles.commentAvatar}
+                          />
+                        </TouchableOpacity>
                         <View>
-                          <Text style={styles.commentUser}>
+                          <Text style={styles.commentUser} onPress={() => handleProfileNavigation(item.username) }>
                             {item.username}
                           </Text>
                           <Text style={styles.commentText}>{item.content}</Text>
@@ -204,6 +315,8 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                       </View>
                     )}
                   />
+                ) : (
+                  <Text style={styles.noCommentsText}>No comments yet. Be the first!</Text>
                 )}
               </View>
 
@@ -231,18 +344,42 @@ export const PostCard: React.FC<{ post: Post }> = ({ post }) => {
                   )}
                 </TouchableOpacity>
               </View>
-
-              {/* Close */}
-              <TouchableOpacity
-                onPress={() => setModalVisible(false)}
-                style={styles.closeIcon}
-              >
-                <Ionicons name="close" size={20} color="#444" />
-              </TouchableOpacity>
             </View>
-          </View>
+          </GestureHandlerRootView>
         </KeyboardAvoidingView>
       </Modal>
+
+      {/* Draggable Item Modal */}
+      <DraggableItemModal 
+        visibleItemModal={visibleItemModal}
+        onClose={() => {setVisibleItemModal(null); setActiveClothingItemID(0)}}
+        onChangeIndex={(newClothingItemID) => {
+          setActiveClothingItemID(newClothingItemID)
+          setVisibleItemModal((prev) => 
+            prev ? { postID: prev.postID, clothingItemID: newClothingItemID } : null
+          )
+        }}
+        markersMap={markersMap}
+        itemDetailsMap={itemDetailsMap}
+        onAISuggestions={(aiSuggestions) => {
+          setVisibleItemModal(null);
+          setActiveClothingItemID(0);
+          router.push({
+            pathname: "../authenticated/posts/viewpostsuggestions",
+            params: {
+              suggestions: encodeURIComponent(JSON.stringify(aiSuggestions)),
+              userID: user?.uuid,
+            },
+          });
+        }}
+      />
+            
+      {loadingProfile && (
+        <View style={styles.loadingProfileContainer}>
+          <ActivityIndicator size="small" color={Colors.light.primary} />
+          <Text style={styles.loadingProfileText}>Loading profile...</Text>
+        </View>
+      )}
     </View>
   );
 };
@@ -304,15 +441,73 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     marginRight: 10,
   },
+  noCommentsText: {
+    textAlign: 'center',
+    color: 'gray',
+    fontStyle: 'italic',
+    fontSize: 16,
+  },
+  modalHeader: {
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  swipeIndicator: {
+    width: 40,
+    height: 4,
+    backgroundColor: Colors.light.primary,
+    borderRadius: 2,
+  },
+  commentsText: {
+    marginVertical: 10,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  markerToggleContainer: {
+    position: "absolute",
+    bottom: 0,
+    right: 16,
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  marker: {
+    position: 'absolute',
+    width: 24,
+    height: 24,
+    borderRadius: "100%",
+    borderWidth: 2,
+    borderColor: "black",
+    zIndex: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingProfileContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 10,
+    zIndex: 999,
+  },
+  loadingProfileText: {
+    fontSize: 14,
+    color: Colors.light.primary,
+    marginTop: 10,
+  },
   commentUser: { fontWeight: "bold" },
   commentText: { flexShrink: 1 },
   card: { paddingBottom: 20, backgroundColor: "#fff" },
-  header: { flexDirection: "row", alignItems: "center", padding: 10 },
-  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
+  header: { flexDirection: "row", alignItems: "center", paddingVertical: 6, paddingLeft: 12 },
+  avatar: { width: 35, height: 35, borderRadius: 20, marginRight: 10 },
   username: { fontWeight: "bold" },
   actions: { flexDirection: "row", justifyContent: "flex-start", alignItems: "center", padding: 10 },
   caption: { paddingHorizontal: 10 },
   viewComments: { paddingHorizontal: 10, color: "gray", marginTop: 4 },
   modalTitle: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
   iconCount: { fontSize: 12, color: Colors.light.contrast, marginRight: 20 },
+  date: { paddingHorizontal: 10, fontSize: 14, color: 'gray', marginTop: 4 },
 });

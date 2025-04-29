@@ -99,9 +99,11 @@ export const feedStyle = StyleSheet.create({
   },
   marker: {
     position: 'absolute',
-    width: 20,
-    height: 20,
+    width: 24,
+    height: 24,
     borderRadius: "100%",
+    borderWidth: 2,
+    borderColor: "black",
     zIndex: 5,
     justifyContent: 'center',
     alignItems: 'center',
