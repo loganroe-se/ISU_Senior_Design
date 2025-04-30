@@ -174,8 +174,7 @@ const UserProfile = () => {
 
   return (
     <View style={profileStyle.container}>
-      <View style={profileStyle.topHeader}>
-        <Text style={profileStyle.username}>{profileUser?.username}</Text>
+      <View style={profileStyle.profileHeader}>
         <TouchableOpacity
           onPress={() => router.push("../authenticated/settings")}
         >

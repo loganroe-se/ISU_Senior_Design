@@ -5,6 +5,11 @@ export const profileStyle = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
   },
+  profileHeader: {
+    display: 'flex',
+    alignItems: 'flex-end',
+    marginRight: 16
+  },
   topHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
