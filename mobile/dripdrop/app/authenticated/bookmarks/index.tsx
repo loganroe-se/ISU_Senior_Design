@@ -28,7 +28,7 @@ const Bookmarks = () => {
     },[])
 
     return (
-        <View>
+        <View style={{backgroundColor: '#FFFFFF', height: '100%'}}>
             <Text style={{textAlign: "center", fontSize: 24, fontWeight: "bold", marginTop: 16, marginBottom: 32}}>Bookmarks</Text>
             {isLoading ? (
                 <ActivityIndicator size="large" style={{ marginTop: 50 }} color={Colors.light.primary} />
