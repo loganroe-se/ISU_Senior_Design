@@ -37,7 +37,7 @@ export default function SearchScreen() {
           const fetchedUsers = await searchUsersByUsername(searchQuery);
           setUsers(fetchedUsers ?? []);
         } else {
-          const fetchedPosts = await searchPostsByTerm(searchQuery);
+          const fetchedPosts = (await searchPostsByTerm(searchQuery)).reverse();
           setPosts(Array.isArray(fetchedPosts) ? [...fetchedPosts]: []);
         }
         setLoading(false);
@@ -62,7 +62,7 @@ export default function SearchScreen() {
     router.push({
       pathname: "/authenticated/posts/viewposts",
       params: {
-        posts: encodeURIComponent(JSON.stringify([...posts].reverse())),
+        posts: encodeURIComponent(JSON.stringify([...posts])),
         postID: post.postID.toString(),
         initialIndex: index.toString(),
         header: searchQuery,
