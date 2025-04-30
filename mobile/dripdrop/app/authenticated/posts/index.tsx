@@ -239,7 +239,7 @@ export default function Post() {
   const pickImageFromCameraRoll = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
+      allowsEditing: false,
       quality: 1,
     });
 
@@ -248,19 +248,18 @@ export default function Post() {
       const selectedImageUri = result.assets[0].uri;
 
       // Get the original image dimensions
-      const { width, height } = await ImageManipulator.manipulateAsync(selectedImageUri, [], {
+      const { width } = await ImageManipulator.manipulateAsync(selectedImageUri, [], {
         format: ImageManipulator.SaveFormat.PNG,
       });
 
       // Calculate the target dimensions for a 4:3 aspect ratio
       const targetWidth = width;
-      const targetHeight = Math.floor(targetWidth * 3 / 4); // 4:3 ratio
 
       // Resize or crop the image to fit the 4:3 aspect ratio
       const resizedImage = await ImageManipulator.manipulateAsync(
         selectedImageUri,
         [
-          { resize: { width: targetWidth, height: targetHeight } },
+          { resize: { width: targetWidth } },
         ],
         { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
       );
