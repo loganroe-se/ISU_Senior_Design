@@ -2,11 +2,9 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select 
 from sqlalchemy_utils import session_handler
-from dripdrop_orm_objects import Image, ClothingItemTag, Tag, Coordinate, ClothingItem, Item
-from sqlalchemy.exc import IntegrityError
+from dripdrop_orm_objects import Image, ClothingItemTag, Tag, Coordinate, ClothingItem, Item,ClothingItemDetails
 
 def handler(event, context):
-    print("Event: ", event)
     for record in event['Records']:
         try:
             print("Adding Classification Results to DB")
@@ -22,14 +20,16 @@ def handler(event, context):
 
             print("Clothing items: ", clothing_items)
 
-            items = {}
+            items = []
             for item in clothing_items:
                 coords = item.get('coordinates', {})
-                items[item['item']] = {
+                items.append({
+                    'name': item.get('item', 'unknown'),  # store name explicitly
                     'x_coordinate': (coords.get('xmin', 0) + coords.get('xmax', 0)) / 2,
                     'y_coordinate': (coords.get('ymin', 0) + coords.get('ymax', 0)) / 2,
-                    'attributes': item.get('attributes', []),  # ← safer: default to empty list
-                }
+                    'attributes': item.get('attributes', []),
+                })
+
 
             status_code, message = update_database(image_path, items)
 
@@ -69,7 +69,8 @@ def update_database(session, image_path, items):
             return 404, f'Image with imageID: {image_path} does not exist'
         
         # Loop over the items and update the database
-        for item in items.values():
+        for item in items:
+            item_name = item['name']
             print("Item: ", item)
             new_coordinates = Coordinate(
                 xCoord=item['x_coordinate'],
@@ -79,14 +80,21 @@ def update_database(session, image_path, items):
 
             new_clothing_item = ClothingItem()
             session.add(new_clothing_item)
-            session.flush()
+            session.flush()  # required to get clothingItemID
+
+            #Add ClothingItemDetails with `name`
+            new_details = ClothingItemDetails(
+                clothingItemID=new_clothing_item.clothingItemID,
+                name=item_name  # this is the display name like "pants", "shirt", etc.
+            )
+            session.add(new_details)
 
             for tag in item['attributes']:
                 new_tag = get_or_create_tag(session, tag)
 
                 if new_tag is None:
-                    print(f"⚠️ Skipping invalid tag: {tag}")
-                    continue  # Skip if tag creation failed
+                    print(f"Skipping invalid tag: {tag}")
+                    continue
                 new_clothing_item_tag = ClothingItemTag(
                     tagID=new_tag.tagID,
                     clothingItemID=new_clothing_item.clothingItemID
@@ -99,6 +107,7 @@ def update_database(session, image_path, items):
                 coordinateID=new_coordinates.coordinateID
             )
             session.add(new_item)
+
 
         return 200, f'All tables populated successfully for imageID: {image_path}'
 

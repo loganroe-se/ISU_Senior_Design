@@ -108,7 +108,7 @@ class Item(Base):
 # ClothingItem table
 class ClothingItem(Base):
     __tablename__ = 'clothing_items'
-    clothingItemID = Column(Integer, primary_key=True)
+    clothingItemID = Column(Integer, primary_key=True, autoincrement=True)
 
     item = relationship("Item", back_populates="clothingItem", uselist=False, cascade="all, delete-orphan")
     clothing_item_tags = relationship("ClothingItemTag", back_populates="clothing_item", cascade="all, delete-orphan")

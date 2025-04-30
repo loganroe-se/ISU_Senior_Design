@@ -232,7 +232,7 @@ const UserProfile = () => {
 
       {user.uuid === profileUser?.uuid ? (
         <View style={profileStyle.subpageContainer}>
-          {["PUBLIC", "PRIVATE"].map((tab) => (
+          {["PUBLIC", "NEEDS_REVIEW"].map((tab) => (
             <TouchableOpacity key={tab} onPress={() => setSubPage(tab)}>
               <Text
                 style={
@@ -259,7 +259,7 @@ const UserProfile = () => {
         <PostGrid
           posts={posts}
           onPressPost={(post) => {
-            if(subPage === "PRIVATE") {
+            if(subPage === "NEEDS_REVIEW") {
               handleNavigateToImageMarker(post);
             }
             else {
