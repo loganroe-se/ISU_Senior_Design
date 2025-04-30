@@ -37,7 +37,7 @@ export default function SearchScreen() {
           const fetchedUsers = await searchUsersByUsername(searchQuery);
           setUsers(fetchedUsers ?? []);
         } else {
-          const fetchedPosts = await searchPostsByTerm(searchQuery);
+          const fetchedPosts = (await searchPostsByTerm(searchQuery)).reverse();
           setPosts(Array.isArray(fetchedPosts) ? [...fetchedPosts]: []);
         }
         setLoading(false);
