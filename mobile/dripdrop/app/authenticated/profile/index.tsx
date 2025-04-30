@@ -26,6 +26,7 @@ const UserProfile = () => {
 
   const [profileUser, setProfileUser] = useState<User | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [pubPosts, setPubPosts] = useState<Post[]>([]);
   const [followerCount, setFollowerCount] = useState<number>(0);
   const [followingCount, setFollowingCount] = useState<number>(0);
   const [isFollowing, setIsFollowing] = useState<boolean>(false);
@@ -58,10 +59,14 @@ const UserProfile = () => {
 
   const getUserPosts = async (id: string) => {
     setIsBottomLoading(true);
+
     const p = await fetchUserPosts(id, subPage);
     setPosts(p.reverse());
     setIsBottomLoading(false);
 
+    if(subPage === "PUBLIC") {
+      setPubPosts(p.reverse());
+    }
   };
 
   const handleNavigateToImageMarker = (post:Post) => {
@@ -189,7 +194,7 @@ const UserProfile = () => {
         </View>
         <View style={profileStyle.statsContainer}>
           {[
-            ["Posts", posts.length],
+            ["Posts", pubPosts.length],
             ["Followers", followerCount],
             ["Following", followingCount],
           ].map(([label, count]) => (
