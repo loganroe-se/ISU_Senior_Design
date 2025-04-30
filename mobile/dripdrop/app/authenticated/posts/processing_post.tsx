@@ -6,7 +6,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { processing_post_styles } from "@/styles/post";  // Import the styles from the post.tsx file
 import { Colors } from "@/constants/Colors";  // Import your app's color constants
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { fetchUserPosts } from "@/api/post";
+import { getPostById } from "@/api/post";
 import { useUserContext } from "@/context/UserContext";
 
 export default function ProcessingScreen() {
@@ -41,18 +41,16 @@ export default function ProcessingScreen() {
       Alert.alert("Error", "Post ID is missing.");
       return;
     }
-    setLoading(true); 
+
+    setLoading(true);
 
     try {
-      if(!user){
-        throw Error("User not found in user context")
-      }
-      const posts = await fetchUserPosts(user.uuid, "NEEDS_REVIEW"); // call API
-      if (posts.length > 0) {
-        // If there are posts returned, it means status is NEEDS_REVIEW
+      const post = await getPostById(Number(postId));
+
+      if (post.status === "NEEDS_REVIEW") {
         router.push({
           pathname: "./image_marker",
-          params: { caption, image, postId }, // Pass caption and image as parameters
+          params: { caption, image, postId },
         });
       } else {
         Alert.alert("Post Not Ready", "AI is still processing your post.");
@@ -61,9 +59,10 @@ export default function ProcessingScreen() {
       console.error("Error verifying post status:", error);
       Alert.alert("Error", "Failed to verify post status. Please try again.");
     } finally {
-      setLoading(false); 
+      setLoading(false);
     }
   };
+
 
   return (
     <View style={processing_post_styles.container}>
