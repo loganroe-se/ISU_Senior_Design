@@ -34,6 +34,7 @@ def getPostById(session, post_id):
             "postID": post.postID,
             "uuid": post.userRel.uuid if post.userRel else None,
             "caption": post.caption,
+            "status": post.status,
             "createdDate": (
                 post.createdDate.isoformat()
                 if isinstance(post.createdDate, (datetime, date))
