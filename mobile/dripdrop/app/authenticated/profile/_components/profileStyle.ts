@@ -8,7 +8,8 @@ export const profileStyle = StyleSheet.create({
   profileHeader: {
     display: 'flex',
     alignItems: 'flex-end',
-    marginRight: 16
+    marginRight: 16,
+    marginTop: 16
   },
   topHeader: {
     flexDirection: "row",
