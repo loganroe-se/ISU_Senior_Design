@@ -106,7 +106,7 @@ def segment_image(image_path):
             cls_id = int(box[5])
 
             #Skip detections with low confidence
-            if conf < 0.5:
+            if conf < 0.2:
                 logger.info(f"Skipping detection #{i} with low confidence {conf}")
                 continue
 
