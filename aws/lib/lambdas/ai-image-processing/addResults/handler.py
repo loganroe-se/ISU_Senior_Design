@@ -2,47 +2,41 @@ import json
 from utils import create_response, handle_exception
 from sqlalchemy import select 
 from sqlalchemy_utils import session_handler
-from dripdrop_orm_objects import Image, ClothingItemTag, Tag, Coordinate, ClothingItem, Item
-from sqlalchemy.exc import IntegrityError
+from dripdrop_orm_objects import Image, ClothingItemTag, Tag, Coordinate, ClothingItem, Item,ClothingItemDetails
 
 def handler(event, context):
-    print("Event: ", event)
     for record in event['Records']:
         try:
             print("Adding Classification Results to DB")
-            # Step 1: Parse the outer SQS body
-            outer_body = json.loads(record['body'])
+            # Parse SQS record body
+            body = json.loads(record['body'])
 
-            # Step 2: Parse the inner JSON in the "body" field
-            inner_body = json.loads(outer_body['body'])
-
-            image_path = inner_body.get('image_path')
-            clothing_items = inner_body.get('clothing_items', [])
+            image_path = body.get('image_path')
+            clothing_items = body.get('clothing_items', [])
 
             if not image_path:
                 print("Not valid image_path")
-                raise Exception("Expected image_path, found: ", image_path)
-          
+                raise Exception(f"Expected image_path, found: {image_path}")
+
             print("Clothing items: ", clothing_items)
 
-            items = {}
+            items = []
             for item in clothing_items:
                 coords = item.get('coordinates', {})
-                items[item['item']] = {
+                items.append({
+                    'name': item.get('item', 'unknown'),  # store name explicitly
                     'x_coordinate': (coords.get('xmin', 0) + coords.get('xmax', 0)) / 2,
                     'y_coordinate': (coords.get('ymin', 0) + coords.get('ymax', 0)) / 2,
-                    'attributes': item.get('attributes', {}),
-                }
+                    'attributes': item.get('attributes', []),
+                })
+
 
             status_code, message = update_database(image_path, items)
 
-            # Optional: log or handle per-record result
             print(f"Processed image {image_path}: {status_code} - {message}")
 
         except Exception as e:
             return create_response(500, f"Error updating user: {str(e)}")
-
-            # Optionally handle the failure (e.g., DLQ fallback)
 
     return {
         "statusCode": 200,
@@ -61,11 +55,22 @@ def update_database(session, image_path, items):
         print("Updating database")
         image =  session.execute(select(Image).where(Image.imageURL == image_path)).scalars().first()
 
+        # Get the Post associated with this image
+        post = image.postRel  # thanks to the relationship defined in ORM
+
+        if post:
+            post.status = "NEEDS_REVIEW"
+            print(f"Updated post {post.postID} status to 'Needs Review'")
+        else:
+            print(f"No post found for image: {image.imageURL}")
+
+
         if not image:
             return 404, f'Image with imageID: {image_path} does not exist'
         
         # Loop over the items and update the database
-        for item in items.values():
+        for item in items:
+            item_name = item['name']
             print("Item: ", item)
             new_coordinates = Coordinate(
                 xCoord=item['x_coordinate'],
@@ -75,13 +80,21 @@ def update_database(session, image_path, items):
 
             new_clothing_item = ClothingItem()
             session.add(new_clothing_item)
+            session.flush()  # required to get clothingItemID
+
+            #Add ClothingItemDetails with `name`
+            new_details = ClothingItemDetails(
+                clothingItemID=new_clothing_item.clothingItemID,
+                name=item_name  # this is the display name like "pants", "shirt", etc.
+            )
+            session.add(new_details)
 
             for tag in item['attributes']:
                 new_tag = get_or_create_tag(session, tag)
 
                 if new_tag is None:
-                    print(f"⚠️ Skipping invalid tag: {tag}")
-                    continue  # Skip if tag creation failed
+                    print(f"Skipping invalid tag: {tag}")
+                    continue
                 new_clothing_item_tag = ClothingItemTag(
                     tagID=new_tag.tagID,
                     clothingItemID=new_clothing_item.clothingItemID
@@ -94,6 +107,7 @@ def update_database(session, image_path, items):
                 coordinateID=new_coordinates.coordinateID
             )
             session.add(new_item)
+
 
         return 200, f'All tables populated successfully for imageID: {image_path}'
 
