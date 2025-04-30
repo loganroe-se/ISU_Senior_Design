@@ -32,7 +32,7 @@ const ViewPosts = () => {
           setPostList(parsedPosts);
         } else if (userID && tab) {
           const fetchedPosts = await fetchUserPosts(userID as string, tab as string);
-          setPostList(fetchedPosts);
+          setPostList(fetchedPosts.reverse());
         } else {
           setError("Missing required parameters.");
         }
@@ -171,7 +171,7 @@ const ViewPosts = () => {
 
       <FlatList
         ref={flatListRef}
-        data={postList.reverse()}
+        data={postList}
         keyExtractor={(item) => item.postID.toString()}
         renderItem={({ item }) => <PostCard post={item} itemDetailsMap={itemDetailsMap} markersMap={markersMap} />}
         decelerationRate="fast"

@@ -19,7 +19,7 @@ const Bookmarks = () => {
             let bookmarks = await getBookmarks();
             
             if(bookmarks != null && bookmarks.length > 0) {
-                setPosts(bookmarks);
+                setPosts(bookmarks.reverse());
             }
             setIsLoading(false);
         }

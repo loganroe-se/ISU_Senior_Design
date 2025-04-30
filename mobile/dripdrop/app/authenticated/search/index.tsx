@@ -62,7 +62,7 @@ export default function SearchScreen() {
     router.push({
       pathname: "/authenticated/posts/viewposts",
       params: {
-        posts: encodeURIComponent(JSON.stringify([...posts].reverse())),
+        posts: encodeURIComponent(JSON.stringify([...posts])),
         postID: post.postID.toString(),
         initialIndex: index.toString(),
         header: searchQuery,

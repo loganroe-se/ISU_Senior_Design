@@ -60,12 +60,12 @@ const UserProfile = () => {
   const getUserPosts = async (id: string) => {
     setIsBottomLoading(true);
 
-    const p = await fetchUserPosts(id, subPage);
-    setPosts(p.reverse());
+    const p = (await fetchUserPosts(id, subPage)).reverse();
+    setPosts(p);
     setIsBottomLoading(false);
 
     if(subPage === "PUBLIC") {
-      setPubPosts(p.reverse());
+      setPubPosts(p);
     }
   };
 
