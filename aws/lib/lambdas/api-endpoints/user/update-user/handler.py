@@ -34,31 +34,32 @@ def handler(event, context):
     except Exception as e:
         return create_response(500, f"Error updating user: {str(e)}")
 
-
 @session_handler
-def updateUser(session, user_uuid, username, profilePic):  # ✅ updated param name
+def updateUser(session, user_uuid, username, profilePic):
     try:
         user = session.execute(select(User).where(User.uuid == user_uuid)).scalars().first()
-
         if not user:
             return 404, f'User with uuid: {user_uuid} was not found'
 
         if username:
             user.username = username
-        
-        print("profilepic: ", profilePic)
 
         if profilePic:
             if profilePic == "default":
                 user.profilePicURL = "profilePics/default.jpg"
             else:
                 decoded_image = base64.b64decode(profilePic)
-                image_id = str(uuid.uuid4())  # ✅ now correctly calls the uuid module
+                image_id = str(uuid.uuid4())
                 s3_key = f"profilePics/{image_id}.jpg"
                 s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=decoded_image)
                 user.profilePicURL = s3_key
 
         return 200, f'User with uuid: {user_uuid} was updated successfully'
+
+    except IntegrityError as e:
+        if "Duplicate entry" in str(e.orig) and "users.username" in str(e.orig):
+            return 409, "Username already exists"
+        return 500, "Database integrity error"
 
     except Exception as e:
         return handle_exception(e, "Error accessing database")

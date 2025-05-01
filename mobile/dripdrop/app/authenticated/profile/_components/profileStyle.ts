@@ -6,9 +6,9 @@ export const profileStyle = StyleSheet.create({
     backgroundColor: "#fff",
   },
   profileHeader: {
-    display: 'flex',
-    alignItems: 'flex-end',
-    marginRight: 16
+    display: "flex",
+    alignItems: "flex-end",
+    marginRight: 16,
   },
   topHeader: {
     flexDirection: "row",
@@ -101,12 +101,14 @@ export const profileStyle = StyleSheet.create({
   subpageContainer: {
     marginTop: 10,
     flexDirection: "row",
-    justifyContent: "space-around",
+    justifyContent: "space-evenly",
+    alignItems: "center",
     paddingVertical: 10,
     borderTopWidth: 1,
     borderBottomWidth: 1,
     borderColor: "#eee",
   },
+
   subpagePickerText: {
     fontSize: 14,
     color: "#888",
@@ -132,7 +134,7 @@ export const profileStyle = StyleSheet.create({
     width: "100%",
     height: "100%",
     resizeMode: "cover",
-  }, 
+  },
   username: {
     fontSize: 20,
     fontWeight: "600",
@@ -185,5 +187,5 @@ export const profileStyle = StyleSheet.create({
     borderTopWidth: 1,
     borderBottomWidth: 0,
     borderColor: "#eee",
-  },  
+  },
 });
