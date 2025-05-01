@@ -501,7 +501,7 @@ const Page = () => {
               setVisibleItemModal(null);
               setActiveClothingItemID(0);
               router.push({
-                pathname: "../authenticated/posts/viewpostsuggestions",
+                pathname: "/authenticated/posts/viewpostsuggestions",
                 params: {
                   suggestions: encodeURIComponent(JSON.stringify(aiSuggestions)),
                   userID: user?.uuid,
