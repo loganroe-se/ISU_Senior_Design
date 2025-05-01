@@ -57,7 +57,7 @@ def getAiRecommendations(session, email, item_id):
                 Post.postID != original_post_id
             )
             .group_by(Post.postID)
-            .having(func.count(matching_item.tagID) >= 3)
+            .having(func.count(matching_item.tagID) >= 2)
             .order_by(desc(func.count(matching_item.tagID)))
             .limit(5)  # or however many posts you want
             .all()
