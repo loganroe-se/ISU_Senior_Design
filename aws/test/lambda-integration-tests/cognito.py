@@ -1,7 +1,7 @@
 import boto3
 
 # Replace these values with your real setup
-USERNAME = "kolbykuc@iastate.edu"
+USERNAME = "kolbykucera23@gmail.com"
 PASSWORD = "@testPassword123!"
 CLIENT_ID = "56m910cshqeunar2fdi827r6gd"
 USER_POOL_ID = "us-east-1_xb4wypamc"

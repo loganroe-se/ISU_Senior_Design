@@ -1,5 +1,6 @@
 import json
 import os
+import re
 from datetime import date
 import boto3
 from botocore.exceptions import ClientError
@@ -8,6 +9,11 @@ from utils import create_response
 # Cognito setup
 cognito = boto3.client('cognito-idp')
 CLIENT_ID = os.environ['USER_POOL_CLIENT_ID']
+
+# Username validation function
+def is_valid_username(username):
+    # Only letters, numbers, underscores, and dots; 3–30 characters
+    return re.match(r'^[a-zA-Z0-9_.]{3,30}$', username) is not None
 
 def handler(event, context):
     try:
@@ -20,6 +26,10 @@ def handler(event, context):
 
         if not username or not email or not password or not dob:
             return create_response(400, 'Missing required field')
+
+        # Validate username format
+        if not is_valid_username(username):
+            return create_response(400, 'Invalid username. Only letters, numbers, underscores, and dots are allowed (3–30 characters).')
 
         # Validate date format
         try:
