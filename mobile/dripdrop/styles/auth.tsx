@@ -101,8 +101,22 @@ export const styles_signup = StyleSheet.create({
     marginVertical: 10,
     fontSize: 16
   },
-  modalText: { fontSize: 18, marginBottom: 10, textAlign: "center" },
-  datePicker: { width: "80%", marginBottom: 20 },
+  modalText: { 
+    fontSize: 18, 
+    marginBottom: 4, 
+    textAlign: "center", 
+    fontWeight: "bold" 
+  },
+  datePicker: { 
+    width: "80%", 
+    marginBottom: 20 
+  },
+  confirmationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 40,
+    marginTop: 20,
+  },
   loadingContainer: {
     position: "absolute",
     top: 0,

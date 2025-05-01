@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
+import Icon from 'react-native-vector-icons/MaterialIcons'
 import { useRouter } from 'expo-router';
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -211,8 +212,10 @@ const SignUpScreen = () => {
             Selected: {birthday.toDateString()}
           </Text>
 
-          <Button title="Cancel" onPress={() => setModalVisible(false)} />
-          <Button title="Confirm" onPress={handleBirthdaySelect} />
+          <View style={styles_signup.confirmationButtons}>
+            <Button title="Cancel" onPress={() => setModalVisible(false)} />
+            <Button title="Confirm" onPress={handleBirthdaySelect} />
+          </View>
         </View>
       </Modal>
 
@@ -227,8 +230,10 @@ const SignUpScreen = () => {
             value={confirmation_code}
             onChangeText={setconfirmation_code}
           />
-          <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
-          <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
+          <View style={styles_signup.confirmationButtons}>
+            <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
+            <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
+          </View>
 
           {/* Timer for Code Expiration */}
           {isConfirmationModalVisible && !isExpired && (
