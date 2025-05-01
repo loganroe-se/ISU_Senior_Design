@@ -68,7 +68,8 @@ export const styles_signup = StyleSheet.create({
   },
   input: {
     height: 40,
-    width: 300,
+    width: "80%",
+    maxWidth: 400,
     borderColor: "grey",
     borderWidth: 1,
     marginBottom: 15,
@@ -84,14 +85,38 @@ export const styles_signup = StyleSheet.create({
     marginTop: 20,
     fontSize: 14,
   },
+  signUpText: {
+    width: "80%",
+    maxWidth: 400,
+    borderRadius: 5,
+    alignSelf: "center",
+  },
   modalContent: {
     backgroundColor: "white",
     padding: 20,
     borderRadius: 10,
     alignItems: "center",
   },
-  modalText: { fontSize: 18, marginBottom: 10, textAlign: "center" },
-  datePicker: { width: "80%", marginBottom: 20 },
+  currentDate: {
+    marginVertical: 10,
+    fontSize: 16
+  },
+  modalText: { 
+    fontSize: 18, 
+    marginBottom: 4, 
+    textAlign: "center", 
+    fontWeight: "bold" 
+  },
+  datePicker: { 
+    width: "80%", 
+    marginBottom: 20 
+  },
+  confirmationButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 40,
+    marginTop: 20,
+  },
   loadingContainer: {
     position: "absolute",
     top: 0,
