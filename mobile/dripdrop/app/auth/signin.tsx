@@ -25,7 +25,7 @@ export default function Login() {
       return;
     }
     try {
-      await signIn(email, password);
+      await signIn(email.toLowerCase(), password);
       router.replace("/authenticated");
     } catch (error) {
       Alert.alert("Login Failed", "Invalid email or password");

@@ -21,7 +21,7 @@ export default function ProcessingScreen() {
     // Navigate to the ImageMarker screen with the current caption and image data
     router.replace({
       pathname: "/authenticated/profile",
-      params: { tab: "PRIVATE" }
+      params: { tab: "NEEDS_REVIEW" }
     });
   };
   // Fetch the username from AsyncStorage when the component mounts

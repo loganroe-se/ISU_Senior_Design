@@ -7,7 +7,7 @@ export const apiRequest = async <T, D = unknown>(
   url: string,
   data?: D,
   skipToken: boolean = false
-): Promise<T> => {
+): Promise<T | undefined> => {
   try {
     // Only get the token if it's not skipped
     const token = skipToken ? null : await getValidBearerToken();
@@ -33,6 +33,6 @@ export const apiRequest = async <T, D = unknown>(
     return result;
   } catch (error) {
     console.error(`API Error [${method} ${url}]:`, error);
-    throw error;
+    return undefined;
   }
 };

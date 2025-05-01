@@ -72,25 +72,34 @@ const UserEditProfile = () => {
     if (!profileUser) return;
 
     const updatedUser: BasicUserData = {
-        uuid: profileUser.uuid,
-        email: newEmail || profileUser.email,
-        username: newUsername || profileUser.username,
-        profilePic: newProfilePic
-          ? newProfilePic.split(",")[1]
-          : "", 
-      };
-      
+      uuid: profileUser.uuid,
+      email: newEmail || profileUser.email,
+      username: newUsername || profileUser.username,
+      profilePic: newProfilePic ? newProfilePic.split(",")[1] : "",
+    };
+
     try {
       setLoading(true);
       await updateUser(updatedUser);
       Alert.alert("Success", "Profile updated");
       router.replace("../profile");
-    } catch (e) {
-      Alert.alert("Error", "Failed to update profile");
+    } catch (error: any) {
+      let errorMsg = "Failed to update profile";
+
+      if (
+        error?.response?.status === 409 ||
+        error?.message?.includes("Username already exists")
+      ) {
+        errorMsg = "That username is already taken. Please try another.";
+      }
+
+      Alert.alert("Error", errorMsg);
     } finally {
       setLoading(false);
     }
   };
+
+
 
   const isSaveDisabled =
     newUsername === initialValues.username &&

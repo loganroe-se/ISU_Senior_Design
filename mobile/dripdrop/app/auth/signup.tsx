@@ -174,8 +174,15 @@ const SignUpScreen = () => {
       <TextInput style={styles_signup.input} placeholder="Confirm Password" placeholderTextColor="grey" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
       <View style={styles_signup.signUpText}>
-        <Button title="Sign Up" onPress={handleSignUp} />
+        {isLoading ? (
+          <TouchableOpacity style={styles_signup.loadingButton} disabled={true}>
+            <ActivityIndicator color="white" />
+          </TouchableOpacity>
+        ) : (
+          <Button title="Sign Up" onPress={handleSignUp} />
+        )}
       </View>
+
       <TouchableOpacity onPress={onGoToSignIn}>
         <Text style={styles_signup.signInText}>Already have an account? Sign In</Text>
       </TouchableOpacity>
@@ -232,7 +239,14 @@ const SignUpScreen = () => {
           />
           <View style={styles_signup.confirmationButtons}>
             <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
-            <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
+            {isLoading ? (
+              <TouchableOpacity style={styles_signup.loadingButton} disabled={true}>
+                <ActivityIndicator color="white" />
+              </TouchableOpacity>
+            ) : (
+              <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
+            )}
+
           </View>
 
           {/* Timer for Code Expiration */}

@@ -139,5 +139,14 @@ export const styles_signup = StyleSheet.create({
     color: "red", // Red to indicate expiration
     marginTop: 10,
     fontWeight: "bold",
-  }
+  },
+  loadingButton: {
+    backgroundColor: '#5271ff',
+    padding: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 5,
+    marginTop: 10,
+  },
+
 });

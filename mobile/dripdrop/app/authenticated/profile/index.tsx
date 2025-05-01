@@ -236,22 +236,42 @@ const UserProfile = () => {
 
       {user.uuid === profileUser?.uuid ? (
         <View style={profileStyle.subpageContainer}>
-          {["PUBLIC", "NEEDS_REVIEW"].map((tab) => (
-            <TouchableOpacity key={tab} onPress={() => setSubPage(tab)}>
-              <Text
-                style={
-                  subPage === tab
-                    ? profileStyle.subpagePickerTextSelected
-                    : profileStyle.subpagePickerText
-                }
-              >
-                {tab === "PUBLIC"
-                  ? "Posts"
-                  : "Drafts"}
-              </Text>
-            </TouchableOpacity>
-          ))}
+          {/* Posts tab */}
+          <TouchableOpacity onPress={() => setSubPage("PUBLIC")}>
+            <Text
+              style={
+                subPage === "PUBLIC"
+                  ? profileStyle.subpagePickerTextSelected
+                  : profileStyle.subpagePickerText
+              }
+            >
+              Posts
+            </Text>
+          </TouchableOpacity>
+
+          {/* Refresh button */}
+          <TouchableOpacity
+            onPress={() => profileUser && getUserPosts(profileUser.uuid)}
+            style={{ paddingHorizontal: 10 }}
+          >
+            <Ionicons name="refresh" size={20} color={Colors.light.text} />
+          </TouchableOpacity>
+
+          {/* Drafts tab */}
+          <TouchableOpacity onPress={() => setSubPage("NEEDS_REVIEW")}>
+            <Text
+              style={
+                subPage === "NEEDS_REVIEW"
+                  ? profileStyle.subpagePickerTextSelected
+                  : profileStyle.subpagePickerText
+              }
+            >
+              Drafts
+            </Text>
+          </TouchableOpacity>
         </View>
+
+
       ) : (
         <View style={profileStyle.postDivider} />
       )}
