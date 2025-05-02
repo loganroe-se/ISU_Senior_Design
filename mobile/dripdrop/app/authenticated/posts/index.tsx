@@ -353,7 +353,7 @@ export default function Post() {
                 onEndReached={loadMorePhotos}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={
-                  loadingMore ? (
+                  loadingMore  && photos.length > 40 ? (
                     <View style={post_styles.loadingContainer}>
                       <Text>Loading more photos...</Text>
                     </View>
