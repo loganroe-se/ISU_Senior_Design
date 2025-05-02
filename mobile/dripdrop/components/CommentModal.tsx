@@ -1,4 +1,4 @@
-import { Modal, SafeAreaView, KeyboardAvoidingView, Platform, Keyboard, View, Text, ActivityIndicator, Dimensions, Image, TextInput, TouchableOpacity, StyleSheet } from "react-native";
+import { Modal, KeyboardAvoidingView, Platform, Keyboard, View, Text, ActivityIndicator, Dimensions, Image, TextInput, TouchableOpacity, StyleSheet, Pressable } from "react-native";
 import React, { RefObject, useEffect } from "react";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { createComment, fetchCommentsByPostID } from "@/api/comment";
@@ -109,7 +109,7 @@ const CommentModal = ({
       >
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <GestureHandlerRootView style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={styles.modalContainer}>
+            <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 {/* Header - Swipe down indicator */}
                 <PanGestureHandler
@@ -165,20 +165,20 @@ const CommentModal = ({
                     numberOfLines={5}
                     scrollEnabled={true}
                   />
-                  <TouchableOpacity onPress={handleAddComment}>
-                    {loadingAddComment ? (
-                      <ActivityIndicator size="small" color={Colors.light.primary}/>
-                    ) : (
+                  {loadingAddComment ? (
+                    <ActivityIndicator size="small" color={Colors.light.primary}/>
+                  ) : (
+                    <Pressable onPress={handleAddComment}>
                       <Ionicons
                         name="send"
                         size={22}
                         color={Colors.light.primary}
                       />
-                    )}
-                  </TouchableOpacity>
+                    </Pressable>
+                  )}
                 </View>
               </View>
-            </TouchableWithoutFeedback>
+            </View>
           </GestureHandlerRootView>
         </KeyboardAvoidingView>
       </Modal>
