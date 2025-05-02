@@ -109,7 +109,7 @@ const CommentModal = ({
       >
         <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }}>
           <GestureHandlerRootView style={styles.modalOverlay}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss} style={styles.modalContainer}>
+            <View style={styles.modalContainer}>
               <View style={styles.modalContent}>
                 {/* Header - Swipe down indicator */}
                 <PanGestureHandler
@@ -178,7 +178,7 @@ const CommentModal = ({
                   )}
                 </View>
               </View>
-            </TouchableWithoutFeedback>
+            </View>
           </GestureHandlerRootView>
         </KeyboardAvoidingView>
       </Modal>
