@@ -218,25 +218,11 @@
       "taxonomy_id": "obj000052_00"
     },
     {
-      "id": 31,
-      "name": "sleeve",
-      "supercategory": "garment parts",
-      "level": 2,
-      "taxonomy_id": "obj000053_00"
-    },
-    {
       "id": 32,
       "name": "pocket",
       "supercategory": "garment parts",
       "level": 2,
       "taxonomy_id": "obj000055_00"
-    },
-    {
-      "id": 33,
-      "name": "neckline",
-      "supercategory": "garment parts",
-      "level": 2,
-      "taxonomy_id": "obj000056_00"
     },
     {
       "id": 34,
