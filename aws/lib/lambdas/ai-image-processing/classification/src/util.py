@@ -38,7 +38,7 @@ def output_fn(prediction_output):
             filtered_indices = []
             filtered_scores = []
             for idx, score in zip(top5_indices, top5_scores):
-                if score >= 0.1:
+                if score >= 0.2:
                     filtered_indices.append(idx)
                     filtered_scores.append(score)
 

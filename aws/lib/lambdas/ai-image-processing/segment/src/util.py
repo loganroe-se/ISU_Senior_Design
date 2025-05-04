@@ -20,7 +20,7 @@ with open("categories.json", "r") as f:
 
 
 def map_to_category_label(id):
-    return _CATEGORY_MAP.get(id, str(id))
+    return _CATEGORY_MAP.get(id, None)
 
 
 def detect_dominant_color(image):
@@ -105,8 +105,11 @@ def segment_image(image_path):
             conf = round(box[4], 2)
             cls_id = int(box[5])
 
+            if map_to_category_label(cls_id) is None:
+                continue
+
             #Skip detections with low confidence
-            if conf < 0.2:
+            if conf < 0.5:
                 logger.info(f"Skipping detection #{i} with low confidence {conf}")
                 continue
 

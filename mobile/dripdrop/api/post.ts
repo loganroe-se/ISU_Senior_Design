@@ -7,7 +7,7 @@ export const createPost = async (newPost: sendPost): Promise<sendPost> => {
   console.log("Sending post data:", newPost);
   const response = await apiRequest<string, sendPost>("POST", "/posts/", newPost);
 
-  const postIdMatch = response.match(/postID: (\d+)/);
+  const postIdMatch = response?.match(/postID: (\d+)/);
   const postID = postIdMatch ? parseInt(postIdMatch[1]) : undefined;
 
   return {

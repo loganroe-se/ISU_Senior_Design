@@ -21,10 +21,16 @@ def handler(event, context):
             print("Clothing items: ", clothing_items)
 
             items = []
+            seen_names = set()
             for item in clothing_items:
+                item_name = item.get('item', 'unknown')
+                if item_name in seen_names:
+                    continue
+                seen_names.add(item_name)
+
                 coords = item.get('coordinates', {})
                 items.append({
-                    'name': item.get('item', 'unknown'),  # store name explicitly
+                    'name': item_name,  # store name explicitly
                     'x_coordinate': (coords.get('xmin', 0) + coords.get('xmax', 0)) / 2,
                     'y_coordinate': (coords.get('ymin', 0) + coords.get('ymax', 0)) / 2,
                     'attributes': item.get('attributes', []),

@@ -193,8 +193,8 @@ export default function Post() {
     try {
       const manipulatedImage = await ImageManipulator.manipulateAsync(
         image,
-        [{ resize: { width: 300 } }],
-        { compress: 0.7, format: ImageManipulator.SaveFormat.JPEG }
+        [],
+        { format: ImageManipulator.SaveFormat.JPEG }
       );
 
       const base64Image = await FileSystem.readAsStringAsync(manipulatedImage.uri, {
@@ -353,7 +353,7 @@ export default function Post() {
                 onEndReached={loadMorePhotos}
                 onEndReachedThreshold={0.5}
                 ListFooterComponent={
-                  loadingMore  && photos.length > 40 ? (
+                  loadingMore && photos.length > 40 ? (
                     <View style={post_styles.loadingContainer}>
                       <Text>Loading more photos...</Text>
                     </View>
