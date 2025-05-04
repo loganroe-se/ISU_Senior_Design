@@ -115,6 +115,7 @@ class ClothingItem(Base):
     details = relationship("ClothingItemDetails", back_populates="clothing_item", uselist=False, cascade="all, delete-orphan", single_parent=True)
 
 # ClothingItemDetails table
+# ClothingItemDetails table
 class ClothingItemDetails(Base):
     __tablename__ = 'clothing_item_details'
     clothingItemID = Column(Integer, ForeignKey('clothing_items.clothingItemID', ondelete="CASCADE"), primary_key=True)
@@ -124,6 +125,13 @@ class ClothingItemDetails(Base):
     price = Column(Float)
     itemURL = Column(String(200))
     size = Column(String(5))
+
+    # NEW: RGB color
+    red = Column(Integer)
+    green = Column(Integer)
+    blue = Column(Integer)
+
+    itemType = Column(String(50))
 
     clothing_item = relationship("ClothingItem", back_populates="details")
 

@@ -2,6 +2,7 @@ import numpy as np
 import time, json, cv2
 import logging, requests
 import torch
+from sklearn.cluster import KMeans
 from ultralytics import YOLO
 
 # Configure logging
@@ -20,21 +21,33 @@ with open("categories.json", "r") as f:
 
 
 def map_to_category_label(id):
-    return _CATEGORY_MAP.get(id, str(id))
+    return _CATEGORY_MAP.get(id, None)
 
 
-def detect_dominant_color(image):
-    pixels = image.reshape((-1, 3))
-    if pixels.size == 0:
-        return {"red": 0, "green": 0, "blue": 0, "error": "Empty image"}
-    avg_color = np.mean(pixels, axis=0)
-    if np.isnan(avg_color).any():
-        return {"red": 0, "green": 0, "blue": 0, "error": "NaN encountered"}
-    return {
-        "red": int(avg_color[2]),
-        "green": int(avg_color[1]),
-        "blue": int(avg_color[0]),
-    }
+def detect_dominant_color(image, mask=None, k=3):
+    if mask is not None:
+        # Apply the mask to extract relevant pixels
+        masked_pixels = image[mask.astype(bool)]
+    else:
+        masked_pixels = image.reshape((-1, 3))
+
+    if masked_pixels.size == 0:
+        return {"red": 0, "green": 0, "blue": 0, "error": "Empty masked image"}
+
+    pixels = np.float32(masked_pixels)
+
+    try:
+        kmeans = KMeans(n_clusters=k, n_init=10)
+        kmeans.fit(pixels)
+        _, counts = np.unique(kmeans.labels_, return_counts=True)
+        dominant = kmeans.cluster_centers_[np.argmax(counts)]
+        return {
+            "red": int(dominant[2]),
+            "green": int(dominant[1]),
+            "blue": int(dominant[0])
+        }
+    except Exception as e:
+        return {"red": 0, "green": 0, "blue": 0, "error": str(e)}
 
 
 def get_image(image_path):
@@ -101,12 +114,16 @@ def segment_image(image_path):
 
     for i, box in enumerate(boxes):
         try:
+            mask_binary = None
             xmin, ymin, xmax, ymax = map(int, box[:4])
             conf = round(box[4], 2)
             cls_id = int(box[5])
 
+            if map_to_category_label(cls_id) is None:
+                continue
+
             #Skip detections with low confidence
-            if conf < 0.2:
+            if conf < 0.5:
                 logger.info(f"Skipping detection #{i} with low confidence {conf}")
                 continue
 
@@ -120,7 +137,7 @@ def segment_image(image_path):
                 logger.warning("Empty crop encountered, skipping.")
                 continue
 
-            dominant_color = detect_dominant_color(cropped_img)
+
 
             # Segmentation mask logic
             if masks is not None and i < len(masks):
@@ -140,6 +157,11 @@ def segment_image(image_path):
                     except cv2.error as e:
                         logger.error(f"OpenCV error applying mask: {e}")
                         continue
+
+            if np.count_nonzero(mask_binary) < 10:
+                dominant_color = detect_dominant_color(cropped_img)  # fallback: no mask
+            else:
+                dominant_color = detect_dominant_color(cropped_img, mask_binary)
 
             resized_h, resized_w = resized_image.shape[:2]
             item = {

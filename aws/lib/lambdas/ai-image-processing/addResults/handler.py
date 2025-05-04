@@ -21,14 +21,22 @@ def handler(event, context):
             print("Clothing items: ", clothing_items)
 
             items = []
+            seen_names = set()
             for item in clothing_items:
+                item_name = item.get('item', 'unknown')
+                if item_name in seen_names:
+                    continue
+                seen_names.add(item_name)
+
                 coords = item.get('coordinates', {})
                 items.append({
-                    'name': item.get('item', 'unknown'),  # store name explicitly
+                    'name': item_name,
                     'x_coordinate': (coords.get('xmin', 0) + coords.get('xmax', 0)) / 2,
                     'y_coordinate': (coords.get('ymin', 0) + coords.get('ymax', 0)) / 2,
                     'attributes': item.get('attributes', []),
+                    'color': item.get('color', {})
                 })
+
 
 
             status_code, message = update_database(image_path, items)
@@ -83,10 +91,17 @@ def update_database(session, image_path, items):
             session.flush()  # required to get clothingItemID
 
             #Add ClothingItemDetails with `name`
+            color = item.get('color', {})
             new_details = ClothingItemDetails(
                 clothingItemID=new_clothing_item.clothingItemID,
-                name=item_name  # this is the display name like "pants", "shirt", etc.
+                name=item_name,
+                red=color.get('red'),
+                itemType=item_name,
+                green=color.get('green'),
+                blue=color.get('blue')
             )
+            session.add(new_details)
+
             session.add(new_details)
 
             for tag in item['attributes']:
