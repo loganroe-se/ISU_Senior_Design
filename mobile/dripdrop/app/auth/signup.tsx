@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, Button, Image, Alert, TouchableOpacity, ActivityIndicator } from "react-native";
-import Icon from 'react-native-vector-icons/MaterialIcons'
 import { useRouter } from 'expo-router';
 import Modal from 'react-native-modal';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -15,7 +14,6 @@ const SignUpScreen = () => {
   const [birthday, setBirthday] = useState(new Date()); // Store birthday as Date object
   const [confirmation_code, setconfirmation_code] = useState(""); // State for confirmation code
   const [isModalVisible, setModalVisible] = useState(false);
-  const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [isLoading, setIsLoading] = useState(false); // Loading state
   const [isConfirmationModalVisible, setIsConfirmationModalVisible] = useState(false); // Modal for entering confirmation code
 
@@ -75,8 +73,7 @@ const SignUpScreen = () => {
       return;
     }
 
-    // Show the date picker
-    setIsDatePickerVisible(true);
+    setModalVisible(true); // Show the modal to select birthday
   };
 
   const handleBirthdaySelect = async () => {
@@ -173,58 +170,29 @@ const SignUpScreen = () => {
       <TextInput style={styles_signup.input} placeholder="Password" placeholderTextColor="grey" secureTextEntry value={password} onChangeText={setPassword} />
       <TextInput style={styles_signup.input} placeholder="Confirm Password" placeholderTextColor="grey" secureTextEntry value={confirmPassword} onChangeText={setConfirmPassword} />
 
-      <View style={styles_signup.signUpText}>
-        {isLoading ? (
-          <TouchableOpacity style={styles_signup.loadingButton} disabled={true}>
-            <ActivityIndicator color="white" />
-          </TouchableOpacity>
-        ) : (
-          <Button title="Sign Up" onPress={handleSignUp} />
-        )}
-      </View>
-
+      <Button title="Sign Up" onPress={handleSignUp} />
       <TouchableOpacity onPress={onGoToSignIn}>
         <Text style={styles_signup.signInText}>Already have an account? Sign In</Text>
       </TouchableOpacity>
 
-      {/* Birthday Selection Modal */}
-      {isDatePickerVisible && <DateTimePicker
-        style={styles_signup.datePicker}
-        value={birthday}
-        mode="date"
-        display="default"
-        onChange={(event, selectedDate) => {
-          console.log(event.type, selectedDate);
-          // Close the DateTimePicker if cancel is chosen
-          if (event.type === "dismissed") {
-            setIsDatePickerVisible(false);
-            return;
-          }
-
-          const currentDate = selectedDate || birthday;
-          setBirthday(currentDate); // Update state with selected date
-          setIsDatePickerVisible(false);
-          // Open the confirmation modal
-          setModalVisible(true);
-        }}
-      />}
-
-      {/* Birthday Confirmation Modal */}
-      <Modal isVisible={isModalVisible}>
+      {/* Birthday Modal */}
+      {isModalVisible && <Modal isVisible={isModalVisible}>
         <View style={styles_signup.modalContent}>
-          <Text style={styles_signup.modalText}>Confirm Your Selected Birthday</Text>
-
-          {/* Display current date */}
-          <Text style={styles_signup.currentDate}>
-            Selected: {birthday.toDateString()}
-          </Text>
-
-          <View style={styles_signup.confirmationButtons}>
-            <Button title="Cancel" onPress={() => setModalVisible(false)} />
-            <Button title="Confirm" onPress={handleBirthdaySelect} />
-          </View>
+          <Text style={styles_signup.modalText}>Select Your Birthday</Text>
+          <DateTimePicker
+            style={styles_signup.datePicker}
+            value={birthday}
+            mode="date"
+            display="default"
+            onChange={(event, selectedDate) => {
+              const currentDate = selectedDate || birthday;
+              setBirthday(currentDate); // Update state with selected date
+            }}
+          />
+          <Button title="Cancel" onPress={() => setModalVisible(false)} />
+          <Button title="Confirm" onPress={handleBirthdaySelect} />
         </View>
-      </Modal>
+      </Modal>}
 
       {/* Confirmation Code Modal */}
       <Modal isVisible={isConfirmationModalVisible}>
@@ -237,17 +205,8 @@ const SignUpScreen = () => {
             value={confirmation_code}
             onChangeText={setconfirmation_code}
           />
-          <View style={styles_signup.confirmationButtons}>
-            <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
-            {isLoading ? (
-              <TouchableOpacity style={styles_signup.loadingButton} disabled={true}>
-                <ActivityIndicator color="white" />
-              </TouchableOpacity>
-            ) : (
-              <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
-            )}
-
-          </View>
+          <Button title="Submit" onPress={handleconfirmation_codeSubmit} />
+          <Button title="Cancel" onPress={() => setIsConfirmationModalVisible(false)} />
 
           {/* Timer for Code Expiration */}
           {isConfirmationModalVisible && !isExpired && (

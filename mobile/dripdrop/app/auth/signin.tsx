@@ -32,10 +32,6 @@ export default function Login() {
     }
   };
 
-  const handleAutoLogin = () => {
-    setEmail("zfoote3@gmail.com");
-    setPassword("hello1@T");
-  };
 
   const onGoToSignUp = () => {
     router.replace("/auth/signup");
@@ -73,9 +69,6 @@ export default function Login() {
         <Text style={styles_signin.signUpText}>Don't have an account? Sign Up</Text>
       </TouchableOpacity>
 
-      <TouchableOpacity onPress={handleAutoLogin}>
-        <Text style={styles_signin.signUpText}>Push to Auto Login as Test user</Text>
-      </TouchableOpacity>
 
       {loading && (
         <View style={styles_signin.loadingContainer}>
